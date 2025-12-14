@@ -500,6 +500,15 @@ def create_optimize_request():
         }
 
     def get_pv_akku_data():
+        # Use dynamic max charge power if charging curve is enabled, otherwise use fixed value
+        # This ensures EVopt receives realistic charging limits based on current SOC
+        current_dynamic_max = battery_interface.get_max_charge_power()
+        max_charge_power = (
+            current_dynamic_max
+            if config_manager.config["battery"].get("charging_curve_enabled", True)
+            else config_manager.config["battery"]["max_charge_power_w"]
+        )
+
         akku_object = {
             "capacity_wh": config_manager.config["battery"]["capacity_wh"],
             "charging_efficiency": config_manager.config["battery"][
@@ -508,9 +517,7 @@ def create_optimize_request():
             "discharging_efficiency": config_manager.config["battery"][
                 "discharge_efficiency"
             ],
-            "max_charge_power_w": config_manager.config["battery"][
-                "max_charge_power_w"
-            ],
+            "max_charge_power_w": max_charge_power,
             "initial_soc_percentage": round(battery_interface.get_current_soc()),
             "min_soc_percentage": battery_interface.get_min_soc(),
             "max_soc_percentage": battery_interface.get_max_soc(),
