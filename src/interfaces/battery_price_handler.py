@@ -32,7 +32,7 @@ class BatteryPriceHandler:
     # pylint: disable=too-many-instance-attributes
 
     # Constants for algorithm tuning
-    MAX_GAP_SECONDS_IDENTIFY = 120  # Gap tolerance when identifying charging events
+    MAX_GAP_SECONDS_IDENTIFY = 600  # Gap tolerance when identifying charging events
     MAX_GAP_MINUTES_MERGE = 30  # Gap tolerance when merging fetch ranges
     BUFFER_HOURS_LOOKBACK = 12  # Extra history to fetch for session reconstruction
     DEFAULT_DELTA_SECONDS = 300  # Fallback time delta between points
@@ -259,6 +259,10 @@ class BatteryPriceHandler:
             energy_from_grid = event_totals["grid_to_battery_wh"]
             battery_in_wh = event_totals["total_battery_wh"]
 
+            # Skip sessions with no energy (e.g. single point sessions)
+            if battery_in_wh <= 0.001:
+                continue
+
             # Apply efficiency to the cost
             event_cost = event_totals["grid_cost_euro"] / self.charge_efficiency
 
@@ -464,8 +468,20 @@ class BatteryPriceHandler:
                         "power_points": [point],
                     }
                 else:
-                    current_event["end_time"] = timestamp
-                    current_event["power_points"].append(point)
+                    # Check for gap even if power is still above threshold
+                    gap = (timestamp - last_charging_time).total_seconds()
+                    if gap < self.MAX_GAP_SECONDS_IDENTIFY:
+                        current_event["end_time"] = timestamp
+                        current_event["power_points"].append(point)
+                    else:
+                        self._close_charging_event(
+                            current_event, charging_events, threshold
+                        )
+                        current_event = {
+                            "start_time": timestamp,
+                            "end_time": timestamp,
+                            "power_points": [point],
+                        }
                 last_charging_time = timestamp
             elif current_event is not None:
                 gap = (timestamp - last_charging_time).total_seconds()
@@ -514,17 +530,26 @@ class BatteryPriceHandler:
         }
 
         power_points = event["power_points"]
-        if not power_points:
+        if len(power_points) < 2:
             return totals
 
         # Indices for stream alignment
         indices = {"pv": 0, "grid": 0, "load": 0, "price": 0}
 
-        for i, point in enumerate(power_points):
-            timestamp = point["timestamp"]
-            time_hours = self._get_delta_seconds(power_points, i) / 3600.0
+        for i in range(len(power_points) - 1):
+            p_start = power_points[i]
+            p_end = power_points[i + 1]
 
-            # Align sensor streams
+            timestamp = p_start["timestamp"]
+            delta_seconds = (p_end["timestamp"] - p_start["timestamp"]).total_seconds()
+
+            # Cap delta to avoid huge jumps if data is missing within an event
+            if delta_seconds > self.MAX_GAP_SECONDS_IDENTIFY:
+                delta_seconds = self.DEFAULT_DELTA_SECONDS
+
+            time_hours = delta_seconds / 3600.0
+
+            # Align sensor streams to the start of the interval
             pv_power = self._get_aligned_value(
                 historical_data.get("pv_power", []), timestamp, indices, "pv"
             )
@@ -542,35 +567,23 @@ class BatteryPriceHandler:
                 fallback_func=self._get_fallback_price,
             )
 
+            # Use average battery power for the interval
+            avg_battery_power = (p_start["value"] + p_end["value"]) / 2.0
+
             pv_to_bat, grid_to_bat = self._calculate_power_split(
-                point["value"], pv_power, grid_power, load_power
+                avg_battery_power, pv_power, grid_power, load_power
             )
 
             grid_energy_wh = grid_to_bat * time_hours
             totals["pv_to_battery_wh"] += pv_to_bat * time_hours
             totals["grid_to_battery_wh"] += grid_energy_wh
-            totals["total_battery_wh"] += point["value"] * time_hours
+            totals["total_battery_wh"] += avg_battery_power * time_hours
             totals["total_pv_wh"] += pv_power * time_hours
             totals["total_grid_wh"] += grid_power * time_hours
             totals["total_load_wh"] += load_power * time_hours
             totals["grid_cost_euro"] += (grid_energy_wh / 1000.0) * current_price
 
         return totals
-
-    def _get_delta_seconds(self, points: List[Dict], index: int) -> float:
-        """Calculate time delta between points."""
-        if index < len(points) - 1:
-            delta = (
-                points[index + 1]["timestamp"] - points[index]["timestamp"]
-            ).total_seconds()
-        elif index > 0:
-            delta = (
-                points[index]["timestamp"] - points[index - 1]["timestamp"]
-            ).total_seconds()
-        else:
-            delta = self.DEFAULT_DELTA_SECONDS
-
-        return delta if delta <= 900 else self.DEFAULT_DELTA_SECONDS
 
     # pylint: disable=too-many-arguments,too-many-positional-arguments
     def _get_aligned_value(
