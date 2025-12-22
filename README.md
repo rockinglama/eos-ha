@@ -43,6 +43,7 @@ EOS Connect helps you get the most out of your solar and storage systems—wheth
       - [OpenHAB](#openhab)
       - [PV Forecast](#pv-forecast)
       - [Energy Price Forecast](#energy-price-forecast)
+      - [Battery Price Analysis (Historical Cost)](#battery-price-analysis-historical-cost)
   - [Webpage Example](#webpage-example)
   - [Provided Data per **EOS connect** API](#provided-data-per-eos-connect-api)
     - [Web API (REST/JSON)](#web-api-restjson)
@@ -83,6 +84,11 @@ EOS Connect helps you get the most out of your solar and storage systems—wheth
     - EVCC-specific modes (e.g., fast charge, PV mode).
   - **Dynamic Charging Curve**:
     - If enabled, EOS Connect automatically adjusts the maximum battery charging power based on the current state of charge (SOC). This helps to optimize battery health and efficiency by reducing charge power as the battery approaches full capacity.
+- **Dynamic Battery Price Calculation**:
+  - Analyzes charging history to determine the real cost of energy currently stored in the battery.
+  - Uses an **Inventory Valuation (LIFO)** model to ensure the price reflects the most recent charging sessions.
+  - Distinguishes between PV surplus and grid charging to provide an accurate cost basis.
+  - Helps the optimizer make better decisions about when to discharge the battery based on the actual cost of the stored energy.
 - **Cost and Solar Optimization**:
   - Aligns energy usage with real-time electricity prices (e.g., from Tibber, [smartenergy.at](https://www.smartenergy.at/), or [Stromligning.dk](https://stromligning.dk/)) to minimize costs.
   - Incorporates PV forecasts to prioritize charging during periods of high solar output.
@@ -306,6 +312,13 @@ EOS Connect supports multiple sources for solar (PV) production forecasts. You c
 #### Energy Price Forecast
 Energy price forecasts are retrieved from the chosen source (e.g. tibber, Akkudoktor, Smartenergy, ...). **Note**: Prices for tomorrow are available earliest at 1 PM. Until then, today's prices are used to feed the model.
 
+#### Battery Price Analysis (Inventory Valuation)
+EOS Connect calculates the actual cost of the energy currently stored in your battery by analyzing your recent charging history. Instead of a simple average, it uses an **Inventory Valuation (LIFO)** model:
+- **Smart Tracking**: It automatically identifies if energy came from your solar panels (0€) or the grid.
+- **Inventory Focus**: It calculates the price based on the most recent charging sessions that match your current battery level. This means the price reflects the "value" of the energy actually inside the battery.
+- **Live Pricing**: For grid charging, it uses the exact electricity price at that time.
+- **Visual Feedback**: The dashboard highlights which charging sessions are currently "in inventory" and which are historical.
+
 > **Note:**  
 > All data collection, forecasting, and optimization cycles are now driven by the `time_frame` setting in your configuration.  
 > For more precise and responsive optimization, set `time_frame: 900` for a 15-minute cycle.
@@ -315,6 +328,10 @@ Energy price forecasts are retrieved from the chosen source (e.g. tibber, Akkudo
 ## Webpage Example
 
 The dashbaord of **EOS connect** is available at `http://localhost:8081`.
+
+- **Main Dashboard**: Real-time overview of PV, Load, Battery, and Optimization states.
+- **Battery Overview**: Detailed analysis of battery costs, charging sessions, and PV/Grid ratios. Accessible via the main menu or by clicking the battery SOC/Capacity icons.
+- **Log Viewer**: Real-time application logs with component-based filtering (e.g., `BATTERY-PRICE`, `OPTIMIZER`).
 
 ![webpage screenshot](doc/screenshot_0_1_20.png)
 
@@ -397,7 +414,27 @@ Get current system control states and battery information.
         "soc": 23.8,
         "usable_capacity": 3867.11,
         "max_charge_power_dyn": 10000,
-        "max_grid_charge_rate": 10000
+        "max_grid_charge_rate": 10000,
+        "stored_energy": {
+            "stored_energy_price": 0.000215,
+            "duration_of_analysis": 96,
+            "charged_energy": 12450.5,
+            "charged_from_pv": 8500.0,
+            "charged_from_grid": 3950.5,
+            "ratio": 68.3,
+            "charging_sessions": [
+                {
+                    "start_time": "2025-12-21T11:58:06+00:00",
+                    "end_time": "2025-12-21T14:03:17+00:00",
+                    "charged_energy": 772.9,
+                    "charged_from_pv": 772.3,
+                    "charged_from_grid": 0.6,
+                    "ratio": 99.9,
+                    "cost": 0.0002
+                }
+            ],
+            "last_update": "2025-12-22T10:15:00Z"
+        }
     },
     "inverter": {
         "inverter_special_data": {
