@@ -29,6 +29,7 @@ class BatteryManager {
         const stored = battery.stored_energy || {};
         const sessions = stored.charging_sessions || [];
         const lookbackHours = stored.duration_of_analysis || 96;
+        const isEnabled = stored.enabled !== false;
 
         const header = `
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -42,8 +43,13 @@ class BatteryManager {
         const usableKWh = (battery.usable_capacity / 1000).toFixed(1);
         const maxChargeKW = (battery.max_charge_power_dyn / 1000).toFixed(2);
         const wac = stored.stored_energy_price !== undefined ? (stored.stored_energy_price * 1000).toFixed(2) : "--";
-        const pvRatio = stored.ratio !== undefined ? stored.ratio.toFixed(1) : "--";
+        const pvRatio = isEnabled && stored.ratio !== undefined ? stored.ratio.toFixed(1) : "--";
         const lastUpdate = stored.last_update ? new Date(stored.last_update).toLocaleString() : "Never";
+
+        let priceSubLabel = "Inventory Valuation";
+        if (!isEnabled) {
+            priceSubLabel = stored.price_source === "sensor" ? "External Sensor" : "Fixed Value";
+        }
 
         const content = `
             <div class="battery-overview-section" style="height: 100%; overflow: hidden; padding: 10px; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box;">
@@ -68,11 +74,11 @@ class BatteryManager {
                     <div class="battery-stat-card" style="border-left: 4px solid #2196f3;">
                         <div class="label">Stored Energy Price</div>
                         <div class="value">${wac} <span style="font-size: 0.6em;">ct/kWh</span></div>
-                        <div class="sub-label">Inventory Valuation</div>
+                        <div class="sub-label">${priceSubLabel}</div>
                     </div>
                     <div class="battery-stat-card" style="border-left: 4px solid #4caf50;">
                         <div class="label">PV Share</div>
-                        <div class="value">${pvRatio}%</div>
+                        <div class="value">${pvRatio}${isEnabled ? '%' : ''}</div>
                         <div class="sub-label">Solar vs Grid</div>
                     </div>
                 </div>
@@ -81,17 +87,20 @@ class BatteryManager {
                 <div class="battery-overview-card" style="background-color: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; flex: 1 1 0; min-height: 0; display: flex; flex-direction: column;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex: 0 0 auto;">
                         <div style="font-weight: bold; color: #ccc;">Recent Charging Sessions</div>
-                        <div style="font-size: 0.8em; color: #888;">Last analysis: ${lastUpdate}</div>
+                        <div style="font-size: 0.8em; color: #888;">${isEnabled ? `Last analysis: ${lastUpdate}` : 'Analysis disabled'}</div>
                     </div>
-                    <div style="flex: 1 1 0; position: relative; min-height: 0;">
-                        <canvas id="batterySessionsChart"></canvas>
+                    <div style="flex: 1 1 0; position: relative; min-height: 0; display: flex; align-items: center; justify-content: center;">
+                        ${isEnabled ? '<canvas id="batterySessionsChart"></canvas>' : '<div style="color: #666; font-style: italic;">Dynamic price calculation is not enabled in configuration.</div>'}
                     </div>
                 </div>
 
                 <!-- Session List -->
                 <div class="battery-overview-card battery-sessions-list" style="background-color: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; flex: 0 1 30%; min-height: 120px; display: flex; flex-direction: column;">
-                    <div style="font-weight: bold; color: #ccc; margin-bottom: 10px; flex: 0 0 auto;">Session Details (${sessions.length} sessions in last ${lookbackHours}h)</div>
+                    <div style="font-weight: bold; color: #ccc; margin-bottom: 10px; flex: 0 0 auto;">
+                        ${isEnabled ? `Session Details (${sessions.length} sessions in last ${lookbackHours}h)` : 'Session Details'}
+                    </div>
                     <div style="flex: 1 1 0; overflow-y: auto; min-height: 0;">
+                        ${isEnabled ? `
                         <table style="width: 100%; font-size: 0.85em; border-collapse: collapse;">
                             <thead>
                                 <tr style="border-bottom: 1px solid #444; color: #888; position: sticky; top: 0; background: rgb(58, 58, 58); z-index: 1;">
@@ -152,6 +161,7 @@ class BatteryManager {
                                     }).join('')}
                             </tbody>
                         </table>
+                        ` : '<div style="text-align: center; padding: 20px; color: #666; font-style: italic;">Session history is only available when dynamic price calculation is enabled.</div>'}
                     </div>
                 </div>
             </div>
@@ -160,7 +170,7 @@ class BatteryManager {
         showFullScreenOverlay(header, content);
 
         // Render Chart
-        if (sessions.length > 0) {
+        if (isEnabled && sessions.length > 0) {
             this.renderSessionsChart(sessions);
         }
     }

@@ -309,7 +309,10 @@ class BatteryInterface:
         """
         Returns detailed information about the stored energy cost analysis.
         """
-        return self.price_handler.get_analysis_results()
+        results = self.price_handler.get_analysis_results().copy()
+        results["enabled"] = self.price_handler.price_calculation_enabled
+        results["price_source"] = "sensor" if self.price_sensor else "fixed"
+        return results
 
     def set_min_soc(self, min_soc):
         """
