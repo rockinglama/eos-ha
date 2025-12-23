@@ -186,19 +186,19 @@ class BatteryManager {
         const createPattern = (color) => {
             const pCanvas = document.createElement('canvas');
             const pCtx = pCanvas.getContext('2d');
-            pCanvas.width = 10;
-            pCanvas.height = 10;
+            pCanvas.width = 5;
+            pCanvas.height = 5;
             pCtx.strokeStyle = color;
             pCtx.lineWidth = 1;
             pCtx.beginPath();
-            pCtx.moveTo(0, 10);
-            pCtx.lineTo(10, 0);
+            pCtx.moveTo(0, 5);
+            pCtx.lineTo(5, 0);
             pCtx.stroke();
             return ctx.createPattern(pCanvas, 'repeat');
         };
 
-        const pvPattern = createPattern('rgba(76, 175, 80, 0.4)');
-        const gridPattern = createPattern('rgba(33, 150, 243, 0.4)');
+        const pvPattern = createPattern('rgba(76, 175, 80, 0.6)');
+        const gridPattern = createPattern('rgba(33, 150, 243, 0.6)');
 
         // Prepare data
         const labels = sessions.map(s => {
