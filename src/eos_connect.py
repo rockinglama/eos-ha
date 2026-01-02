@@ -1222,8 +1222,8 @@ def change_control_state():
         max(tgt_ac_charge_power, tgt_dc_charge_power)
     )
 
-    # Check if the overall state of the inverter was changed recently
-    if base_control.was_overall_state_changed_recently():
+    # Check if the overall state of the inverter was changed recently and consume the event
+    if base_control.was_overall_state_changed_recently(consume=True):
         logger.debug("[Main] Overall state changed recently")
         # MODE_CHARGE_FROM_GRID
         if current_overall_state == 0:

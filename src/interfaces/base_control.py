@@ -81,9 +81,10 @@ class BaseControl:
         """
         return state_mapping.get(num_mode, "unknown state")
 
-    def was_overall_state_changed_recently(self, time_window_seconds=1):
+    def was_overall_state_changed_recently(self, time_window_seconds=1, consume=False):
         """
         Checks if the overall state was changed within the last `time_window_seconds`.
+        If consume is True, the change timestamps are cleared after being detected.
         """
         current_time = time.time()
         # Remove timestamps older than the time window
@@ -92,7 +93,13 @@ class BaseControl:
             for ts in self._state_change_timestamps
             if current_time - ts <= time_window_seconds
         ]
-        return len(self._state_change_timestamps) > 0
+
+        has_changed = len(self._state_change_timestamps) > 0
+
+        if has_changed and consume:
+            self._state_change_timestamps = []
+
+        return has_changed
 
     def get_current_ac_charge_demand(self):
         """
