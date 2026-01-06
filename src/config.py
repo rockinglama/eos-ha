@@ -89,6 +89,7 @@ class ConfigManager:
                         "min_soc_percentage": 5,
                         "max_soc_percentage": 100,
                         "charging_curve_enabled": True,  # enable charging curve
+                        "sensor_battery_temperature": "",  # sensor for battery temperature
                         "price_euro_per_wh_accu": 0.0,  # price for battery in euro/Wh
                         "price_euro_per_wh_sensor": "",  # sensor/item providing battery energy cost in €/Wh
                         "price_calculation_enabled": False,
@@ -300,6 +301,9 @@ class ConfigManager:
             "enabling charging curve for controlled charging power"
             + " according to the SOC (default: true)",
             "charging_curve_enabled",
+        )
+        config["battery"].yaml_add_eol_comment(
+            "sensor for battery temperature in °C", "sensor_battery_temperature"
         )
         config["battery"].yaml_add_eol_comment(
             "enable dynamic battery price calculation based on history",

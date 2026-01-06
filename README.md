@@ -82,8 +82,15 @@ EOS Connect helps you get the most out of your solar and storage systems—wheth
     - Avoid discharge.
     - Discharge allowed.
     - EVCC-specific modes (e.g., fast charge, PV mode).
-  - **Dynamic Charging Curve**:
-    - If enabled, EOS Connect automatically adjusts the maximum battery charging power based on the current state of charge (SOC). This helps to optimize battery health and efficiency by reducing charge power as the battery approaches full capacity.
+  - **Dynamic Charging Curve with Temperature Protection**:
+    - **SOC-based Charging Control**: Automatically adjusts maximum battery charging power based on the current state of charge (SOC). At low SOC (≤50%), charging occurs at maximum configured power (e.g., 1C rate). As SOC increases beyond 50%, charging power is gradually reduced using an exponential curve, reaching minimum power (~5% of configured max) near full capacity. This protects battery health and optimizes charging efficiency.
+    - **Temperature-based Protection**: When a battery temperature sensor is configured, the system applies additional power reduction during extreme temperatures to prevent battery damage:
+      - **Cold Protection** (<0°C): Reduces charging to 5-7.5% of maximum power to prevent lithium plating in LiFePO4 batteries
+      - **Moderate Cold** (0-15°C): Gradually increases allowed charging power as temperature rises
+      - **Optimal Range** (15-45°C): No temperature restrictions, full SOC-based curve applies
+      - **Heat Protection** (>45°C): Progressively reduces charging power to protect from thermal stress
+      - **Critical Heat** (>60°C): Limits charging to 5-7.5% of maximum power
+    - The final charging power is the product of both SOC and temperature factors, ensuring comprehensive battery protection.
 - **Dynamic Battery Price Calculation**:
   - Analyzes charging history to determine the real cost of energy currently stored in the battery.
   - Uses an **Inventory Valuation (LIFO)** model to ensure the price reflects the most recent charging sessions.

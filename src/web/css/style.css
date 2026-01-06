@@ -58,7 +58,7 @@ body {
     }
     .battery-stat-card {
         padding: 8px;
-        min-height: 60px;
+        min-height: 40px;
     }
     .battery-stat-card .value {
         font-size: 1.1em;
@@ -68,7 +68,9 @@ body {
         margin-bottom: 2px;
     }
     .battery-stat-card .sub-label {
-        display: none;
+        display: block;
+        font-size: 0.65em;
+        line-height: 1.2;
     }
     /* Compact sections on mobile */
     .battery-overview-section {

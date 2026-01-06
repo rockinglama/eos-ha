@@ -200,9 +200,28 @@ A default config file will be created with the first start, if there is no `conf
 
 - **`battery.charging_curve_enabled`**:  
   Enables or disables the dynamic charging curve for the battery.  
-  - `true`: The system will automatically reduce the maximum charging power as the battery SOC increases, helping to protect battery health and optimize efficiency.  
-  - `false`: The battery will always charge at the configured maximum power, regardless of SOC.  
+  - `true`: The system will automatically adjust the maximum charging power based on two factors:
+    - **SOC-based reduction**: At SOC ≤50%, battery charges at full configured power. Above 50%, power is exponentially reduced to protect battery health and optimize charging efficiency. At 95% SOC, power is reduced to ~5% of maximum.
+    - **Temperature-based protection** (if `sensor_battery_temperature` is configured): Additional power reduction is applied during extreme temperatures:
+      - Below 0°C: 5-7.5% power (prevents lithium plating in LiFePO4 batteries)
+      - 0-5°C: 5-15% power (gradual warm-up)
+      - 5-15°C: 15-100% power (transition to optimal range)
+      - 15-45°C: 100% power (optimal operating range, only SOC-based reduction applies)
+      - 45-50°C: 100-45% power (heat warning)
+      - 50-60°C: 45-7.5% power (severe heat protection)
+      - Above 60°C: 5-7.5% power (critical protection)
+    - The final charging power is the product of both SOC and temperature multipliers (e.g., at -2°C with 51% SOC: ~0.65 kW instead of 10 kW)
+  - `false`: The battery will always charge at the configured maximum power, regardless of SOC or temperature.  
   - **Default:** `true`
+
+- **`battery.sensor_battery_temperature`**:  
+  Sensor/item identifier for battery temperature in °C. Optional but highly recommended for battery protection.
+  - If configured, enables automatic temperature-based charging power reduction to protect the battery from damage during cold/hot conditions.
+  - Supports Home Assistant entities (e.g., `sensor.battery_temperature`) and OpenHAB items.
+  - Valid temperature range: -30°C to 70°C (values outside this range are ignored for safety)
+  - If not configured or sensor fails, temperature protection is disabled and only SOC-based curve is used.
+  - **Default:** `""` (disabled)
+  - **Example for BYD Battery Box**: `sensor.byd_battery_box_premium_hv_temperatur`
 
 - **`battery.price_euro_per_wh_accu`**:
   Price for battery in €/Wh - can be used to shift the result over the day according to the available energy (more details follow).
@@ -527,7 +546,8 @@ battery:
   max_soc_percentage: 100 # URL for battery soc in %
   price_euro_per_wh_accu: 0 # price for battery in €/Wh
   price_euro_per_wh_sensor: "" # Home Assistant entity (e.g. sensor.battery_price) providing €/Wh
-  charging_curve_enabled: true # enable dynamic charging curve for battery
+  charging_curve_enabled: true # enable dynamic charging curve for battery (SOC-based + temperature-based if sensor configured)
+  sensor_battery_temperature: "" # sensor for battery temperature in °C (e.g., sensor.byd_battery_box_premium_hv_temperatur) - enables temperature protection
 # List of PV forecast source configuration
 pv_forecast_source:
   source: akkudoktor # data source for solar forecast providers akkudoktor, openmeteo, openmeteo_local, forecast_solar, evcc, solcast, default (default uses akkudoktor)
@@ -604,7 +624,8 @@ battery:
   min_soc_percentage: 5 # URL for battery soc in %
   max_soc_percentage: 100 # URL for battery soc in %
   price_euro_per_wh_accu: 0 # price for battery in €/Wh
-  charging_curve_enabled: true # enable dynamic charging curve for battery
+  charging_curve_enabled: true # enable dynamic charging curve for battery (SOC-based + temperature-based if sensor configured)
+  sensor_battery_temperature: "" # sensor for battery temperature in °C - enables temperature protection (optional)
 # List of PV forecast source configuration
 pv_forecast_source:
   source: akkudoktor # data source for solar forecast providers akkudoktor, openmeteo, openmeteo_local, forecast_solar, evcc, solcast, default (default uses akkudoktor)

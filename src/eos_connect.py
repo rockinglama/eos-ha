@@ -1500,6 +1500,13 @@ def get_controls():
             "soc": current_battery_soc,
             "usable_capacity": battery_interface.get_current_usable_capacity(),
             "max_charge_power_dyn": battery_interface.get_max_charge_power(),
+            "max_charge_power_fix": config_manager.config["battery"].get(
+                "max_charge_power_w", 0
+            ),
+            "charging_curve_enabled": config_manager.config["battery"].get(
+                "charging_curve_enabled", True
+            ),
+            "temperature": battery_interface.current_temp,
             "max_grid_charge_rate": config_manager.config["inverter"][
                 "max_grid_charge_rate"
             ],

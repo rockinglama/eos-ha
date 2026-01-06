@@ -51,6 +51,64 @@ class BatteryManager {
             priceSubLabel = stored.price_source === "sensor" ? "External Sensor" : "Fixed Value";
         }
 
+        // Max charge power details
+        const chargingCurveEnabled = battery.charging_curve_enabled !== false;
+        const maxChargePowerFix = battery.max_charge_power_fix || battery.max_charge_power_w || 0;
+        const maxChargeFixKW = (maxChargePowerFix / 1000).toFixed(1);
+        const batteryTemp = battery.temperature;
+                
+        // Temperature status and icon
+        let tempIcon = '';
+        let tempColor = '#888';
+        let tempStatus = '';
+        if (batteryTemp !== undefined && batteryTemp !== null) {
+            if (batteryTemp < 0) {
+                tempIcon = '<i class="fa-solid fa-snowflake"></i>';
+                tempColor = '#64b5f6';
+                tempStatus = 'Cold protection';
+            } else if (batteryTemp < 15) {
+                tempIcon = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                tempColor = '#ffa726';
+                tempStatus = 'Reduced power';
+            } else if (batteryTemp <= 45) {
+                tempIcon = '<i class="fa-solid fa-circle-check"></i>';
+                tempColor = '#66bb6a';
+                tempStatus = 'Optimal';
+            } else if (batteryTemp < 55) {
+                tempIcon = '<i class="fa-solid fa-triangle-exclamation"></i>';
+                tempColor = '#ffa726';
+                tempStatus = 'Heat warning';
+            } else {
+                tempIcon = '<i class="fa-solid fa-fire"></i>';
+                tempColor = '#ef5350';
+                tempStatus = 'Heat protection';
+            }
+        }
+
+        // Build max charge details HTML
+        let maxChargeDetails = '';
+        if (chargingCurveEnabled) {
+            const mobile = isMobile();
+            const tempAffectsPower = batteryTemp !== undefined && batteryTemp !== null &&
+                                     (batteryTemp < 15 || batteryTemp > 45);
+            
+            if (mobile) {
+                // Compact mobile view
+                maxChargeDetails = `<span style="color: #66bb6a;">● ${maxChargeFixKW}kW</span>`;
+                if (tempAffectsPower) {
+                    maxChargeDetails += ` | <span style="color: ${tempColor};" title="${tempStatus}">${tempIcon} ${batteryTemp.toFixed(0)}°C</span>`;
+                }
+            } else {
+                // Full desktop view
+                maxChargeDetails = `<span style="color: #66bb6a;">● Dynamic</span><br>Config: ${maxChargeFixKW} kW`;
+                if (batteryTemp !== undefined && batteryTemp !== null) {
+                    maxChargeDetails += ` | Temp: ${batteryTemp.toFixed(1)}°C <span style="color: ${tempColor};" title="${tempStatus}">${tempIcon}</span>`;
+                }
+            }
+        } else {
+            maxChargeDetails = '<span style="color: #888;">⚪ Static/Fixed</span>';
+        }
+
         const content = `
             <div class="battery-overview-section" style="height: 100%; overflow: hidden; padding: 10px; display: flex; flex-direction: column; gap: 15px; box-sizing: border-box;">
                 
@@ -67,9 +125,9 @@ class BatteryManager {
                         <div class="sub-label">Current capacity</div>
                     </div>
                     <div class="battery-stat-card">
-                        <div class="label">Max Charge</div>
+                        <div class="label">Max Charge Power</div>
                         <div class="value">${maxChargeKW} <span style="font-size: 0.6em;">kW</span></div>
-                        <div class="sub-label">Dynamic limit</div>
+                        <div class="sub-label" style="font-size: 0.75em; line-height: 1.3;">${maxChargeDetails}</div>
                     </div>
                     <div class="battery-stat-card" style="border-left: 4px solid #2196f3;">
                         <div class="label">Stored Energy Price</div>

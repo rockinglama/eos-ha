@@ -46,6 +46,26 @@ from .battery_price_handler import BatteryPriceHandler
 logger = logging.getLogger("__main__")
 logger.info("[BATTERY-IF] loading module ")
 
+# Temperature Compensation Sensitivity Constant
+# Controls how aggressively battery charging is reduced in extreme temperatures.
+# This protects the battery from damage during cold/hot conditions.
+#
+# ADJUSTING THIS VALUE:
+# - 0.0 = Maximum protection (most conservative, minimal charging in extreme temps)
+# - 0.5 = Conservative (default, good balance for LiFePO4 like BYD)
+# - 1.0 = Lenient (allows more charging in extreme temps, less protection)
+#
+# EXAMPLES at -1°C with 52.5% SOC (base calculation = ~20 kW):
+# - Sensitivity 0.0: ~0.4 kW (2% power, maximum protection)
+# - Sensitivity 0.5: ~2.0 kW (10% power, recommended for LiFePO4)
+# - Sensitivity 1.0: ~4.0 kW (20% power, lenient)
+#
+# RECOMMENDATION:
+# For LiFePO4 batteries (BYD, CATL): keep at 0.5 or lower
+# For NMC batteries: 0.3-0.5 depending on manufacturer specs
+# Only increase if your battery manufacturer explicitly allows higher charge rates in cold
+TEMP_COMPENSATION_SENSITIVITY = 0.5
+
 
 class BatteryInterface:
     """
@@ -76,12 +96,16 @@ class BatteryInterface:
         self.src = config.get("source", "default")
         self.url = config.get("url", "")
         self.soc_sensor = config.get("soc_sensor", "")
+        self.temp_sensor = config.get("sensor_battery_temperature", "")
         self.access_token = config.get("access_token", "")
         self.max_charge_power_fix = config.get("max_charge_power_w", 1000)
         self.battery_data = config
         self.max_charge_power_dyn = 0
         self.last_max_charge_power_dyn = 0
         self.current_soc = 0
+        self.current_temp = None  # None = sensor not configured or failed
+        self.temp_fail_count = 0
+        self.last_logged_temp_multiplier = None  # To reduce log spam
         self.current_usable_capacity = 0
         self.on_bat_max_changed = on_bat_max_changed
         self.base_control = base_control  # Store reference to base_control
@@ -129,6 +153,51 @@ class BatteryInterface:
                 "[BATTERY-IF] successfully fetched SOC = %s %%", self.current_soc
             )
         return self.current_soc
+
+    def __battery_request_current_temp(self):
+        """
+        Fetch the current battery temperature from the configured source.
+        Returns None if sensor not configured or fetch fails.
+        """
+        if not self.temp_sensor:
+            return None  # Sensor not configured - temperature compensation disabled
+
+        if self.src == "default":
+            return None  # Default mode doesn't support temperature
+
+        try:
+            raw_state = self.__fetch_remote_state(self.src, self.temp_sensor)
+            cleaned_value = raw_state.split()[0]
+            temp = float(cleaned_value)
+
+            # Sanity check: battery temperature should be reasonable
+            if temp < -30 or temp > 70:
+                logger.warning(
+                    "[BATTERY-IF] Unrealistic battery temperature: %s°C. Ignoring.",
+                    temp,
+                )
+                return self.current_temp  # Keep last valid value
+
+            self.temp_fail_count = 0
+            self.current_temp = temp
+            logger.debug("[BATTERY-IF] Successfully fetched Temp = %s°C", temp)
+            return temp
+
+        except (requests.exceptions.RequestException, ValueError, KeyError) as e:
+            self.temp_fail_count += 1
+            if self.temp_fail_count >= 5:
+                logger.warning(
+                    "[BATTERY-IF] Temperature sensor unavailable (%d failures). "
+                    "Temperature compensation disabled.",
+                    self.temp_fail_count,
+                )
+                return None
+            logger.debug(
+                "[BATTERY-IF] Error fetching temperature (attempt %d/5): %s",
+                self.temp_fail_count,
+                e,
+            )
+            return self.current_temp  # Use last known value
 
     # source-specific price fetchers removed — use __fetch_price_data_unified
 
@@ -408,19 +477,95 @@ class BatteryInterface:
             max_soc = self.battery_data.get("max_soc_percentage", 100)
         self.max_soc_set = max_soc
 
-    def __get_max_charge_power_dyn(self, soc=None, min_charge_power=500):
+    def __calculate_temp_multiplier(self, temp):
         """
-        Calculates the maximum charge power of the battery dynamically based on SOC
-        using a decay function that incorporates the C-rate.
+        Calculate temperature compensation multiplier for charge power.
 
-        The formula reduces the charge power as SOC increases:
+        Uses conservative base values with adjustable sensitivity via
+        TEMP_COMPENSATION_SENSITIVITY constant.
+
+        Base multipliers (before sensitivity adjustment):
+        - Below 0°C: 0.05 (5%) - moderate cold protection
+        - 0-5°C: Linear ramp 0.05 to 0.10 (5-10%)
+        - 5-15°C: Linear ramp 0.10 to 1.0 (10-100%)
+        - 15-45°C: 1.0 (100%) - optimal range
+        - 45-50°C: Linear ramp 1.0 to 0.3 (100-30%)
+        - 50-60°C: Linear ramp 0.3 to 0.05 (30-5%)
+        - Above 60°C: 0.05 (5%) - critical heat protection
+
+        Args:
+            temp (float): Battery temperature in °C
+
+        Returns:
+            float: Multiplier between 0.05 and 1.0
+        """
+        if temp is None:
+            return 1.0  # No temperature sensor - no compensation
+
+        # Calculate conservative base multiplier
+        if temp < 0:
+            base_multiplier = 0.05  # Moderate cold protection below freezing
+        elif temp < 5:
+            # Linear ramp from 0.05 to 0.10
+            base_multiplier = 0.05 + (temp / 5) * 0.05
+        elif temp < 15:
+            # Linear ramp from 0.10 to 1.0
+            base_multiplier = 0.10 + ((temp - 5) / 10) * 0.90
+        elif temp <= 45:
+            # Optimal operating range
+            base_multiplier = 1.0
+        elif temp < 50:
+            # Heat warning zone - ramp down from 1.0 to 0.3
+            base_multiplier = 1.0 - ((temp - 45) / 5) * 0.7
+        elif temp < 60:
+            # Severe heat protection - ramp down from 0.3 to 0.05
+            base_multiplier = 0.3 - ((temp - 50) / 10) * 0.25
+        else:
+            # Critical temperature
+            base_multiplier = 0.05
+
+        # Apply sensitivity adjustment
+        # Formula: scales the base multiplier by (1 + sensitivity)
+        # sensitivity=0.0 → multiplier = base (most conservative, e.g., 5% at -2°C)
+        # sensitivity=0.5 → multiplier = base × 1.5 (e.g., 7.5% at -2°C)
+        # sensitivity=1.0 → multiplier = base × 2.0 (e.g., 10% at -2°C)
+        # sensitivity=2.0 → multiplier = base × 3.0 (e.g., 15% at -2°C)
+        multiplier = base_multiplier * (1.0 + TEMP_COMPENSATION_SENSITIVITY)
+
+        # Ensure multiplier stays within valid range
+        multiplier = max(0.05, min(1.0, multiplier))
+
+        # Log only significant changes (reduce spam)
+        if (
+            self.last_logged_temp_multiplier is None
+            or abs(multiplier - self.last_logged_temp_multiplier) >= 0.1
+        ):
+            if multiplier < 1.0:
+                logger.info(
+                    "[BATTERY-IF] Temperature compensation active: %.0f°C → %.0f%% power",
+                    temp,
+                    multiplier * 100,
+                )
+            self.last_logged_temp_multiplier = multiplier
+
+        return multiplier
+
+    def __get_max_charge_power_dyn(self, soc=None, temp=None, min_charge_power=500):
+        """
+        Calculates the maximum charge power dynamically based on SOC and temperature.
+
+        The formula reduces the charge power as SOC increases and applies temperature
+        compensation to protect the battery:
         - At low SOC, the charge power is close to the maximum C-rate (e.g., 1C).
         - As SOC approaches 100%, the charge power decreases exponentially.
+        - Temperature compensation is automatically applied if sensor is configured.
         - The charge power is never less than the specified minimum value.
 
         Args:
             soc (float, optional): The state of charge to use for calculation.
                                 If None, the current SOC is used.
+            temp (float, optional): The battery temperature in °C.
+                                If None, the current temperature is used.
             min_charge_power (float): The minimum charge power in watts.
 
         Returns:
@@ -429,61 +574,76 @@ class BatteryInterface:
         if not self.battery_data.get("charging_curve_enabled", True):
             self.max_charge_power_dyn = self.max_charge_power_fix
             logger.debug(
-                "[BATTERY-IF] Charging curve is disabled, using fixed max charge power."
+                "[BATTERY-IF] Charging curve disabled, using fixed max charge power."
             )
             return
 
         if soc is None:
             soc = self.current_soc
+        if temp is None:
+            temp = self.current_temp  # May be None if not configured
 
-        # Get the battery capacity in watt-hours
         battery_capacity_wh = self.battery_data.get("capacity_wh", 0)
 
         if battery_capacity_wh <= 0:
-            logger.warning("[BATTERY-IF] Battery capacity is not set or invalid.")
-            return min_charge_power
+            logger.warning("[BATTERY-IF] Battery capacity not set or invalid.")
+            self.max_charge_power_dyn = min_charge_power
+            return
 
-        # Ensure SOC is within valid bounds
         if soc < 0 or soc > 100:
             logger.warning(
-                "[BATTERY-IF] Invalid SOC value: %s. Returning minimum charge power.",
+                "[BATTERY-IF] Invalid SOC value: %s. Using minimum charge power.",
                 soc,
             )
-            return min_charge_power
+            self.max_charge_power_dyn = min_charge_power
+            return
 
-        # Define the maximum C-rate (e.g., 1C at low SOC)
-        max_c_rate = 1.0  # 1C means charging at full capacity per hour
-        min_c_rate = 0.05  # Minimum C-rate at high SOC (e.g., 5% of capacity)
+        # SOC-based C-rate calculation
+        max_c_rate = 1.0
+        min_c_rate = 0.05
 
         if soc <= 50:
-            # Linear decrease of C-rate up to 50% SOC
-            c_rate = max_c_rate
+            c_rate_soc = max_c_rate
         else:
-            # Logarithmic decrease of C-rate after 50% SOC
-            c_rate = max(min_c_rate, max_c_rate * (1 - (soc - 50) / 60) ** 2)
+            c_rate_soc = max(min_c_rate, max_c_rate * (1 - (soc - 50) / 60) ** 2)
 
-        # Calculate the maximum charge power in watts
-        max_charge_power = c_rate * battery_capacity_wh
+        # Temperature compensation
+        temp_multiplier = self.__calculate_temp_multiplier(temp)
 
-        # Ensure the charge power does not exceed the fixed maximum charge power
+        # Combine factors
+        final_c_rate = c_rate_soc * temp_multiplier
+
+        # Calculate power
+        max_charge_power = final_c_rate * battery_capacity_wh
         max_charge_power = min(max_charge_power, self.max_charge_power_fix)
-
-        # Round the charge power to the nearest 50 watts
         max_charge_power = round(max_charge_power / 50) * 50
+        max_charge_power = max(max_charge_power, min_charge_power)
 
-        self.max_charge_power_dyn = max(max_charge_power, min_charge_power)
-        if self.max_charge_power_dyn != self.last_max_charge_power_dyn:
-            self.last_max_charge_power_dyn = self.max_charge_power_dyn
-            logger.info(
-                "[BATTERY-IF] Max dynamic charge power changed to %s W",
-                self.max_charge_power_dyn,
+        # Update and notify if changed
+        if max_charge_power != self.last_max_charge_power_dyn:
+            self.max_charge_power_dyn = max_charge_power
+            self.last_max_charge_power_dyn = max_charge_power
+
+            # Enhanced logging with context
+            temp_info = (
+                f", Temp: {temp:.1f}°C (×{temp_multiplier:.2f})"
+                if temp is not None
+                else ""
             )
-            # Inform BaseControl directly if available
+            logger.info(
+                "[BATTERY-IF] Max charge power: %s W (SOC: %s%%%s)",
+                self.max_charge_power_dyn,
+                soc,
+                temp_info,
+            )
+
             if self.base_control:
                 self.base_control.set_current_bat_charge_max(self.max_charge_power_dyn)
 
             if self.on_bat_max_changed:
                 self.on_bat_max_changed()
+        else:
+            self.max_charge_power_dyn = max_charge_power
 
     def start_update_service(self):
         """
@@ -513,6 +673,7 @@ class BatteryInterface:
         while not self._stop_event.is_set():
             try:
                 self.__battery_request_current_soc()
+                self.__battery_request_current_temp()
                 self.current_usable_capacity = max(
                     0,
                     (
@@ -561,8 +722,9 @@ class BatteryInterface:
         )
         start_calc_time = time.time()
 
-        # Ensure we have current SOC and usable capacity before calculation
+        # Ensure we have current SOC, temperature and usable capacity before calculation
         self.__battery_request_current_soc()
+        self.__battery_request_current_temp()
         self.current_usable_capacity = max(
             0,
             (
