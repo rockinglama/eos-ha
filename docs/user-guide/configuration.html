@@ -1969,6 +1969,30 @@
                 </tr>
             </table>
 
+            <h3>request_timeout</h3>
+            <table>
+                <tr>
+                    <th>Parameter</th>
+                    <td><code>request_timeout</code></td>
+                </tr>
+                <tr>
+                    <th>Description</th>
+                    <td>HTTP request timeout for Home Assistant and OpenHAB API calls</td>
+                </tr>
+                <tr>
+                    <th>Valid Values</th>
+                    <td><code>5-120</code> (seconds)</td>
+                </tr>
+                <tr>
+                    <th>Default</th>
+                    <td><code>10</code></td>
+                </tr>
+                <tr>
+                    <th>Notes</th>
+                    <td>Increase this value if you experience frequent timeout errors when reading sensor data from Home Assistant or OpenHAB, especially when running on slower hardware (e.g., Synology NAS). Values outside the 5-120 range are automatically clamped to the valid range.</td>
+                </tr>
+            </table>
+
             <div class="alert alert-info">
                 <strong><i class="fas fa-file-alt"></i> Configuration File:</strong> The <code>config.yaml</code> file must be located in the <code>src</code> directory. If it doesn't exist, EOS Connect will create one with default values on first startup and prompt you to configure it before restarting.
             </div>
@@ -2086,7 +2110,8 @@ mqtt:
 refresh_time: 3 # Default refresh time of EOS connect in minutes - default: 3
 time_zone: Europe/Berlin # Default time zone - default: Europe/Berlin
 eos_connect_web_port: 8081 # Default port for EOS connect server - default: 8081
-log_level: info # Log level for the application : debug, info, warning, error - default: info</code></pre>
+log_level: info # Log level for the application : debug, info, warning, error - default: info
+request_timeout: 10 # Request timeout for Home Assistant and OpenHAB API calls in seconds (5-120) - default: 10</code></pre>
 
             <h3 id="example-minimal">Minimal Configuration Example</h3>
             <p>Minimum required configuration for basic operation (copy and customize):</p>
@@ -2163,7 +2188,8 @@ mqtt:
 refresh_time: 3 # Default refresh time of EOS connect in minutes - default: 3
 time_zone: Europe/Berlin # Default time zone - default: Europe/Berlin
 eos_connect_web_port: 8081 # Default port for EOS connect server - default: 8081
-log_level: info # Log level for the application : debug, info, warning, error - default: info</code></pre>
+log_level: info # Log level for the application : debug, info, warning, error - default: info
+request_timeout: 10 # Request timeout for Home Assistant and OpenHAB API calls in seconds (5-120) - default: 10</code></pre>
 
             <h3 id="example-evcc">Example: Using EVCC for PV Forecasts</h3>
             <p>When using EVCC as your PV forecast source, configuration is simplified as EVCC provides aggregated forecast data (copy and customize):</p>

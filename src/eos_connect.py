@@ -338,6 +338,7 @@ load_interface = LoadInterface(
     config_manager.config.get("load", {}),
     time_frame_base,
     time_zone,
+    request_timeout=config_manager.config.get("request_timeout", 10),
 )
 
 battery_interface = BatteryInterface(
@@ -346,6 +347,7 @@ battery_interface = BatteryInterface(
     load_interface=load_interface,
     timezone=time_zone,
     base_control=base_control,
+    request_timeout=config_manager.config.get("request_timeout", 10),
 )
 
 price_interface = PriceInterface(

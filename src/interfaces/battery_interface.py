@@ -92,6 +92,7 @@ class BatteryInterface:
         load_interface=None,
         timezone=None,
         base_control=None,
+        request_timeout=10,  # Default timeout for API requests
     ):
         self.src = config.get("source", "default")
         self.url = config.get("url", "")
@@ -113,6 +114,7 @@ class BatteryInterface:
         self.max_soc_set = config.get("max_soc_percentage", 100)
         self.price_euro_per_wh = float(config.get("price_euro_per_wh_accu", 0.0))
         self.price_sensor = config.get("price_euro_per_wh_sensor", "")
+        self.request_timeout = request_timeout  # Store configurable timeout
 
         self.soc_fail_count = 0
 
@@ -212,7 +214,7 @@ class BatteryInterface:
 
         if source == "openhab":
             url = self.url + "/rest/items/" + sensor
-            response = requests.get(url, timeout=6)
+            response = requests.get(url, timeout=self.request_timeout)
             response.raise_for_status()
             data = response.json()
             return str(data.get("state", "")).strip()
@@ -222,7 +224,7 @@ class BatteryInterface:
                 "Authorization": f"Bearer {self.access_token}",
                 "Content-Type": "application/json",
             }
-            response = requests.get(url, headers=headers, timeout=6)
+            response = requests.get(url, headers=headers, timeout=self.request_timeout)
             response.raise_for_status()
             data = response.json()
             return str(data.get("state", "")).strip()

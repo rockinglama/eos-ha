@@ -405,9 +405,14 @@ recorder:
                         <td>Check EOS server status, verify it's running on configured port (8503 or 7050)</td>
                     </tr>
                     <tr>
-                        <td>Timeout errors</td>
+                        <td>Timeout errors (optimization)</td>
                         <td>Server response too slow</td>
                         <td>Increase <code>eos.timeout</code> from 180 to 240+ seconds in config</td>
+                    </tr>
+                    <tr>
+                        <td>Timeout errors (sensor data)</td>
+                        <td>Home Assistant/OpenHAB response slow</td>
+                        <td>Increase <code>request_timeout</code> from 10 to 20-30 seconds in config (especially on slower hardware like NAS devices)</td>
                     </tr>
                     <tr>
                         <td>Cannot reach dashboard</td>

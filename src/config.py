@@ -163,6 +163,7 @@ class ConfigManager:
                 "time_zone": "Europe/Berlin",  # Add default time zone
                 "eos_connect_web_port": 8081,  # Default port for EOS connect server
                 "log_level": "info",  # Default log level
+                "request_timeout": 10,  # Request timeout for Home Assistant and OpenHAB API calls in seconds (5-60)
             }
         )
         # load configuration
@@ -482,6 +483,11 @@ class ConfigManager:
             "Log level for the application : debug, info, warning, error - default: info",
             "log_level",
         )
+        # request timeout configuration
+        config.yaml_add_eol_comment(
+            "Request timeout for Home Assistant and OpenHAB API calls in seconds (5-120) - default: 10",
+            "request_timeout",
+        )
         return config
 
     def load_config(self):
@@ -514,6 +520,7 @@ class ConfigManager:
     def check_eos_timeout_and_refreshtime(self):
         """
         Check if the eos timeout is smaller than the refresh time
+        and validate request_timeout range
         """
         eos_timeout_seconds = self.config["eos"]["timeout"]
         refresh_time_seconds = self.config["refresh_time"] * 60
@@ -528,3 +535,18 @@ class ConfigManager:
                 refresh_time_seconds,
             )
             sys.exit(0)
+
+        # Validate and clamp request_timeout to 5-120 seconds range
+        request_timeout = self.config.get("request_timeout", 10)
+        if request_timeout < 5:
+            logger.warning(
+                "[Config] request_timeout (%s s) is below minimum (5 s). Setting to 5 s.",
+                request_timeout,
+            )
+            self.config["request_timeout"] = 5
+        elif request_timeout > 120:
+            logger.warning(
+                "[Config] request_timeout (%s s) exceeds maximum (120 s). Setting to 120 s.",
+                request_timeout,
+            )
+            self.config["request_timeout"] = 120

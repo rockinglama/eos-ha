@@ -30,6 +30,7 @@ class LoadInterface:
         config,
         time_frame_base,
         tz_name=None,  # Changed default to None
+        request_timeout=10,  # Default timeout for API requests
     ):
         self.src = config.get("source", "")
         self.url = config.get("url", "")
@@ -47,6 +48,7 @@ class LoadInterface:
         )
         self.time_frame_base = time_frame_base
         self.time_zone = None
+        self.request_timeout = request_timeout  # Store configurable timeout
 
         logger.debug("[LOAD-IF] Initializing LoadInterface with source: %s", self.src)
         logger.debug("[LOAD-IF] Using URL: %s", self.url)
@@ -144,12 +146,16 @@ class LoadInterface:
             )
 
     def __request_with_retries(
-        self, method, url, params=None, headers=None, timeout=10, item_label=""
+        self, method, url, params=None, headers=None, timeout=None, item_label=""
     ):
         """
         Perform an HTTP request with retries and exponential backoff.
         Returns the requests.Response on success, or None on final failure.
         """
+        # Use instance timeout if not explicitly provided
+        if timeout is None:
+            timeout = self.request_timeout
+
         attempt = 0
         while attempt < self.max_retries:
             attempt += 1
@@ -200,7 +206,7 @@ class LoadInterface:
         openhab_item_url = self.url + "/rest/persistence/items/" + openhab_item
         params = {"starttime": start_time.isoformat(), "endtime": end_time.isoformat()}
         response = self.__request_with_retries(
-            "get", openhab_item_url, params=params, timeout=10, item_label=openhab_item
+            "get", openhab_item_url, params=params, item_label=openhab_item
         )
         if response is None:
             # Do not log error here; already logged in __request_with_retries
@@ -245,7 +251,7 @@ class LoadInterface:
         url = f"{self.url}/api/history/period/{start_time.isoformat()}"
         params = {"filter_entity_id": entity_id, "end_time": end_time.isoformat()}
         response = self.__request_with_retries(
-            "get", url, params=params, headers=headers, timeout=10, item_label=entity_id
+            "get", url, params=params, headers=headers, item_label=entity_id
         )
         if response is None:
             # Do not log error here; already logged in __request_with_retries
