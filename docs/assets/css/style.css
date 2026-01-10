@@ -322,6 +322,7 @@ body {
     padding: 2rem;
     margin-bottom: 2rem;
     box-shadow: var(--box-shadow);
+    scroll-margin-top: 150px;
 }
 
 .content-section h2 {
