@@ -1013,7 +1013,7 @@
                 <h5>How it Works:</h5>
                 <ol>
                     <li><strong>Event Detection:</strong> The system scans historical data (default 96h) to identify "charging events" where battery power was above the <code>charging_threshold_w</code>.</li>
-                    <li><strong>Source Attribution:</strong> For each event, it compares battery power with PV production and grid import. If grid import is significant (above <code>grid_charge_threshold_w</code>), energy is attributed to the grid at the current market price. Otherwise, it's attributed to PV surplus at the <code>feed_in_price</code> (opportunity cost).</li>
+                    <li><strong>Source Attribution:</strong> For each event, it compares battery power with PV production and grid import. If grid import is significant (above <code>grid_charge_threshold_w</code>), energy is attributed to grid charging at the market price. PV surplus energy is attributed to solar charging at zero cost (since PV generation has no per-kWh cost).</li>
                     <li><strong>Inventory Valuation (LIFO):</strong> Instead of a simple average, the system uses a <strong>Last-In, First-Out</strong> model. It looks at the most recent charging sessions that match your current battery level. This ensures the price reflects the actual "value" of the energy currently inside the battery.</li>
                     <li><strong>Optimizer Integration:</strong> The resulting price is used by the optimizer to decide when it's profitable to discharge the battery.</li>
                     <li><strong>Efficiency:</strong> To minimize API load, the system uses a two-step fetching strategy: it first fetches low-resolution data to find events, then high-resolution data only for specific periods when the battery was actually charging.</li>
@@ -1044,7 +1044,7 @@
                 <tr>
                     <th>Notes</th>
                     <td>
-                        Uses LIFO (Last-In, First-Out) inventory model. Analyzes charging events to determine if energy came from PV surplus (at feed-in price) or grid (at market price). Provides accurate representation of energy value currently stored in battery.
+                        Uses LIFO (Last-In, First-Out) inventory model. Analyzes charging events to determine if energy came from PV surplus (free) or grid (at market price). Represents the cost to replace the energy currently stored in the battery.
                     </td>
                 </tr>
             </table>
