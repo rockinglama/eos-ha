@@ -404,11 +404,12 @@
             <h3>⏱️ Time Frame & Refresh Configuration</h3>
 
             <h4>Time Frame (Optimization Granularity)</h4>
-            <p>Controls the resolution of forecasts and optimization:</p>
+            <p><strong>Backend-Specific Capabilities:</strong></p>
             <ul>
-                <li><strong>900 seconds (15 minutes):</strong> More precise optimization, recommended for dynamic systems</li>
-                <li><strong>3600 seconds (1 hour):</strong> Legacy mode, lower precision but simpler</li>
+                <li><strong>EOS Server:</strong> Only supports <code>3600</code> seconds (hourly). 15-minute intervals are not available with this backend.</li>
+                <li><strong>EVopt:</strong> Supports both <code>3600</code> (hourly) and <code>900</code> (15-minute). Use 900 for more precise, dynamic optimization.</li>
             </ul>
+            <p><strong>Misconfiguration Handling:</strong> If you mistakenly set <code>time_frame: 900</code> with EOS server, it will be automatically corrected to 3600 at startup with a warning message.</p>
 
             <h4>Refresh Time</h4>
             <p>How often EOS Connect sends optimization requests:</p>

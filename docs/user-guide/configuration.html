@@ -403,8 +403,8 @@
                 <tr>
                     <th>Valid Values</th>
                     <td>
-                        <code>3600</code> - Hourly optimization (legacy)<br>
-                        <code>900</code> - 15-minute optimization (recommended)
+                        <code>3600</code> - Hourly optimization (EOS server only option; EVopt also supports this)<br>
+                        <code>900</code> - 15-minute optimization (EVopt only; will be auto-corrected to 3600 if used with EOS server)
                     </td>
                 </tr>
                 <tr>
@@ -2005,7 +2005,12 @@
                     <li><strong>refresh_time</strong>: Sets how often EOS Connect sends a new optimization request to the EOS server (e.g., every 3 minutes)</li>
                     <li><strong>time_frame</strong> (in EOS section): Sets the granularity of the optimization and forecast arrays inside each request (e.g., 900 for 15-minute steps, 3600 for hourly steps)</li>
                 </ul>
-                <p>For more precise optimization and control, set <code>time_frame: 900</code>. For legacy hourly operation, use <code>3600</code>.</p>
+                <p><strong>Backend Capabilities:</strong></p>
+                <ul>
+                  <li><strong>EOS Server:</strong> Only supports <code>3600</code> (hourly) - 15-minute intervals are not supported</li>
+                  <li><strong>EVopt:</strong> Supports both <code>3600</code> (hourly) and <code>900</code> (15-minute) for more precise optimization</li>
+                </ul>
+                <p>If you set <code>time_frame: 900</code> with <code>eos_server</code>, it will be automatically corrected to 3600 at startup with a warning.</p>
                 <p>The combination of <code>refresh_time</code> and <code>time_frame</code> allows you to control both how frequently the system updates and how detailed the optimization is.</p>
             </div>
         </div>
@@ -2034,7 +2039,7 @@ eos:
   server: 192.168.1.94  # EOS server address
   port: 8503 # port for EOS server - default: 8503
   timeout: 180 # timeout for EOS optimize request in seconds - default: 180
-  time_frame: 900 # granularity of optimization steps in seconds (900=15min, 3600=hourly)
+  time_frame: 3600 # granularity of optimization steps in seconds (3600=hourly for EOS server; 900=15min for EVopt only)
 
 # Electricity price configuration
 price:
@@ -2130,7 +2135,7 @@ eos:
   server: 192.168.1.94  # EOS server address
   port: 8503 # port for EOS server - default: 8503
   timeout: 180 # timeout for EOS optimize request in seconds - default: 180
-  time_frame: 900 # granularity of optimization steps in seconds (900=15min, 3600=hourly)
+  time_frame: 3600 # granularity of optimization steps in seconds (3600=hourly for EOS server; 900=15min for EVopt only)
 
 # Electricity price configuration
 price:

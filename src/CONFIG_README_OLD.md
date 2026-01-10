@@ -97,22 +97,36 @@ A default config file will be created with the first start, if there is no `conf
 
 - **`time_frame`**:  
   Granularity of the optimization and forecast time steps, in seconds.  
-  - `3600` for hourly (legacy mode)  
-  - `900` for 15-minute (quarterly) optimization  
-  This controls the resolution of the forecast and optimization arrays sent to EOS.  
-  For example, with `time_frame: 900`, all forecasts and optimization results will be calculated in 15-minute intervals.  
+  
+  **Backend-Specific Capabilities:**  
+  - **EOS Server:** Only supports `3600` (hourly granularity). 15-minute intervals cannot be used with EOS server.  
+  - **EVopt:** Supports both `3600` (hourly) and `900` (15-minute). Use 900 for more precise, dynamic optimization.  
+  
+  This controls the resolution of the forecast and optimization arrays sent to the optimization backend.  
+  If you set `time_frame: 900` with `eos_server`, it will be automatically corrected to 3600 at startup with a warning.  
+  
   **Note:**  
-  - `refresh_time` (see "Other Configuration Settings") controls how often EOS Connect sends a request to EOS.  
+  - `refresh_time` (see "Other Configuration Settings") controls how often EOS Connect sends a request to the optimization server.  
   - `time_frame` sets the time step granularity inside each optimization request.
 
-  Example:
+  Example (EVopt with 15-minute precision):
+  ```yaml
+  eos:
+    source: evopt
+    server: 192.168.1.94
+    port: 7050
+    timeout: 180
+    time_frame: 900   # EVopt supports 15-minute intervals for more precise optimization
+  ```
+  
+  Example (EOS server - hourly only):
   ```yaml
   eos:
     source: eos_server
     server: 192.168.1.94
     port: 8503
     timeout: 180
-    time_frame: 900   # Use 900 for 15-min steps, 3600 for hourly steps
+    time_frame: 3600  # EOS server only supports hourly intervals
   ```
 
 ---

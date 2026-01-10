@@ -45,7 +45,7 @@ eos:
   source: eos_server
   server: 192.168.1.94  # Replace with your EOS/EVopt server IP
   port: 8503
-  time_frame: 3600 # 3600 for hourly, 900 for 15-minute intervals
+  time_frame: 3600 # EOS server supports 3600 only (hourly); EVopt supports 3600 or 900 (15-minute)
 
 # Electricity price configuration
 price:
