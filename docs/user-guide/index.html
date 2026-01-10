@@ -49,6 +49,7 @@
                     <a href="#data-collection" class="toc-link">Data Collection</a>
                     <a href="#configuration" class="toc-link">Configuration</a>
                     <a href="#common-tasks" class="toc-link">Common Tasks</a>
+                    <a href="#battery-overview" class="toc-link">Battery Overview</a>
                     <a href="#troubleshooting" class="toc-link">Troubleshooting</a>
                     <a href="#eos-server-setup" class="toc-link">EOS/EVopt Setup</a>
                 </nav>
@@ -382,6 +383,97 @@ recorder:
                 <li>View calculated price in dashboard</li>
                 <li>Historical sessions shown with costs</li>
             </ol>
+        </div>
+
+        <!-- Battery Overview -->
+        <div class="content-section" id="battery-overview">
+            <h2><i class="fas fa-battery-three-quarters"></i> Battery Overview</h2>
+            <p>The Battery Overview section displays comprehensive information about your battery system, including temperature monitoring and charging status.</p>
+            
+            <h4>Battery Information Displayed</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Information</th>
+                        <th>Description</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>State of Charge (SOC)</td>
+                        <td>Current battery capacity as percentage (0-100%)</td>
+                        <td>Determines available charge/discharge capacity</td>
+                    </tr>
+                    <tr>
+                        <td>Max Charge Power</td>
+                        <td>Current maximum charging power in kW</td>
+                        <td>May be reduced due to temperature or SOC limits</td>
+                    </tr>
+                    <tr>
+                        <td>Battery Temperature</td>
+                        <td>Current battery temperature in °C</td>
+                        <td>Displayed with status indicator and color code</td>
+                    </tr>
+                    <tr>
+                        <td>Charge Duration</td>
+                        <td>Estimated time to reach full capacity</td>
+                        <td>Only shown when battery is charging</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h4>Temperature Status Indicators</h4>
+            <p>Battery temperature is displayed with visual indicators that show the battery's thermal status:</p>
+            <ul>
+                <li><strong style="color: #4a9eff;"><i class="fas fa-snowflake"></i> Cold (Blue Snowflake)</strong> - Temperature below 0°C
+                    <ul>
+                        <li>Cold protection active to prevent battery damage</li>
+                        <li>Charging power may be reduced or disabled</li>
+                        <li>Battery will warm up gradually during operation</li>
+                    </ul>
+                </li>
+                <li><strong style="color: #ff9800;"><i class="fas fa-exclamation-circle"></i> Reduced Power (Orange Warning)</strong> - Temperature between 0-15°C or 45-55°C
+                    <ul>
+                        <li>Battery is outside optimal operating temperature range</li>
+                        <li>Maximum charge power is reduced to protect battery lifespan</li>
+                        <li>System will return to full power when temperature stabilizes in optimal range</li>
+                    </ul>
+                </li>
+                <li><strong style="color: #4caf50;"><i class="fas fa-check-circle"></i> Optimal (Green Checkmark)</strong> - Temperature between 15-45°C
+                    <ul>
+                        <li>Battery is in ideal operating temperature range</li>
+                        <li>Maximum charging power is available</li>
+                        <li>No thermal restrictions applied</li>
+                    </ul>
+                </li>
+                <li><strong style="color: #ff5252;"><i class="fas fa-fire"></i> Heat Protection (Red Fire)</strong> - Temperature above 55°C
+                    <ul>
+                        <li>Heat protection active to prevent battery damage</li>
+                        <li>Charging power severely reduced or disabled</li>
+                        <li>Ensure adequate ventilation around battery enclosure</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h4>Desktop vs Mobile View</h4>
+            <p>The Battery Overview adapts its display based on screen size:</p>
+            <ul>
+                <li><strong>Desktop View</strong> - Full temperature display showing "Temp: 25.1°C" with status icon in the charging power section</li>
+                <li><strong>Mobile View</strong> - Compact display showing temperature only when it affects charging power (e.g., "● 10.0kW | ❄ 5°C")</li>
+                <li>Color codes remain consistent across all view sizes for quick recognition</li>
+            </ul>
+
+            <h4>Configuration</h4>
+            <p>To monitor battery temperature, ensure the following is configured in your <code>config.yaml</code>:</p>
+            <pre><code>battery:
+  sensor_battery_temperature: sensor.your_battery_temp_sensor  # Required for temperature monitoring
+  # Temperature threshold defaults (adjust if needed):
+  # Cold protection: &lt; 0°C
+  # Reduced power: 0-15°C or 45-55°C  
+  # Optimal range: 15-45°C
+  # Heat protection: &gt; 55°C</code></pre>
+            <p>See <a href="configuration.html#battery-configuration">Battery Configuration</a> for detailed settings.</p>
         </div>
 
         <!-- Troubleshooting -->
