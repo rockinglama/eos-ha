@@ -86,6 +86,7 @@ class BatteryPriceHandler:
             else None
         )
         self.battery_power_convention: Optional[str] = None  # Will be auto-detected
+        self.grid_power_convention: Optional[str] = None  # Will be auto-detected
         self.last_analysis_results = {
             "stored_energy_price": self.price_euro_per_wh_accu,
             "duration_of_analysis": 0,
@@ -565,103 +566,169 @@ class BatteryPriceHandler:
         local_tz = self.timezone if self.timezone else pytz.timezone("Europe/Berlin")
         return dt.astimezone(local_tz).strftime("%Y-%m-%d %H:%M:%S")
 
-    def _detect_battery_power_convention(self, historical_data: Dict) -> str:
-        """Detect battery power convention from historical data by analyzing charging context."""
-        if "battery_power" not in historical_data:
-            return "positive_charging"  # default
+    def _detect_sensor_conventions(self, historical_data: Dict) -> Tuple[str, str]:
+        """Detect battery and grid power conventions using energy balance validation.
 
-        battery_data = historical_data["battery_power"]
+        Tests 4 combinations and selects the one with the smallest average error
+        across 100–200 recent, significant sample points.
+        Returns a tuple: (battery_power_convention, grid_power_convention).
+        """
+        battery_data = historical_data.get("battery_power", [])
         pv_data = historical_data.get("pv_power", [])
         grid_data = historical_data.get("grid_power", [])
         load_data = historical_data.get("load_power", [])
 
-        if not battery_data:
-            return "positive_charging"
+        # Default if missing data
+        if not battery_data or not grid_data or not load_data:
+            return "positive_charging", "positive_import"
 
-        # OPTIMIZATION: Sample only recent data for convention detection (last 24h is enough)
-        # This avoids O(n²) performance issue with 96h of data
-        logger.debug(
-            "[BATTERY-PRICE] Detecting battery power convention from recent data..."
-        )
-
-        # Take only the most recent 20% of data points (but at least 100 points)
-        sample_size = max(100, len(battery_data) // 5)
-        battery_sample = battery_data[-sample_size:]
-
-        # Sort all data by timestamp for alignment
-        battery_sample.sort(key=lambda x: x["timestamp"])
+        # Sort streams by timestamp for alignment
+        battery_data.sort(key=lambda x: x["timestamp"])
         pv_data.sort(key=lambda x: x["timestamp"])
         grid_data.sort(key=lambda x: x["timestamp"])
         load_data.sort(key=lambda x: x["timestamp"])
 
-        # Get time range of sample
-        if battery_sample:
-            sample_start = battery_sample[0]["timestamp"]
-            sample_end = battery_sample[-1]["timestamp"]
+        # Define sample window (last 48h based on latest timestamp)
+        latest_ts = battery_data[-1]["timestamp"]
+        window_start = latest_ts - timedelta(hours=48)
 
-            # Filter other sensors to same time range to reduce search space
-            pv_data_filtered = [
-                p for p in pv_data if sample_start <= p["timestamp"] <= sample_end
-            ]
-            grid_data_filtered = [
-                p for p in grid_data if sample_start <= p["timestamp"] <= sample_end
-            ]
-            load_data_filtered = [
-                p for p in load_data if sample_start <= p["timestamp"] <= sample_end
-            ]
-        else:
-            pv_data_filtered = pv_data
-            grid_data_filtered = grid_data
-            load_data_filtered = load_data
+        # Collect significant candidate timestamps from battery and grid
+        threshold_bat = self.charging_threshold_w
+        threshold_grid = self.grid_charge_threshold_w
 
-        # Counters for contextual charging events
-        evcc_charging_count = 0  # negative battery power + energy available
-        standard_charging_count = 0  # positive battery power + energy available
+        candidates: List[datetime] = []
+        for pt in reversed(battery_data):
+            if pt["timestamp"] < window_start:
+                break
+            if abs(pt.get("value", 0.0)) > threshold_bat:
+                candidates.append(pt["timestamp"])
+        for pt in reversed(grid_data):
+            if pt["timestamp"] < window_start:
+                break
+            if abs(pt.get("value", 0.0)) > threshold_grid:
+                candidates.append(pt["timestamp"])
 
-        threshold = self.charging_threshold_w
+        if not candidates:
+            # Fallback to simple heuristic for battery; grid defaults
+            battery_sample = battery_data[-max(100, len(battery_data) // 5) :]
+            return (
+                self._fallback_convention_detection(battery_sample),
+                "positive_import",
+            )
 
-        for battery_point in battery_sample:
-            battery_power = battery_point.get("value", 0)
-            timestamp = battery_point["timestamp"]
+        # Unique and sort candidates chronologically
+        candidates = sorted(list({ts for ts in candidates}))
 
-            # Only consider significant battery power events
-            if abs(battery_power) <= threshold:
+        # Limit to at most 200 points using stride sampling if needed
+        max_points = 200
+        if len(candidates) > max_points:
+            stride = max(1, len(candidates) // max_points)
+            candidates = candidates[::stride]
+
+        # Alignment indices for fast per-timestamp lookups
+        indices = {"pv": 0, "grid": 0, "load": 0, "battery": 0}
+
+        # Counters for each combination
+        c1 = c2 = c3 = c4 = 0
+        valid_samples = 0
+
+        for ts in candidates:
+            pv = self._get_aligned_value(pv_data, ts, indices, "pv")
+            grid_raw = self._get_aligned_value(grid_data, ts, indices, "grid")
+            load = self._get_aligned_value(load_data, ts, indices, "load")
+            bat_raw = self._get_aligned_value(battery_data, ts, indices, "battery")
+
+            # Skip low/noise samples
+            if (
+                abs(bat_raw) <= 10.0
+                and abs(grid_raw) <= 10.0
+                and abs(pv) <= 10.0
+                and abs(load) <= 10.0
+            ):
                 continue
 
-            # Check if energy is available for charging at this timestamp
-            grid_power = self._get_value_at_timestamp(grid_data_filtered, timestamp)
-            pv_power = self._get_value_at_timestamp(pv_data_filtered, timestamp)
-            load_power = self._get_value_at_timestamp(load_data_filtered, timestamp)
+            # Compute errors for all 4 combinations
+            # Energy balance: PV + Grid + Battery = Load
+            # Battery: positive when discharging (source), negative when charging (sink)
+            # Grid: positive when importing (source), negative when exporting (sink)
 
-            # Determine if there's surplus energy available
-            grid_importing = grid_power > threshold
-            pv_surplus = pv_power > (load_power + threshold)
+            # Combo 1: sensor reports discharge=+, charge=-; import=+, export=-
+            bat1 = bat_raw  # Already correct for energy balance
+            grid1 = grid_raw
+            err1 = abs(pv + grid1 + bat1 - load)
 
-            energy_available = grid_importing or pv_surplus
+            # Combo 2: sensor reports discharge=+, charge=-; import=-, export=+
+            bat2 = bat_raw
+            grid2 = -grid_raw  # Invert grid
+            err2 = abs(pv + grid2 + bat2 - load)
 
-            if energy_available:
-                if battery_power < -threshold:
-                    evcc_charging_count += 1
-                elif battery_power > threshold:
-                    standard_charging_count += 1
+            # Combo 3: sensor reports discharge=-, charge=+; import=+, export=-
+            bat3 = -bat_raw  # Invert battery
+            grid3 = grid_raw
+            err3 = abs(pv + grid3 + bat3 - load)
 
-        # Determine convention based on contextual charging events
-        total_contextual_events = evcc_charging_count + standard_charging_count
+            # Combo 4: sensor reports discharge=-, charge=+; import=-, export=+
+            bat4 = -bat_raw  # Invert battery
+            grid4 = -grid_raw  # Invert grid
+            err4 = abs(pv + grid4 + bat4 - load)
 
-        logger.debug(
-            "[BATTERY-PRICE] Convention detection: %d standard, %d EVCC events from %d samples",
-            standard_charging_count,
-            evcc_charging_count,
-            len(battery_sample),
-        )
+            m = min(err1, err2, err3, err4)
+            if err1 == m:
+                c1 += 1
+            if err2 == m:
+                c2 += 1
+            if err3 == m:
+                c3 += 1
+            if err4 == m:
+                c4 += 1
+            valid_samples += 1
 
-        if total_contextual_events < 3:
-            # Not enough contextual data, fall back to simple heuristic
-            return self._fallback_convention_detection(battery_sample)
-        elif evcc_charging_count > standard_charging_count:
-            return "negative_charging"
+        if valid_samples < 50:
+            # Not enough data; fall back
+            battery_sample = battery_data[-max(100, len(battery_data) // 5) :]
+            battery_conv = self._fallback_convention_detection(battery_sample)
+            logger.warning(
+                "[BATTERY-PRICE] Convention detection fallback due to limited samples (%d)",
+                valid_samples,
+            )
+            return battery_conv, "positive_import"
+
+        # Select winning combination
+        counts = [c1, c2, c3, c4]
+        max_count = max(counts)
+        # Ambiguity check: warn if close
+        sorted_counts = sorted(counts, reverse=True)
+        if len(sorted_counts) >= 2 and max_count > 0:
+            if (sorted_counts[0] - sorted_counts[1]) / max_count <= 0.10:
+                logger.warning(
+                    "[BATTERY-PRICE] Convention detection ambiguous: counts=%s",
+                    counts,
+                )
+
+        if c1 == max_count:
+            battery_conv = "negative_charging"  # discharge=+, charge=-
+            grid_conv = "positive_import"  # import=+, export=-
+        elif c2 == max_count:
+            battery_conv = "negative_charging"  # discharge=+, charge=-
+            grid_conv = "negative_import"  # import=-, export=+
+        elif c3 == max_count:
+            battery_conv = "positive_charging"  # discharge=-, charge=+
+            grid_conv = "positive_import"  # import=+, export=-
         else:
-            return "positive_charging"
+            battery_conv = "positive_charging"  # discharge=-, charge=+
+            grid_conv = "negative_import"  # import=-, export=+
+
+        logger.info(
+            "[BATTERY-PRICE] Detected conventions: battery=%s grid=%s (counts: %d,%d,%d,%d from %d samples)",
+            battery_conv,
+            grid_conv,
+            c1,
+            c2,
+            c3,
+            c4,
+            valid_samples,
+        )
+        return battery_conv, grid_conv
 
     def _get_value_at_timestamp(
         self, data: List[Dict], target_timestamp: datetime
@@ -707,14 +774,15 @@ class BatteryPriceHandler:
         if not historical_data or "battery_power" not in historical_data:
             return []
 
-        # Auto-detect convention if not already detected
-        if self.battery_power_convention is None:
-            self.battery_power_convention = self._detect_battery_power_convention(
-                historical_data
-            )
+        # Auto-detect conventions if not already detected
+        if self.battery_power_convention is None or self.grid_power_convention is None:
+            bat_conv, grid_conv = self._detect_sensor_conventions(historical_data)
+            self.battery_power_convention = bat_conv
+            self.grid_power_convention = grid_conv
             logger.info(
-                "[BATTERY-PRICE] Auto-detected battery power convention: %s",
+                "[BATTERY-PRICE] Auto-detected conventions: battery=%s grid=%s",
                 self.battery_power_convention,
+                self.grid_power_convention,
             )
 
         charging_events: List[Dict[str, Any]] = []
@@ -884,22 +952,77 @@ class BatteryPriceHandler:
                     and grid_to_bat == 0
                     and avg_battery_power > self.charging_threshold_w
                 ):
+                    # Normalize grid for diagnostics
+                    grid_norm_dbg = (
+                        grid_power
+                        if (self.grid_power_convention or "positive_import")
+                        == "positive_import"
+                        else -grid_power
+                    )
                     pv_for_load_dbg = min(pv_power, load_power)
                     remaining_load_dbg = max(0, load_power - pv_for_load_dbg)
-                    grid_for_load_dbg = min(grid_power, remaining_load_dbg)
-                    grid_surplus_dbg = max(0, grid_power - grid_for_load_dbg)
+                    grid_for_load_dbg = min(grid_norm_dbg, remaining_load_dbg)
+                    grid_surplus_dbg = max(0, grid_norm_dbg - grid_for_load_dbg)
                     ts_str = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+
+                    # Get actual timestamps of sensor readings for alignment check
+                    grid_idx = indices.get("grid", 0)
+                    pv_idx = indices.get("pv", 0)
+                    load_idx = indices.get("load", 0)
+
+                    grid_data = historical_data.get("grid_power", [])
+                    pv_data = historical_data.get("pv_power", [])
+                    load_data = historical_data.get("load_power", [])
+
+                    grid_ts = (
+                        grid_data[grid_idx]["timestamp"]
+                        if grid_idx < len(grid_data)
+                        else timestamp
+                    )
+                    pv_ts = (
+                        pv_data[pv_idx]["timestamp"]
+                        if pv_idx < len(pv_data)
+                        else timestamp
+                    )
+                    load_ts = (
+                        load_data[load_idx]["timestamp"]
+                        if load_idx < len(load_data)
+                        else timestamp
+                    )
+
+                    grid_delta = (
+                        (timestamp - grid_ts).total_seconds()
+                        if isinstance(grid_ts, datetime)
+                        else 0
+                    )
+                    pv_delta = (
+                        (timestamp - pv_ts).total_seconds()
+                        if isinstance(pv_ts, datetime)
+                        else 0
+                    )
+                    load_delta = (
+                        (timestamp - load_ts).total_seconds()
+                        if isinstance(load_ts, datetime)
+                        else 0
+                    )
+
                     logger.debug(
                         "[BATTERY-PRICE] PV≈0 but PV attribution occurred | "
-                        "ts=%s pv=%.1fW grid=%.1fW load=%.1fW "
-                        "bat=%.1fW grid_surplus=%.1fW thr=%.1fW",
+                        "ts=%s pv=%.1fW grid_raw=%.1fW grid_norm=%.1fW load=%.1fW "
+                        "bat_raw=%.1fW bat_norm=%.1fW grid_surplus=%.1fW thr=%.1fW | "
+                        "sensor_age: grid=%.0fs pv=%.0fs load=%.0fs",
                         ts_str,
                         pv_power,
                         grid_power,
+                        grid_norm_dbg,
                         load_power,
+                        raw_avg_power,
                         avg_battery_power,
                         grid_surplus_dbg,
                         self.grid_charge_threshold_w,
+                        grid_delta,
+                        pv_delta,
+                        load_delta,
                     )
             except (ValueError, AttributeError):
                 # Never fail processing due to diagnostics
@@ -927,13 +1050,28 @@ class BatteryPriceHandler:
         key: str,
         fallback_func=None,
     ) -> float:
-        """Find the sensor value closest to the given timestamp."""
+        """Find the sensor value closest to the given timestamp.
+
+        Uses nearest-neighbor matching within a 30s window to handle rapid power changes.
+        Falls back to index advancement for efficiency when tolerance is met.
+        """
         if not data:
             return fallback_func(timestamp) if fallback_func else 0.0
 
         idx = indices[key]
+        # Advance index to find value <= timestamp
         while idx < len(data) - 1 and data[idx + 1]["timestamp"] <= timestamp:
             idx += 1
+
+        # Check if we should use the next value instead (nearest neighbor within 30s)
+        if idx < len(data) - 1:
+            delta_before = abs((data[idx]["timestamp"] - timestamp).total_seconds())
+            delta_after = abs((data[idx + 1]["timestamp"] - timestamp).total_seconds())
+
+            # If next value is closer and within 30s tolerance, use it
+            if delta_after < delta_before and delta_after <= 30:
+                idx += 1
+
         indices[key] = idx
         return data[idx]["value"]
 
@@ -945,11 +1083,18 @@ class BatteryPriceHandler:
         load_power: float,
     ) -> Tuple[float, float]:
         """Determine how battery charging power is split between PV and grid."""
+        # Normalize grid power to import-positive for surplus calculation
+        grid_norm = (
+            grid_power
+            if (self.grid_power_convention or "positive_import") == "positive_import"
+            else -grid_power
+        )
+
         pv_for_load = min(pv_power, load_power)
         remaining_load = max(0, load_power - pv_for_load)
-        grid_for_load = min(grid_power, remaining_load)
+        grid_for_load = min(grid_norm, remaining_load)
         pv_surplus = max(0, pv_power - pv_for_load)
-        grid_surplus = max(0, grid_power - grid_for_load)
+        grid_surplus = max(0, grid_norm - grid_for_load)
 
         pv_to_battery = min(battery_power, pv_surplus)
         remaining_battery = max(0, battery_power - pv_to_battery)

@@ -382,6 +382,10 @@ recorder:
         <div class="content-section" id="battery-pricing">
             <h2><i class="fas fa-coins"></i> Battery Energy Pricing</h2>
             <p>EOS Connect can track the cost of energy stored in your battery in three different ways. Understanding which pricing mode you're using helps you understand optimization decisions.</p>
+            <div class="alert alert-info">
+                <strong><i class="fas fa-wand-magic-sparkles"></i> Automatic Sensor Detection:</strong> EOS Connect <strong>auto-detects</strong> your battery and grid sensor conventions (polarity) to correctly attribute charging energy to <strong>PV</strong> vs <strong>Grid</strong> — even if your grid sensor reports import as negative.
+                <br>Check logs for: <code>[BATTERY-PRICE] Detected conventions: battery=... grid=...</code>
+            </div>
             
             <h4>Three Battery Pricing Modes</h4>
             <p><strong>Mode 1: Fixed Static Price</strong> (Default)</p>
@@ -436,14 +440,17 @@ recorder:
   grid_charge_threshold_w: 100                     # Minimum grid import to attribute to grid vs PV</code></pre>
 
             <h5>Step 3: Verify Sensor Conventions</h5>
-            <p><strong>Important:</strong> Sensors must follow these conventions for correct attribution:</p>
+            <p><strong>Good news:</strong> You <em>do not</em> need to manually set sensor polarity. EOS Connect automatically detects and normalizes battery and grid conventions using an energy balance check:</p>
             <ul>
-                <li><strong>Battery Power:</strong> Positive = charging, Negative = discharging</li>
-                <li><strong>PV Power:</strong> Generation measured as positive output</li>
-                <li><strong>Grid Power:</strong> Positive = import from grid, Negative = export to grid</li>
-                <li><strong>Load Power:</strong> Household consumption as positive value</li>
-                <li><strong>Price Sensor:</strong> Can be in €/kWh or ct/kWh - system auto-detects</li>
+                <li><strong>Battery Power:</strong> <em>Auto-detected</em> (charging vs discharging sign)</li>
+                <li><strong>Grid Power:</strong> <em>Auto-detected</em> (import vs export sign)</li>
+                <li><strong>PV Power:</strong> Always positive (production)</li>
+                <li><strong>Load Power:</strong> Always positive (consumption)</li>
+                <li><strong>Price Sensor:</strong> €/kWh or ct/kWh — auto-detected</li>
             </ul>
+            <div class="alert alert-warning">
+                <strong><i class="fas fa-exclamation-triangle"></i> Troubleshooting:</strong> If you ever see grid charging attributed to PV at night (PV≈0), check the log lines for <code>PV≈0 but PV attribution occurred</code> and the detected conventions. This usually indicates inverted grid sensors — now automatically handled.
+            </div>
 
             <h4>How Dynamic Calculation Works</h4>
             <ol>

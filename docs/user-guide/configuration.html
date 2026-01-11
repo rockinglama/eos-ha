@@ -658,6 +658,10 @@
             <h2><i class="fas fa-battery-full"></i> Battery Configuration</h2>
             <p>Configure your battery system for state-of-charge monitoring and optimization.</p>
 
+            <div class="alert alert-info">
+                <strong><i class="fas fa-wand-magic-sparkles"></i> Automatic Sensor Conventions:</strong> EOS Connect <strong>auto-detects</strong> both battery and grid sensor polarity (charging/discharging and import/export). No manual overrides required.
+            </div>
+
             <h3>battery.source</h3>
             <table>
                 <tr>
@@ -981,6 +985,51 @@
                     <td>Can be used to shift optimization results based on available energy</td>
                 </tr>
             </table>
+
+            <h3>Battery Price Calculation Sensors</h3>
+            <p>To enable dynamic price calculation, configure these sensors in your <code>config.yaml</code>:</p>
+            <table>
+                <tr>
+                    <th>Sensor</th>
+                    <th>Description</th>
+                    <th>Example</th>
+                </tr>
+                <tr>
+                    <td><code>battery_power_sensor</code></td>
+                    <td>Battery charge/discharge power (W)</td>
+                    <td><code>sensor.battery_power</code></td>
+                </tr>
+                <tr>
+                    <td><code>pv_power_sensor</code></td>
+                    <td>Total PV generation (W)</td>
+                    <td><code>sensor.total_pv_power</code></td>
+                </tr>
+                <tr>
+                    <td><code>grid_power_sensor</code></td>
+                    <td>Grid import/export (W)</td>
+                    <td><code>sensor.grid_power</code></td>
+                </tr>
+                <tr>
+                    <td><code>load_power_sensor</code></td>
+                    <td>Household consumption (W)</td>
+                    <td><code>sensor.household_load</code></td>
+                </tr>
+                <tr>
+                    <td><code>price_sensor</code></td>
+                    <td>Current electricity price</td>
+                    <td><code>sensor.electricity_price</code></td>
+                </tr>
+            </table>
+
+            <div class="alert alert-success">
+                <strong><i class="fas fa-check-circle"></i> Tip:</strong> EOS Connect automatically <em>normalizes</em> battery and grid signs so charging attribution to PV vs Grid is correct — even if your grid sensor reports import as negative.
+            </div>
+
+            <div class="alert alert-warning">
+                <strong><i class="fas fa-exclamation-triangle"></i> Troubleshooting:</strong> If battery charging appears attributed to PV while PV≈0 at night, check application logs for:
+                <br><code>[BATTERY-PRICE] Detected conventions: battery=... grid=...</code>
+                <br>and diagnostic lines mentioning <code>PV≈0 but PV attribution occurred</code>. This indicates sensor misalignment previously — now automatically corrected.
+            </div>
 
             <h3>battery.price_euro_per_wh_sensor</h3>
             <table>

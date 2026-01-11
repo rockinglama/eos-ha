@@ -58,6 +58,7 @@
                     <a href="#mqtt-examples" class="toc-link toc-sub">→ Examples</a>
                     <a href="#integrations" class="toc-link">Integrations</a>
                     <a href="#automation" class="toc-link">Automation</a>
+                    <a href="#sensor-detection" class="toc-link">Sensor Auto-Detection</a>
                 </nav>
             </aside>
 
@@ -750,6 +751,22 @@ curl "http://localhost:8081/logs?since=2024-06-01T11:00:00Z"</code></pre>
                     <li><strong>Persistent storage:</strong> File-based logs not affected by memory operations</li>
                     <li><strong>Thread-safe:</strong> Safe for concurrent access from multiple clients</li>
                 </ul>
+            </div>
+        </div>
+
+        <!-- Sensor Auto-Detection Section -->
+        <div class="content-section" id="sensor-detection">
+            <h2><i class="fas fa-wand-magic-sparkles"></i> Sensor Auto-Detection</h2>
+            <p>EOS Connect automatically detects battery and grid sensor polarity using a lightweight energy balance validation. This ensures correct attribution of battery charging between PV and Grid — even if your sensors report inverted signs.</p>
+            <ul>
+                <li><strong>What it solves:</strong> Prevents PV attribution at night when PV≈0 by recognizing inverted grid import sensors</li>
+                <li><strong>How it works:</strong> Tests 4 sign combinations and selects the one that balances <em>PV + Grid + Battery = Load</em> across recent samples</li>
+                <li><strong>Performance:</strong> Uses ≤200 samples from the last 48h; detection typically runs in &lt;100 ms</li>
+            </ul>
+            <p><strong>Log Example:</strong></p>
+            <pre><code>[BATTERY-PRICE] Detected conventions: battery=negative_charging grid=negative_import (counts: 49,2,201,2 from 203 samples)</code></pre>
+            <div class="alert alert-info">
+                <strong><i class="fas fa-info-circle"></i> Note:</strong> Detection runs once per session and is cached until restart.
             </div>
         </div>
 
