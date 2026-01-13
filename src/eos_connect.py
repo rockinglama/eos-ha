@@ -1500,6 +1500,7 @@ def get_controls():
         },
         "battery": {
             "soc": current_battery_soc,
+            "capacity_wh": config_manager.config["battery"].get("capacity_wh", 0),
             "usable_capacity": battery_interface.get_current_usable_capacity(),
             "max_charge_power_dyn": battery_interface.get_max_charge_power(),
             "max_charge_power_fix": config_manager.config["battery"].get(
@@ -1534,7 +1535,7 @@ def get_controls():
         "used_time_frame_base": time_frame_base,
         "eos_connect_version": __version__,
         "timestamp": datetime.now(time_zone).isoformat(),
-        "api_version": "0.0.3",
+        "api_version": "0.0.4",
     }
     return Response(
         json.dumps(response_data, indent=4), content_type="application/json"

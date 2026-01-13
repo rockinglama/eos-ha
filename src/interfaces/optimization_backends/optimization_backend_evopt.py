@@ -145,7 +145,7 @@ class EVOptBackend:
                 logger.warning("[EVopt] Could not write debug file: %s", e)
 
             eos_response = self._transform_response_from_evopt_to_eos(
-                evopt_response, evopt_request
+                evopt_response, evopt_request, eos_request
             )
             return eos_response, avg_runtime
         except requests.exceptions.Timeout:
@@ -345,7 +345,7 @@ class EVOptBackend:
 
         return evopt, errors
 
-    def _transform_response_from_evopt_to_eos(self, evcc_resp, evopt=None):
+    def _transform_response_from_evopt_to_eos(self, evcc_resp, evopt, eos_request=None):
         """
         Translate EVoptimizer response -> EOS-style optimize response.
 
@@ -424,7 +424,7 @@ class EVOptBackend:
         time_params = self._calculate_time_parameters()
 
         # Extract battery parameters from request
-        battery_params = self._extract_battery_parameters(evopt)
+        battery_params = self._extract_battery_parameters(evopt, eos_request)
 
         # Extract response data arrays
         response_arrays = self._extract_response_arrays(
@@ -500,7 +500,7 @@ class EVOptBackend:
             "pad_past": pad_past,
         }
 
-    def _extract_battery_parameters(self, evopt):
+    def _extract_battery_parameters(self, evopt, eos_request=None):
         """
         Extract battery parameters from EVopt request.
 
@@ -509,6 +509,7 @@ class EVOptBackend:
         """
         params = {
             "s_max": None,
+            "capacity_wh": None,
             "eta_c": 0.95,
             "eta_d": 0.95,
             "c_max": None,
@@ -553,6 +554,13 @@ class EVOptBackend:
             params["d_max"] = float(b0r.get("d_max", 0.0)) or None
         except (ValueError, TypeError):
             params["d_max"] = None
+
+        # Extract full capacity from EOS request if available
+        pv_akku = eos_request.get("pv_akku") or {}
+        try:
+            params["capacity_wh"] = float(pv_akku.get("capacity_wh", 0)) or None
+        except (ValueError, TypeError):
+            params["capacity_wh"] = None
 
         return params
 
@@ -779,8 +787,11 @@ class EVOptBackend:
             loss = ch * (1.0 - eta_c) + dch * (1.0 - eta_d)
             verluste_per_hour.append(loss)
 
-        # Calculate SOC percentage
-        akku_soc_pct = self._calculate_soc_percentage(soc_wh, battery_params["s_max"])
+        # Calculate SOC percentage using FULL CAPACITY, not s_max
+        akku_soc_pct = self._calculate_soc_percentage(
+            soc_wh,
+            battery_params["capacity_wh"],  # CHANGED from battery_params["s_max"]
+        )
 
         # Get household load from request
         last_wh = self._extract_household_load(evopt, grid_import, n)
@@ -802,9 +813,13 @@ class EVOptBackend:
             "EAuto_SoC_pro_Stunde": [],  # Placeholder
         }
 
-    def _calculate_soc_percentage(self, soc_wh, s_max):
+    def _calculate_soc_percentage(self, soc_wh, capacity_wh):
         """
-        Convert SOC from Wh to percentage.
+        Convert SOC from Wh to percentage based on full battery capacity.
+
+        Args:
+            soc_wh: List of SOC values in Wh
+            capacity_wh: Full battery capacity in Wh (NOT s_max)
 
         Returns:
             list of percentages or empty list
@@ -812,9 +827,10 @@ class EVOptBackend:
         if not soc_wh:
             return []
 
-        # Determine reference capacity
-        ref = s_max
+        # Use full battery capacity as reference
+        ref = capacity_wh
         if not ref:
+            # Fallback: use max value from soc_wh (legacy behavior)
             try:
                 ref = max([float(x) for x in soc_wh]) if soc_wh else None
             except (ValueError, TypeError):
