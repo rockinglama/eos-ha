@@ -44,7 +44,7 @@ class EVOptBackend:
         """
         evopt_request, errors = self._transform_request_from_eos_to_evopt(eos_request)
         if errors:
-            logger.error("[EVopt] Request transformation errors: %s", errors)
+            logger.error("[OPT-EVopt] Request transformation errors: %s", errors)
         # Optionally, write transformed payload to json file for debugging
         debug_path = os.path.join(
             os.path.dirname(__file__),
@@ -58,11 +58,11 @@ class EVOptBackend:
             with open(debug_path, "w", encoding="utf-8") as fh:
                 json.dump(evopt_request, fh, indent=2, ensure_ascii=False)
         except OSError as e:
-            logger.warning("[EVopt] Could not write debug file: %s", e)
+            logger.warning("[OPT-EVopt] Could not write debug file: %s", e)
 
         request_url = self.base_url + "/optimize/charge-schedule"
         logger.info(
-            "[EVopt] Request optimization with: %s - and with timeout: %s",
+            "[OPT-EVopt] Request optimization with: %s - and with timeout: %s",
             request_url,
             timeout,
         )
@@ -77,7 +77,7 @@ class EVOptBackend:
             elapsed_time = end_time - start_time
             minutes, seconds = divmod(elapsed_time, 60)
             logger.info(
-                "[EVopt] Response retrieved successfully in %d min %.2f sec for current run",
+                "[OPT-EVopt] Response retrieved successfully in %d min %.2f sec for current run",
                 int(minutes),
                 seconds,
             )
@@ -106,7 +106,7 @@ class EVOptBackend:
                         and resp_status.lower() == "infeasible"
                     ):
                         logger.warning(
-                            "[EVopt] Server returned infeasible result; "
+                            "[OPT-EVopt] Server returned infeasible result; "
                             "returning safe EOS infeasible payload: %s",
                             evopt_response,
                         )
@@ -126,7 +126,7 @@ class EVOptBackend:
                         return infeasible_eos, avg_runtime
             except (KeyError, TypeError, AttributeError) as _err:
                 logger.debug(
-                    "[EVopt] Could not evaluate evopt_response status: %s", _err
+                    "[OPT-EVopt] Could not evaluate evopt_response status: %s", _err
                 )
 
             # Optionally, write transformed payload to json file for debugging
@@ -142,18 +142,18 @@ class EVOptBackend:
                 with open(debug_path, "w", encoding="utf-8") as fh:
                     json.dump(evopt_response, fh, indent=2, ensure_ascii=False)
             except OSError as e:
-                logger.warning("[EVopt] Could not write debug file: %s", e)
+                logger.warning("[OPT-EVopt] Could not write debug file: %s", e)
 
             eos_response = self._transform_response_from_evopt_to_eos(
                 evopt_response, evopt_request, eos_request
             )
             return eos_response, avg_runtime
         except requests.exceptions.Timeout:
-            logger.error("[EVopt] Request timed out after %s seconds", timeout)
+            logger.error("[OPT-EVopt] Request timed out after %s seconds", timeout)
             return {"error": "Request timed out - trying again with next run"}, None
         except requests.exceptions.ConnectionError as e:
             logger.error(
-                "[EVopt] Connection error - server not reachable at %s "
+                "[OPT-EVopt] Connection error - server not reachable at %s "
                 "will try again with next cycle - error: %s",
                 request_url,
                 str(e),
@@ -163,15 +163,15 @@ class EVOptBackend:
                 "will try again with next cycle"
             }, None
         except requests.exceptions.RequestException as e:
-            logger.error("[EVopt] Request failed: %s", e)
+            logger.error("[OPT-EVopt] Request failed: %s", e)
             if response is not None:
-                logger.error("[EVopt] Response status: %s", response.status_code)
+                logger.error("[OPT-EVopt] Response status: %s", response.status_code)
                 logger.debug(
-                    "[EVopt] ERROR - response of server is:\n%s",
+                    "[OPT-EVopt] ERROR - response of server is:\n%s",
                     response.text,
                 )
             logger.debug(
-                "[EVopt] ERROR - payload for the request was:\n%s",
+                "[OPT-EVopt] ERROR - payload for the request was:\n%s",
                 evopt_request,
             )
             return {"error": str(e)}, None
@@ -263,7 +263,7 @@ class EVOptBackend:
         try:
             if s_max is not None and s_initial > s_max:
                 logger.warning(
-                    "[EVopt] initial_soc (%.2f Wh, %.2f%%) > s_max (%.2f Wh, %.2f%%); "
+                    "[OPT-EVopt] initial_soc (%.2f Wh, %.2f%%) > s_max (%.2f Wh, %.2f%%); "
                     "clamping to s_max",
                     s_initial,
                     batt_initial_pct,
@@ -273,7 +273,7 @@ class EVOptBackend:
                 s_initial = s_max
             if s_min is not None and s_initial < s_min:
                 logger.warning(
-                    "[EVopt] initial_soc (%.2f Wh, %.2f%%) < s_min (%.2f Wh, %.2f%%); "
+                    "[OPT-EVopt] initial_soc (%.2f Wh, %.2f%%) < s_min (%.2f Wh, %.2f%%); "
                     "clamping to s_min",
                     s_initial,
                     batt_initial_pct,
@@ -284,7 +284,7 @@ class EVOptBackend:
         except (TypeError, ValueError):
             # defensive: if any unexpected non-numeric types are present, leave values unchanged
             logger.warning(
-                "[EVopt] Battery SOC values are not numeric. Please check 'pv_akku' "
+                "[OPT-EVopt] Battery SOC values are not numeric. Please check 'pv_akku' "
                 "configuration; leaving SOC values unchanged."
             )
 

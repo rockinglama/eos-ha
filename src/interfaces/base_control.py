@@ -200,7 +200,13 @@ class BaseControl:
         Uses the optimization_max_charge_power_w to convert relative values
         to ensure consistency with the value sent to the optimizer.
         """
-        current_hour = datetime.now(self.time_zone).hour
+        current_time = datetime.now(self.time_zone)
+        current_hour = current_time.hour
+        if self.time_frame_base == 3600:
+            minute_str = "00"
+        else:
+            minute = current_time.minute
+            minute_str = f"{(minute // 15) * 15:02d}"
         current_charge_demand = value_relative * self.optimization_max_charge_power_w
         if current_charge_demand == self.current_ac_charge_demand:
             # No change, so do not log
@@ -210,20 +216,19 @@ class BaseControl:
         if not self.override_active:
             self.current_ac_charge_demand = current_charge_demand
             logger.debug(
-                "[BASE-CTRL] set AC charge demand for current hour %s:00 -> %s Wh -"
+                "[BASE-CTRL] set AC charge demand for current slot %s:%s -> %s W -"
                 + " based on optimization max charge power %s W",
                 current_hour,
+                minute_str,
                 self.current_ac_charge_demand,
                 self.optimization_max_charge_power_w,
             )
         elif self.override_active_since > time.time() - 2:
-            # self.current_ac_charge_demand = (
-            #     current_charge_demand  # Ensure override updates demand
-            # )
             logger.debug(
-                "[BASE-CTRL] OVERRIDE AC charge demand for current hour %s:00 -> %s Wh -"
+                "[BASE-CTRL] OVERRIDE AC charge demand for current hour %s:%s -> %s W -"
                 + " based on max charge power %s W",
                 current_hour,
+                minute_str,
                 self.current_ac_charge_demand,
                 self.config["battery"]["max_charge_power_w"],
             )
