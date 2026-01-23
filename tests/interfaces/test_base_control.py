@@ -153,6 +153,11 @@ class TestACChargeDemandConversion:
         Test that get_needed_ac_charge_power() dynamically increases as time passes.
         This is correct behavior - it's a "catch-up" mechanism.
         """
+        # Patch now() to return a real datetime object and allow datetime construction
+        mock_now = berlin_timezone.localize(datetime(2025, 1, 1, 10, 0, 0))
+        mock_datetime.now.return_value = mock_now
+        mock_datetime.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
+
         base_control = BaseControl(config_base, berlin_timezone, time_frame_base=900)
         base_control.set_current_ac_charge_demand(0.5)  # 2500 Wh target
         # Set battery charge max high enough to not cap the power
