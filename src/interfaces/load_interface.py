@@ -611,7 +611,7 @@ class LoadInterface:
 
             # Sanity check: filter out implausible values
             if energy_wh < 0 or energy_wh > 100000:
-                logger.warning(
+                logger.info(
                     "[LOAD-IF] Outlier detected in load profile: %s Wh at %s."
                     + " Value replaced with 0.",
                     energy_wh,

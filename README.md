@@ -1,7 +1,4 @@
-
-
-
-<table>
+<table style="border:none;">
   <tr>
     <td width="130"><img src="docs/assets/images/logo.png" alt="EOS Connect Logo" width="120"/></td>
     <td style="vertical-align: middle;"><h1 style="margin:0; padding-left:10px;">EOS Connect</h1></td>
@@ -27,7 +24,7 @@ EOS Connect fetches real-time and forecast data, processes it via your chosen op
 - **Battery and Inverter Management:** Charge/discharge control, grid/PV modes, dynamic charging curves.
 - **Integration with Smart Home Platforms:** Home Assistant (MQTT auto discovery), OpenHAB, EVCC, and MQTT for seamless data exchange and automation.
 - **Dynamic Web Dashboard:** Live monitoring, manual control, and visualization of your energy system.
-- **Cost Optimization:** Aligns energy usage with dynamic electricity prices (Tibber, smartenergy.at, Stromligning.dk).
+- **Cost Optimization:** Aligns energy usage with dynamic electricity prices (Tibber, smartenergy.at, Stromligning.dk) with hourly or quarterly distribution.
 - **Flexible Configuration:** Easy to set up and extend for a wide range of energy systems and user needs.
 
 ---
@@ -48,13 +45,11 @@ It sends this data to the optimizer (EOS or EVopt), which returns a prediction a
 </div>
 
 Supported data sources and integrations:
-- **Home Assistant:** Full MQTT integration with auto discovery, entity setup, and automation.
-- **OpenHAB:** MQTT-based monitoring and control.
+
+- **Home Assistant:** MQTT publishing (dashboard, control, auto-discovery) and direct API integration for sensor/entity data collection.
+- **OpenHAB:** MQTT publishing (dashboard, control, auto-discovery via MQTT binding) and direct API integration for item data collection.
 - **EVCC:** Monitors and controls EV charging modes and states.
-- **Inverter Interfaces:** Fronius GEN24 (with automatic firmware detection), legacy fallback, and more.
-
----
-
+- **Inverter Interfaces:** Fronius GEN24 (with automatic firmware detection), legacy fallback, and more or via mqtt contols/ web api controls/ evcc external interver control.
 
 
 ## Quick Start
@@ -142,6 +137,10 @@ evcc:
 # MQTT configuration (optional)
 mqtt:
   enabled: false
+  broker: localhost # URL for MQTT server - default: mqtt://yourMQTTserver
+  port: 1883 # Port for MQTT server - default: 1883
+  user: mqtt_user # Username for MQTT server - default: mqtt
+  password: mqtt_password # Password for MQTT server - default: mqtt
 
 # General settings
 refresh_time: 3  # Optimization refresh interval in minutes
