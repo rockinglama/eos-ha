@@ -19,7 +19,7 @@
             <a href="../index.html" class="nav-logo">
                 <img src="../assets/images/icon.png" alt="EOS Connect" style="height: 48px; vertical-align: middle; margin-right: 8px;">
                 <span>EOS Connect</span>
-                <span class="version-badge">v0.2.29</span>
+                <span class="version-badge">v0.2.30</span>
             </a>
             <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle menu">
                 <i class="fas fa-bars"></i>
@@ -687,6 +687,11 @@ recorder:
                         <td>Cannot reach dashboard</td>
                         <td>Port conflict or firewall</td>
                         <td>Check <code>eos_connect_web_port: 8081</code> is not in use, verify firewall rules</td>
+                    </tr>
+                    <tr>
+                        <td>Segmentation Fault on startup (Proxmox/VM)</td>
+                        <td>VM using generic CPU type (kvm64)</td>
+                        <td>Change VM Settings → Hardware → Processor → Type from <code>kvm64</code> to <code>host</code>, then restart VM. This allows correct CPU instruction detection.</td>
                     </tr>
                 </tbody>
             </table>
