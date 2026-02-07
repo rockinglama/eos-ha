@@ -81,6 +81,14 @@ Supported data sources and integrations:
   <sub><i>Figure: EOS Connect dashboard</i></sub>
 </div>
 
+**Note for Proxmox / VM Users:**
+If the add-on crashes with a Segmentation Fault on startup, your VM might be using a generic CPU type.
+- Go to your VM Settings > Hardware > Processor.
+- Change Type from `kvm64` (default) to `host`.
+- Restart the VM.
+
+This allows the add-on to correctly see and use your physical CPU's instructions.
+
 ---
 
 **Other Installation Options:**
