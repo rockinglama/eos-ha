@@ -22,14 +22,14 @@
         "description": "Wählen Sie die Home Assistant Entitäten, die Energiedaten liefern.",
         "data": {
           "price_entity": "Strompreis-Entität",
-          "soc_entity": "Batterie-Ladezustand-Entität"
+          "soc_entity": "Batterie-Ladezustand-Entität (Faktor 0.0-1.0)"
         }
       },
       "entities_no_price": {
         "title": "Entitäten-Auswahl",
         "description": "Wählen Sie die Home Assistant Entitäten, die Energiedaten liefern. Strompreise werden von EOS bereitgestellt.",
         "data": {
-          "soc_entity": "Batterie-Ladezustand-Entität"
+          "soc_entity": "Batterie-Ladezustand-Entität (Faktor 0.0-1.0)"
         }
       },
       "battery": {
@@ -71,7 +71,7 @@
           "ev_capacity": "E-Auto Batteriekapazität (kWh)",
           "ev_charge_power": "Max. Ladeleistung (W)",
           "ev_efficiency": "Ladeeffizienz",
-          "ev_soc_entity": "E-Auto SOC-Entität (optional)"
+          "ev_soc_entity": "E-Auto SOC-Entität (Faktor 0.0-1.0, optional)"
         }
       },
       "pv_overview": {
@@ -135,7 +135,7 @@
         "description": "Aktualisieren Sie Ihre Energie-Entitäten-Zuordnungen.",
         "data": {
           "price_entity": "Strompreis-Entität",
-          "soc_entity": "Batterie-Ladezustand-Entität"
+          "soc_entity": "Batterie-Ladezustand-Entität (Faktor 0.0-1.0)"
         }
       },
       "energy_meters": {
@@ -176,7 +176,7 @@
           "ev_capacity": "E-Auto Batteriekapazität (kWh)",
           "ev_charge_power": "Max. Ladeleistung (W)",
           "ev_efficiency": "Ladeeffizienz",
-          "ev_soc_entity": "E-Auto SOC-Entität (optional)"
+          "ev_soc_entity": "E-Auto SOC-Entität (Faktor 0.0-1.0, optional)"
         }
       },
       "appliances": {

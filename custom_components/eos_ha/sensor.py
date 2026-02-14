@@ -106,15 +106,17 @@ def _derive_mode(data: dict) -> str:
 def _price_forecast_attrs(data: dict) -> dict[str, Any]:
     """Build enhanced price forecast attributes."""
     forecast = data.get("price_forecast", [])
-    attrs: dict[str, Any] = {"forecast": forecast}
-    if forecast:
-        avg = sum(forecast) / len(forecast)
-        current = forecast[0] if forecast else 0
+    # Convert from EUR/Wh to EUR/kWh for display
+    forecast_kwh = [p * 1000 for p in forecast] if forecast else []
+    attrs: dict[str, Any] = {"forecast": forecast_kwh}
+    if forecast_kwh:
+        avg = sum(forecast_kwh) / len(forecast_kwh)
+        current = forecast_kwh[0] if forecast_kwh else 0
         attrs["price_below_average"] = current < avg
         # Find 5 cheapest upcoming hours (index, price)
-        indexed = [(i, p) for i, p in enumerate(forecast)]
+        indexed = [(i, p) for i, p in enumerate(forecast_kwh)]
         indexed.sort(key=lambda x: x[1])
-        attrs["cheapest_hours"] = [{"hour": i, "price": round(p, 6)} for i, p in indexed[:5]]
+        attrs["cheapest_hours"] = [{"hour": i, "price": round(p, 4)} for i, p in indexed[:5]]
     return attrs
 
 
@@ -176,9 +178,9 @@ SENSOR_DESCRIPTIONS: tuple[EOSSensorEntityDescription, ...] = (
     EOSSensorEntityDescription(
         key="price_forecast",
         translation_key="price_forecast",
-        native_unit_of_measurement="EUR/Wh",
+        native_unit_of_measurement="EUR/kWh",
         icon="mdi:currency-eur",
-        value_fn=lambda d: _current_hour_value(d, "price_forecast"),
+        value_fn=lambda d: _current_hour_value(d, "price_forecast") * 1000 if _current_hour_value(d, "price_forecast") is not None else None,
         attrs_fn=lambda d: _price_forecast_attrs(d),
     ),
     EOSSensorEntityDescription(

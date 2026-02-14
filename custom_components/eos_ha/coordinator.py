@@ -190,12 +190,14 @@ class EOSCoordinator(DataUpdateCoordinator):
     async def _push_device_config(self) -> None:
         """Configure EOS devices: battery, inverter, EV, appliances."""
         soc_entity = self._get_config(CONF_SOC_ENTITY)
-        initial_soc = 50
+        initial_soc = 50  # Default percentage for device config
         if soc_entity:
             soc_state = self.hass.states.get(soc_entity)
             if soc_state and soc_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN):
                 try:
-                    initial_soc = round(float(soc_state.state))
+                    # SOC entity should provide factor (0.0-1.0), convert to percentage for device config
+                    soc_factor = float(soc_state.state)
+                    initial_soc = round(soc_factor * 100)  # Convert factor to percentage
                 except (ValueError, TypeError):
                     pass
 
@@ -212,20 +214,22 @@ class EOSCoordinator(DataUpdateCoordinator):
             }],
             "inverters": [{
                 "device_id": "inverter1",
-                "max_power_wh": self._get_config(CONF_INVERTER_POWER),
+                "max_power_w": self._get_config(CONF_INVERTER_POWER),
                 "battery_id": "battery1",
             }],
         }
 
         # EV
         if self._get_config(CONF_EV_ENABLED, False):
-            ev_soc = 50
+            ev_soc = 50  # Default percentage for device config
             ev_soc_entity = self._get_config(CONF_EV_SOC_ENTITY)
             if ev_soc_entity:
                 ev_state = self.hass.states.get(ev_soc_entity)
                 if ev_state and ev_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN):
                     try:
-                        ev_soc = round(float(ev_state.state))
+                        # EV SOC entity should provide factor (0.0-1.0), convert to percentage for device config
+                        ev_soc_factor = float(ev_state.state)
+                        ev_soc = round(ev_soc_factor * 100)  # Convert factor to percentage
                     except (ValueError, TypeError):
                         pass
 
@@ -288,10 +292,11 @@ class EOSCoordinator(DataUpdateCoordinator):
         }
 
         # Device measurements (SOC → EOS reads directly from HA)
+        # SOC entity must provide factor (0.0-1.0), not percentage
         soc_entity = self._get_config(CONF_SOC_ENTITY)
         if soc_entity:
             ha_config["device_measurement_entity_ids"] = {
-                "battery1/initial_soc_percentage": soc_entity,
+                "battery1-soc-factor": soc_entity,
             }
 
         # Energy meter entities (optional)
