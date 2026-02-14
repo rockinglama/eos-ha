@@ -353,6 +353,10 @@ class EOSCoordinator(DataUpdateCoordinator):
             if self._last_available is not False:
                 _LOGGER.error("EOS server is unavailable: %s", err)
                 self._last_available = False
+            # Return stale data instead of marking entities unavailable
+            if self.data:
+                _LOGGER.debug("Returning stale data after optimization failure")
+                return self.data
             raise UpdateFailed(str(err)) from err
 
         if self._last_available is not True:
