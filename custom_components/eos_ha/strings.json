@@ -79,17 +79,38 @@
   },
   "entity": {
     "sensor": {
-      "ac_charge_power": { "name": "AC Charge Power" },
-      "dc_charge_power": { "name": "DC Charge Power" },
-      "current_mode": { "name": "Current Mode" },
-      "pv_forecast": { "name": "PV Forecast" },
-      "price_forecast": { "name": "Price Forecast" },
-      "consumption_forecast": { "name": "Consumption Forecast" },
-      "battery_soc_forecast": { "name": "Battery SOC Forecast" },
-      "total_cost": { "name": "Total Cost" }
+      "ac_charge_power": {
+        "name": "AC Charge Power"
+      },
+      "dc_charge_power": {
+        "name": "DC Charge Power"
+      },
+      "current_mode": {
+        "name": "Current Mode"
+      },
+      "pv_forecast": {
+        "name": "PV Forecast"
+      },
+      "price_forecast": {
+        "name": "Price Forecast"
+      },
+      "consumption_forecast": {
+        "name": "Consumption Forecast"
+      },
+      "battery_soc_forecast": {
+        "name": "Battery SOC Forecast"
+      },
+      "total_cost": {
+        "name": "Total Cost"
+      },
+      "override_status": {
+        "name": "Override Status"
+      }
     },
     "binary_sensor": {
-      "discharge_allowed": { "name": "Discharge Allowed" }
+      "discharge_allowed": {
+        "name": "Discharge Allowed"
+      }
     }
   }
 }

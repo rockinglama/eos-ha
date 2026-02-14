@@ -76,16 +76,16 @@ class EOSCoordinator(DataUpdateCoordinator):
         self._override_mode: str | None = None  # "charge", "discharge", or None
         self._override_until = None
 
+        # Last used forecasts (for exposing in sensors)
+        self._last_pv_forecast: list[float] = []
+        self._last_consumption_forecast: list[float] = []
+        self._last_price_forecast: list[float] = []
+
     def _get_config(self, key: str, default=None):
         """Get config value from options (runtime) with data (setup) as fallback."""
         return self.config_entry.options.get(
             key, self.config_entry.data.get(key, default)
         )
-
-        # Last used forecasts (for exposing in sensors)
-        self._last_pv_forecast: list[float] = []
-        self._last_consumption_forecast: list[float] = []
-        self._last_price_forecast: list[float] = []
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from HA entities and run optimization cycle.
@@ -380,6 +380,8 @@ class EOSCoordinator(DataUpdateCoordinator):
             "pv_forecast": self._last_pv_forecast,
             "consumption_forecast": self._last_consumption_forecast,
             "price_forecast": self._last_price_forecast,
+            # Override state
+            "active_override": self.active_override,
             # Metadata
             "raw_response": response,
             "last_update": dt_util.now().isoformat(),

@@ -35,7 +35,16 @@ def _current_hour_value(data: dict, key: str) -> float | None:
 
 
 def _derive_mode(data: dict) -> str:
-    """Derive current operating mode from optimization data."""
+    """Derive current operating mode from optimization data.
+
+    If a manual override is active, it takes priority.
+    """
+    override = data.get("active_override")
+    if override == "charge":
+        return "Override: Charge"
+    if override == "discharge":
+        return "Override: Discharge"
+
     ac = data.get("ac_charge", [])
     discharge = data.get("discharge_allowed", [])
     if ac and ac[0] > 0:
@@ -77,7 +86,6 @@ SENSOR_DESCRIPTIONS: tuple[EOSSensorEntityDescription, ...] = (
         translation_key="pv_forecast",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
-        state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:solar-panel-large",
         value_fn=lambda d: _current_hour_value(d, "pv_forecast"),
         attrs_fn=lambda d: {"forecast": d.get("pv_forecast", [])},
@@ -95,7 +103,6 @@ SENSOR_DESCRIPTIONS: tuple[EOSSensorEntityDescription, ...] = (
         translation_key="consumption_forecast",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
-        state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:home-lightning-bolt",
         value_fn=lambda d: _current_hour_value(d, "consumption_forecast"),
         attrs_fn=lambda d: {"forecast": d.get("consumption_forecast", [])},
@@ -105,10 +112,15 @@ SENSOR_DESCRIPTIONS: tuple[EOSSensorEntityDescription, ...] = (
         translation_key="battery_soc_forecast",
         native_unit_of_measurement="%",
         device_class=SensorDeviceClass.BATTERY,
-        state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:battery",
         value_fn=lambda d: _current_hour_value(d, "battery_soc_forecast"),
         attrs_fn=lambda d: {"forecast": d.get("battery_soc_forecast", [])},
+    ),
+    EOSSensorEntityDescription(
+        key="override_status",
+        translation_key="override_status",
+        icon="mdi:hand-back-right",
+        value_fn=lambda d: d.get("active_override", "none") or "none",
     ),
     EOSSensorEntityDescription(
         key="total_cost",

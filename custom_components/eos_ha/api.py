@@ -1,6 +1,7 @@
 """API clients for EOS server and Akkudoktor."""
 from __future__ import annotations
 
+import asyncio
 from datetime import timedelta
 import logging
 from typing import Any
@@ -237,5 +238,3 @@ class AkkudoktorApiClient:
             raise AkkudoktorApiError(f"Error processing forecast data: {err}") from err
 
 
-# Import asyncio at the end to avoid issues with type hints
-import asyncio
