@@ -69,6 +69,11 @@ class EOSCoordinator(DataUpdateCoordinator):
         self._pv_forecast_cache: list[float] | None = None
         self._pv_forecast_timestamp = None
 
+        # Last used forecasts (for exposing in sensors)
+        self._last_pv_forecast: list[float] = []
+        self._last_consumption_forecast: list[float] = []
+        self._last_price_forecast: list[float] = []
+
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from HA entities and run optimization cycle.
 
@@ -207,27 +212,39 @@ class EOSCoordinator(DataUpdateCoordinator):
         Returns:
             EOS request dict matching existing format
         """
+        price_forecast = self._extract_price_forecast(price_state)
+        consumption_forecast = self._extract_consumption_forecast(consumption_state)
+
+        # Cache for sensor exposure
+        self._last_pv_forecast = pv_forecast
+        self._last_price_forecast = price_forecast
+        self._last_consumption_forecast = consumption_forecast
+
         return {
             "ems": {
                 "pv_prognose_wh": pv_forecast,
-                "strompreis_euro_pro_wh": self._extract_price_forecast(price_state),
+                "strompreis_euro_pro_wh": price_forecast,
                 "einspeiseverguetung_euro_pro_wh": [0.0] * 48,  # Feed-in tariff, 0 for v1
                 "preis_euro_pro_wh_akku": 0.0,  # Battery cost per Wh, 0 for v1
-                "gesamtlast": self._extract_consumption_forecast(consumption_state),
+                "gesamtlast": consumption_forecast,
             },
             "pv_akku": {
-                # CRITICAL: Convert kWh (user input) to Wh (EOS expects)
-                "capacity_wh": self.config_entry.data[CONF_BATTERY_CAPACITY] * 1000,
-                "charging_efficiency": 0.95,  # Default efficiency
-                "discharging_efficiency": 0.95,
+                "device_id": "battery1",
+                # CRITICAL: Convert kWh (user input) to Wh (EOS expects), must be int
+                "capacity_wh": int(self.config_entry.data[CONF_BATTERY_CAPACITY] * 1000),
+                "charging_efficiency": 0.88,
+                "discharging_efficiency": 0.88,
                 "max_charge_power_w": self.config_entry.data[CONF_MAX_CHARGE_POWER],
                 "initial_soc_percentage": round(float(soc_state.state)),
                 "min_soc_percentage": self.config_entry.data[CONF_MIN_SOC],
                 "max_soc_percentage": self.config_entry.data[CONF_MAX_SOC],
             },
             "inverter": {
+                "device_id": "inverter1",
                 "max_power_wh": self.config_entry.data[CONF_INVERTER_POWER],
+                "battery_id": "battery1",
             },
+            "eauto": None,
             # Default temperature forecast (15 degrees, matching existing pattern)
             "temperature_forecast": [15.0] * 48,
         }
@@ -295,11 +312,31 @@ class EOSCoordinator(DataUpdateCoordinator):
             _LOGGER.error("EOS response missing keys: %s", missing_keys)
             raise UpdateFailed(f"Invalid EOS response: missing {missing_keys}")
 
+        result = response.get("result", {})
+
         return {
             "ac_charge": response.get("ac_charge", []),
             "dc_charge": response.get("dc_charge", []),
             "discharge_allowed": response.get("discharge_allowed", []),
             "start_solution": response.get("start_solution"),
+            # Result fields
+            "battery_soc_forecast": result.get("akku_soc_pro_stunde", []),
+            "cost_per_hour": result.get("Kosten_Euro_pro_Stunde", []),
+            "revenue_per_hour": result.get("Einnahmen_Euro_pro_Stunde", []),
+            "grid_consumption_per_hour": result.get("Netzbezug_Wh_pro_Stunde", []),
+            "grid_feedin_per_hour": result.get("Netzeinspeisung_Wh_pro_Stunde", []),
+            "load_per_hour": result.get("Last_Wh_pro_Stunde", []),
+            "losses_per_hour": result.get("Verluste_Pro_Stunde", []),
+            "total_balance": result.get("Gesamtbilanz_Euro"),
+            "total_cost": result.get("Gesamtkosten_Euro"),
+            "total_revenue": result.get("Gesamteinnahmen_Euro"),
+            "total_losses": result.get("Gesamt_Verluste"),
+            "electricity_price": result.get("Electricity_price", []),
+            # Input forecasts (from request building)
+            "pv_forecast": self._last_pv_forecast,
+            "consumption_forecast": self._last_consumption_forecast,
+            "price_forecast": self._last_price_forecast,
+            # Metadata
             "raw_response": response,
             "last_update": dt_util.now().isoformat(),
             "last_success": True,
