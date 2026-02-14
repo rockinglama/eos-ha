@@ -1,0 +1,13 @@
+/.mypy_cache
+/.vscode
+/.venv
+__pycache__/
+src/config.bak.yaml
+src/config.yaml
+src/json/*.json
+src/interfaces/__pycache__
+src/interfaces/config/battery_config.json
+src/interfaces/config/timeofuse_config.json
+src/json/optimize_request.test.json
+src/json/optimize_response.test.json
+pytest.ini

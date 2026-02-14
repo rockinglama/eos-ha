@@ -1,0 +1,302 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "EOS HA",
+        "description": "Enter the URL of your EOS optimization server. {detected}",
+        "data": {
+          "eos_url": "EOS Server URL"
+        }
+      },
+      "price_source": {
+        "title": "Electricity Price Source",
+        "description": "Choose how electricity prices are obtained.",
+        "data": {
+          "price_source": "Price Source",
+          "bidding_zone": "Bidding Zone (for EnergyCharts)",
+          "price_entity": "Price Entity (for External)"
+        }
+      },
+      "entities": {
+        "title": "Entity Selection",
+        "description": "Select the Home Assistant entities that provide energy data.",
+        "data": {
+          "price_entity": "Electricity Price Entity",
+          "soc_entity": "Battery State of Charge Entity",
+          "consumption_entity": "Consumption/Load Entity"
+        }
+      },
+      "entities_no_price": {
+        "title": "Entity Selection",
+        "description": "Select the Home Assistant entities that provide energy data. Electricity prices are provided by EOS.",
+        "data": {
+          "soc_entity": "Battery State of Charge Entity",
+          "consumption_entity": "Consumption/Load Entity"
+        }
+      },
+      "battery": {
+        "title": "Battery & Feed-in Parameters",
+        "description": "Configure your battery system and feed-in tariff.",
+        "data": {
+          "battery_capacity": "Battery Capacity (kWh)",
+          "max_charge_power": "Max Charge Power (W)",
+          "min_soc": "Minimum SOC (%)",
+          "max_soc": "Maximum SOC (%)",
+          "inverter_power": "Inverter Power (W)",
+          "feed_in_tariff": "Feed-in Tariff (EUR/kWh)"
+        }
+      },
+      "battery_sensors": {
+        "title": "Battery Sensors (optional)",
+        "description": "Configure battery sensor entities for storage price tracking. Skip if you don't need the storage price sensor.",
+        "data": {
+          "battery_grid_power_entity": "Battery Grid Charge Power Entity (W)",
+          "battery_pv_power_entity": "Battery PV Charge Power Entity (W)",
+          "battery_energy_entity": "Battery Energy Entity (kWh)"
+        }
+      },
+      "ev": {
+        "title": "Electric Vehicle (optional)",
+        "description": "Configure your electric vehicle for optimized charging. Leave disabled if you don't have an EV.",
+        "data": {
+          "ev_enabled": "Enable EV Charging Optimization",
+          "ev_capacity": "EV Battery Capacity (kWh)",
+          "ev_charge_power": "Max Charge Power (W)",
+          "ev_efficiency": "Charging Efficiency",
+          "ev_soc_entity": "EV SOC Entity (optional)"
+        }
+      },
+      "pv_overview": {
+        "title": "PV Arrays",
+        "description": "Configure your PV arrays. Add at least one array for accurate solar forecasts.",
+        "data": {
+          "action": "Action"
+        }
+      },
+      "pv_add": {
+        "title": "Add PV Array",
+        "description": "Configure a PV array. Azimuth: 0°=North, 90°=East, 180°=South, 270°=West.",
+        "data": {
+          "azimuth": "Azimuth (°)",
+          "tilt": "Tilt (°)",
+          "power": "Peak Power (Wp)",
+          "inverter_power": "Inverter Power (W)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to EOS server. Check the URL and ensure the server is running.",
+      "invalid_response": "Connected but received unexpected response. Ensure this is an EOS server.",
+      "timeout": "Connection timed out. Check the URL and network."
+    },
+    "abort": {
+      "already_configured": "EOS HA is already configured.",
+      "no_home_location": "Home location not configured in Home Assistant. Set your home location in Settings > System > General."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "EOS HA Configuration",
+        "description": "Choose what to configure.",
+        "menu_options": {
+          "entities": "Input Entities",
+          "battery": "Battery Parameters",
+          "battery_sensors": "Battery Sensors (Storage Price)",
+          "pv_arrays": "PV Arrays",
+          "price_source": "Electricity Price Source",
+          "ev": "Electric Vehicle",
+          "appliances": "Home Appliances",
+          "feed_in_tariff": "Feed-in Tariff"
+        }
+      },
+      "price_source": {
+        "title": "Electricity Price Source",
+        "description": "Choose how electricity prices are obtained. For EnergyCharts, set the bidding zone. For External, select your price sensor.",
+        "data": {
+          "price_source": "Price Source",
+          "bidding_zone": "Bidding Zone (for EnergyCharts)",
+          "price_entity": "Price Entity (for External)"
+        }
+      },
+      "entities": {
+        "title": "Input Entities",
+        "description": "Update your energy entity mappings.",
+        "data": {
+          "price_entity": "Electricity Price Entity",
+          "soc_entity": "Battery State of Charge Entity",
+          "consumption_entity": "Consumption/Load Entity"
+        }
+      },
+      "battery": {
+        "title": "Battery Parameters",
+        "description": "Update your battery system parameters.",
+        "data": {
+          "battery_capacity": "Battery Capacity (kWh)",
+          "max_charge_power": "Max Charge Power (W)",
+          "min_soc": "Minimum SOC (%)",
+          "max_soc": "Maximum SOC (%)",
+          "inverter_power": "Inverter Power (W)"
+        }
+      },
+      "battery_sensors": {
+        "title": "Battery Sensors (Storage Price)",
+        "description": "Configure battery sensor entities for storage price tracking.",
+        "data": {
+          "battery_grid_power_entity": "Battery Grid Charge Power Entity (W)",
+          "battery_pv_power_entity": "Battery PV Charge Power Entity (W)",
+          "battery_energy_entity": "Battery Energy Entity (kWh)"
+        }
+      },
+      "ev": {
+        "title": "Electric Vehicle",
+        "description": "Configure your electric vehicle for optimized charging.",
+        "data": {
+          "ev_enabled": "Enable EV Charging Optimization",
+          "ev_capacity": "EV Battery Capacity (kWh)",
+          "ev_charge_power": "Max Charge Power (W)",
+          "ev_efficiency": "Charging Efficiency",
+          "ev_soc_entity": "EV SOC Entity (optional)"
+        }
+      },
+      "appliances": {
+        "title": "Home Appliances",
+        "description": "Manage flexible loads (e.g. hot water heat pump).",
+        "data": {
+          "action": "Action"
+        }
+      },
+      "appliance_add": {
+        "title": "Add Appliance",
+        "description": "Add a flexible load appliance for optimized scheduling.",
+        "data": {
+          "name": "Appliance Name",
+          "consumption_wh": "Energy per Run (Wh)",
+          "duration_h": "Duration (hours)"
+        }
+      },
+      "feed_in_tariff": {
+        "title": "Feed-in Tariff",
+        "description": "Configure the feed-in tariff for grid export.",
+        "data": {
+          "feed_in_tariff": "Feed-in Tariff (EUR/kWh)"
+        }
+      },
+      "pv_arrays": {
+        "title": "PV Arrays",
+        "description": "Manage your PV arrays.",
+        "data": {
+          "action": "Action"
+        }
+      },
+      "pv_add": {
+        "title": "Add PV Array",
+        "description": "Configure a PV array. Azimuth: 0°=North, 90°=East, 180°=South, 270°=West.",
+        "data": {
+          "azimuth": "Azimuth (°)",
+          "tilt": "Tilt (°)",
+          "power": "Peak Power (Wp)",
+          "inverter_power": "Inverter Power (W)"
+        }
+      }
+    }
+  },
+  "services": {
+    "optimize_now": {
+      "name": "Optimize Now",
+      "description": "Trigger an immediate EOS optimization cycle."
+    },
+    "set_override": {
+      "name": "Set Override",
+      "description": "Manually override the optimization mode for a specified duration.",
+      "fields": {
+        "mode": {
+          "name": "Mode",
+          "description": "Override mode: charge, discharge, or auto (clear override)"
+        },
+        "duration": {
+          "name": "Duration",
+          "description": "Override duration in minutes (1-1440)"
+        }
+      }
+    },
+    "update_predictions": {
+      "name": "Update Predictions",
+      "description": "Trigger EOS to recalculate all predictions (PV forecast, electricity prices, load forecast)."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "ac_charge_power": {
+        "name": "AC Charge Power"
+      },
+      "dc_charge_power": {
+        "name": "DC Charge Power"
+      },
+      "current_mode": {
+        "name": "Current Mode"
+      },
+      "pv_forecast": {
+        "name": "PV Forecast"
+      },
+      "price_forecast": {
+        "name": "Price Forecast"
+      },
+      "consumption_forecast": {
+        "name": "Consumption Forecast"
+      },
+      "battery_soc_forecast": {
+        "name": "Battery SOC Forecast"
+      },
+      "total_cost": {
+        "name": "Total Cost"
+      },
+      "override_status": {
+        "name": "Override Status"
+      },
+      "energy_plan": {
+        "name": "Energy Plan"
+      },
+      "resource_status": {
+        "name": "Battery Resource Status"
+      },
+      "ev_charge_plan": {
+        "name": "EV Charge Plan"
+      },
+      "appliance_schedule": {
+        "name": "Appliance Schedule"
+      },
+      "battery_storage_price": {
+        "name": "Battery Storage Price"
+      }
+    },
+    "binary_sensor": {
+      "discharge_allowed": {
+        "name": "Discharge Allowed"
+      }
+    },
+    "number": {
+      "battery_capacity": {
+        "name": "Battery Capacity"
+      },
+      "max_charge_power": {
+        "name": "Max Charge Power"
+      },
+      "inverter_power": {
+        "name": "Inverter Power"
+      },
+      "min_soc": {
+        "name": "Minimum SOC"
+      },
+      "max_soc": {
+        "name": "Maximum SOC"
+      },
+      "ev_capacity": {
+        "name": "EV Battery Capacity"
+      },
+      "ev_charge_power": {
+        "name": "EV Max Charge Power"
+      }
+    }
+  }
+}

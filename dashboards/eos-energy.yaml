@@ -1,0 +1,210 @@
+###############################################################################
+# EOS Energy Optimizer — Lovelace Dashboard
+#
+# Requirements:
+#   - HACS custom card: apexcharts-card (https://github.com/RomRider/apexcharts-card)
+#
+# Usage:
+#   1. Install apexcharts-card via HACS → Frontend
+#   2. In HA go to Settings → Dashboards → + Add Dashboard → choose "from YAML"
+#      or paste this into a manual dashboard's raw config editor
+#   3. Adjust entity IDs if your integration entry has a different device name
+#
+# All entity IDs below assume the default device name "EOS Energy Optimizer"
+# which HA slugifies to the prefix sensor.eos_energy_optimizer_
+###############################################################################
+
+title: EOS Energy Optimizer
+views:
+  - title: Übersicht
+    path: eos
+    cards:
+      # ── Status ──────────────────────────────────────────────
+      - type: entities
+        title: "⚡ EOS Status"
+        entities:
+          - entity: sensor.eos_energy_optimizer_optimization_status
+            name: Optimierung
+          - entity: sensor.eos_energy_optimizer_current_mode
+            name: Aktueller Modus
+          - entity: sensor.eos_energy_optimizer_energy_plan
+            name: Energieplan
+          - entity: binary_sensor.eos_energy_optimizer_discharge_allowed
+            name: Entladung erlaubt
+          - entity: sensor.eos_energy_optimizer_override_status
+            name: Override
+          - entity: sensor.eos_energy_optimizer_total_cost
+            name: Gesamtkosten
+
+      # ── PV Prognose (48 h) ─────────────────────────────────
+      - type: custom:apexcharts-card
+        header:
+          title: "☀️ PV Prognose (48 h)"
+          show: true
+        graph_span: 48h
+        span:
+          start: hour
+        series:
+          - entity: sensor.eos_energy_optimizer_pv_forecast
+            name: PV
+            type: area
+            color: "#FFD600"
+            stroke_width: 2
+            opacity: 0.25
+            data_generator: |
+              return entity.attributes.forecast.map((val, idx) => {
+                const d = new Date();
+                d.setMinutes(0, 0, 0);
+                d.setHours(d.getHours() + idx);
+                return [d.getTime(), val];
+              });
+        yaxis:
+          - id: power
+            min: 0
+            apex_config:
+              title:
+                text: "W"
+
+      # ── Strompreis (48 h) ──────────────────────────────────
+      - type: custom:apexcharts-card
+        header:
+          title: "💶 Strompreis (48 h)"
+          show: true
+        graph_span: 48h
+        span:
+          start: hour
+        series:
+          - entity: sensor.eos_energy_optimizer_price_forecast
+            name: Preis
+            type: line
+            color: "#E53935"
+            stroke_width: 2
+            curve: stepline
+            data_generator: |
+              return entity.attributes.forecast.map((val, idx) => {
+                const d = new Date();
+                d.setMinutes(0, 0, 0);
+                d.setHours(d.getHours() + idx);
+                return [d.getTime(), val * 100];
+              });
+        yaxis:
+          - id: price
+            apex_config:
+              title:
+                text: "ct/kWh"
+
+      # ── Batterie SOC (48 h) ────────────────────────────────
+      - type: custom:apexcharts-card
+        header:
+          title: "🔋 Batterie SOC (48 h)"
+          show: true
+        graph_span: 48h
+        span:
+          start: hour
+        series:
+          - entity: sensor.eos_energy_optimizer_battery_soc_forecast
+            name: SOC
+            type: area
+            color: "#1E88E5"
+            stroke_width: 2
+            opacity: 0.3
+            data_generator: |
+              return entity.attributes.forecast.map((val, idx) => {
+                const d = new Date();
+                d.setMinutes(0, 0, 0);
+                d.setHours(d.getHours() + idx);
+                return [d.getTime(), val];
+              });
+        yaxis:
+          - id: soc
+            min: 0
+            max: 100
+            apex_config:
+              title:
+                text: "%"
+
+      # ── Lade-/Entlade-Plan (48 h) ──────────────────────────
+      - type: custom:apexcharts-card
+        header:
+          title: "⚙️ Lade-/Entlade-Plan (48 h)"
+          show: true
+        graph_span: 48h
+        span:
+          start: hour
+        series:
+          - entity: sensor.eos_energy_optimizer_ac_charge_power
+            name: AC Charge
+            type: column
+            color: "#43A047"
+            opacity: 0.7
+            data_generator: |
+              return entity.attributes.forecast.map((val, idx) => {
+                const d = new Date();
+                d.setMinutes(0, 0, 0);
+                d.setHours(d.getHours() + idx);
+                return [d.getTime(), val];
+              });
+          - entity: sensor.eos_energy_optimizer_dc_charge_power
+            name: DC Charge
+            type: column
+            color: "#66BB6A"
+            opacity: 0.7
+            data_generator: |
+              return entity.attributes.forecast.map((val, idx) => {
+                const d = new Date();
+                d.setMinutes(0, 0, 0);
+                d.setHours(d.getHours() + idx);
+                return [d.getTime(), val];
+              });
+        apex_config:
+          chart:
+            stacked: true
+        yaxis:
+          - id: power
+            apex_config:
+              title:
+                text: "W"
+
+      # ── Verbrauch (48 h) ───────────────────────────────────
+      - type: custom:apexcharts-card
+        header:
+          title: "🏠 Verbrauch (48 h)"
+          show: true
+        graph_span: 48h
+        span:
+          start: hour
+        series:
+          - entity: sensor.eos_energy_optimizer_consumption_forecast
+            name: Verbrauch
+            type: area
+            color: "#8E24AA"
+            stroke_width: 2
+            opacity: 0.25
+            data_generator: |
+              return entity.attributes.forecast.map((val, idx) => {
+                const d = new Date();
+                d.setMinutes(0, 0, 0);
+                d.setHours(d.getHours() + idx);
+                return [d.getTime(), val];
+              });
+        yaxis:
+          - id: power
+            min: 0
+            apex_config:
+              title:
+                text: "W"
+
+      # ── Batterie-Parameter ─────────────────────────────────
+      - type: entities
+        title: "🔧 Batterie-Parameter"
+        entities:
+          - entity: number.eos_energy_optimizer_battery_capacity
+            name: Kapazität (kWh)
+          - entity: number.eos_energy_optimizer_max_charge_power
+            name: Max. Ladeleistung (W)
+          - entity: number.eos_energy_optimizer_inverter_power
+            name: Wechselrichterleistung (W)
+          - entity: number.eos_energy_optimizer_minimum_soc
+            name: Min. SOC (%)
+          - entity: number.eos_energy_optimizer_maximum_soc
+            name: Max. SOC (%)
