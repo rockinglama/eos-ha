@@ -393,7 +393,7 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.exception("Unexpected error: %s", err)
                 errors["base"] = "invalid_response"
 
-        default_url = getattr(self, "_detected_url", "")
+        default_url = getattr(self, "_detected_url", "http://192.168.1.20:8503")
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema({
