@@ -13,6 +13,9 @@ from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
+    CONF_SG_READY_ENABLED,
+    CONF_SG_READY_SWITCH_1,
+    CONF_SG_READY_SWITCH_2,
     CONF_APPLIANCES,
     CONF_BATTERY_ENERGY,
     CONF_BATTERY_GRID_POWER,
@@ -130,7 +133,7 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
 
         return self.async_show_menu(
             step_id="init",
-            menu_options=["entities", "battery", "battery_sensors", "pv_arrays", "price_source", "ev", "appliances", "feed_in_tariff"],
+            menu_options=["entities", "battery", "battery_sensors", "pv_arrays", "price_source", "ev", "appliances", "feed_in_tariff", "sg_ready"],
         )
 
     # -- Price source sub-step ----------------------------------------------
@@ -398,6 +401,32 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
                     ),
                     vol.Required("duration_h", default=2): selector.NumberSelector(
                         selector.NumberSelectorConfig(min=1, max=24, step=1, unit_of_measurement="h", mode=selector.NumberSelectorMode.BOX)
+                    ),
+                }
+            ),
+        )
+
+    # -- SG-Ready sub-step --------------------------------------------------
+
+    async def async_step_sg_ready(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Configure SG-Ready heat pump control."""
+        if user_input is not None:
+            new_options = {**self.config_entry.options, **user_input}
+            return self.async_create_entry(title="", data=new_options)
+
+        current = {**self.config_entry.data, **self.config_entry.options}
+        return self.async_show_form(
+            step_id="sg_ready",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(CONF_SG_READY_ENABLED, default=current.get(CONF_SG_READY_ENABLED, False)): bool,
+                    vol.Optional(CONF_SG_READY_SWITCH_1, default=current.get(CONF_SG_READY_SWITCH_1, "")): selector.EntitySelector(
+                        selector.EntitySelectorConfig(domain="switch")
+                    ),
+                    vol.Optional(CONF_SG_READY_SWITCH_2, default=current.get(CONF_SG_READY_SWITCH_2, "")): selector.EntitySelector(
+                        selector.EntitySelectorConfig(domain="switch")
                     ),
                 }
             ),

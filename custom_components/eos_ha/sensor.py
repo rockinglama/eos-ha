@@ -24,16 +24,20 @@ from .const import (
     CONF_BATTERY_GRID_POWER,
     CONF_BATTERY_PV_POWER,
     CONF_EOS_URL,
+    CONF_SG_READY_ENABLED,
     DEFAULT_BATTERY_EFFICIENCY,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     CONF_BATTERY_CAPACITY,
+    CONF_MAX_SOC,
     CONF_MIN_SOC,
     CONF_PRICE_SOURCE,
     CONF_PRICE_ENTITY,
     DEFAULT_BATTERY_CAPACITY,
+    DEFAULT_MAX_SOC,
     DEFAULT_MIN_SOC,
     PRICE_SOURCE_EXTERNAL,
+    SG_READY_MODES,
 )
 from .coordinator import EOSCoordinator
 
@@ -216,6 +220,10 @@ async def async_setup_entry(
     current = {**config_entry.data, **config_entry.options}
     if current.get(CONF_BATTERY_ENERGY):
         entities.append(EOSBatteryStoragePriceSensor(coordinator, current))
+
+    # SG-Ready Mode Sensor — only if SG-Ready is enabled
+    if current.get(CONF_SG_READY_ENABLED, False):
+        entities.append(EOSSGReadyModeSensor(coordinator, current))
 
     async_add_entities(entities)
 
@@ -471,4 +479,85 @@ class EOSBatteryStoragePriceSensor(RestoreEntity, SensorEntity):
             "total_value_eur": round(self._total_value, 4),
             "efficiency_rate": self._efficiency,
             "energy_floor_kwh": round(self._get_energy_floor(), 3),
+        }
+
+
+class EOSSGReadyModeSensor(CoordinatorEntity, SensorEntity):
+    """Sensor that recommends an SG-Ready mode (1-4) based on optimization data."""
+
+    def __init__(self, coordinator: EOSCoordinator, config: dict[str, Any]) -> None:
+        super().__init__(coordinator)
+        self._config = config
+        self._attr_unique_id = f"{coordinator.config_entry.entry_id}_sg_ready_mode"
+        self._attr_has_entity_name = True
+        self._attr_name = "SG Ready Mode"
+        self._attr_icon = "mdi:heat-pump"
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, coordinator.config_entry.entry_id)},
+            "name": "EOS",
+            "manufacturer": "Akkudoktor",
+        }
+
+    def _get_config(self) -> dict[str, Any]:
+        return {**self.coordinator.config_entry.data, **self.coordinator.config_entry.options}
+
+    def _compute_mode(self) -> tuple[int, str]:
+        """Compute recommended SG-Ready mode and reason."""
+        # Check for manual override first
+        override = self.coordinator.sg_ready_override
+        if override is not None:
+            return override, f"Manual override (mode {override})"
+
+        data = self.coordinator.data
+        if not data:
+            return 2, "No optimization data"
+
+        config = self._get_config()
+        max_soc = float(config.get(CONF_MAX_SOC, DEFAULT_MAX_SOC))
+        min_soc = float(config.get(CONF_MIN_SOC, DEFAULT_MIN_SOC))
+
+        # Current values from forecasts (index 0)
+        pv_forecast = data.get("pv_forecast", [])
+        price_forecast = data.get("price_forecast", [])
+        soc_forecast = data.get("battery_soc_forecast", [])
+        consumption_forecast = data.get("consumption_forecast", [])
+
+        current_pv = pv_forecast[0] if pv_forecast else 0
+        current_price = price_forecast[0] if price_forecast else 0
+        current_soc = soc_forecast[0] if soc_forecast else 50
+        current_consumption = consumption_forecast[0] if consumption_forecast else 0
+
+        # Daily average price
+        avg_price = sum(price_forecast[:24]) / len(price_forecast[:24]) if price_forecast else current_price
+
+        pv_surplus = current_pv - current_consumption if current_pv and current_consumption else 0
+
+        # Mode 4: Force — significant PV surplus AND battery full
+        if pv_surplus > 500 and current_soc > (max_soc - 5):
+            return 4, f"PV surplus ({pv_surplus:.0f}W) and battery full ({current_soc:.0f}%)"
+
+        # Mode 3: Recommend — PV surplus OR cheap electricity
+        if pv_surplus > 200:
+            return 3, f"PV surplus available ({pv_surplus:.0f}W)"
+        if avg_price > 0 and current_price < avg_price * 0.5:
+            return 3, f"Cheap electricity ({current_price:.4f} < 50% avg {avg_price:.4f})"
+
+        # Mode 1: Lock — expensive power, no PV, low battery
+        if avg_price > 0 and current_price > avg_price * 1.5 and current_pv < 100 and current_soc < (min_soc + 10):
+            return 1, f"Expensive ({current_price:.4f} > 150% avg), no PV, low SOC ({current_soc:.0f}%)"
+
+        # Mode 2: Normal
+        return 2, "Normal operation"
+
+    @property
+    def native_value(self) -> int:
+        mode, _ = self._compute_mode()
+        return mode
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        mode, reason = self._compute_mode()
+        return {
+            "mode_name": SG_READY_MODES.get(mode, "Unknown"),
+            "reason": reason,
         }

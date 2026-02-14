@@ -31,6 +31,32 @@ set_override:
           unit_of_measurement: "min"
           mode: box
 
+set_sg_ready_mode:
+  name: Set SG-Ready Mode
+  description: Manually set SG-Ready mode for heat pump control.
+  fields:
+    mode:
+      name: Mode
+      description: "SG-Ready mode (1=Lock, 2=Normal, 3=Recommend, 4=Force)"
+      required: true
+      selector:
+        number:
+          min: 1
+          max: 4
+          step: 1
+          mode: box
+    duration:
+      name: Duration
+      description: "Override duration in minutes (0 = permanent until next optimization)"
+      default: 60
+      selector:
+        number:
+          min: 0
+          max: 1440
+          step: 1
+          unit_of_measurement: "min"
+          mode: box
+
 update_predictions:
   name: Update Predictions
   description: Trigger EOS to recalculate all predictions (PV forecast, electricity prices, load forecast).

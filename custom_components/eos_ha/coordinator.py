@@ -655,6 +655,33 @@ class EOSCoordinator(DataUpdateCoordinator):
             self._override_until = None
         return None
 
+    def set_sg_ready_override(self, mode: int, duration_minutes: int) -> None:
+        """Set manual SG-Ready mode override."""
+        if duration_minutes == 0:
+            self._sg_ready_override_mode = mode
+            self._sg_ready_override_until = None  # permanent until next optimization
+        else:
+            self._sg_ready_override_mode = mode
+            self._sg_ready_override_until = dt_util.now() + timedelta(minutes=duration_minutes)
+
+    @property
+    def sg_ready_override(self) -> int | None:
+        """Return active SG-Ready override mode or None if expired/not set."""
+        mode = getattr(self, "_sg_ready_override_mode", None)
+        until = getattr(self, "_sg_ready_override_until", None)
+        if mode is None:
+            return None
+        if until is not None and dt_util.now() >= until:
+            self._sg_ready_override_mode = None
+            self._sg_ready_override_until = None
+            return None
+        return mode
+
+    def clear_sg_ready_override(self) -> None:
+        """Clear SG-Ready override."""
+        self._sg_ready_override_mode = None
+        self._sg_ready_override_until = None
+
     async def async_shutdown(self) -> None:
         """Clean up coordinator resources."""
         await self.session.close()

@@ -69,3 +69,15 @@ DEFAULT_PV_AZIMUTH = 180  # degrees, 180 = south
 DEFAULT_PV_TILT = 30  # degrees
 DEFAULT_PV_POWER = 5000  # Wp
 DEFAULT_PV_INVERTER_POWER = 5000  # W
+
+# SG-Ready heat pump configuration
+CONF_SG_READY_ENABLED = "sg_ready_enabled"
+CONF_SG_READY_SWITCH_1 = "sg_ready_switch_1"
+CONF_SG_READY_SWITCH_2 = "sg_ready_switch_2"
+
+SG_READY_MODES = {
+    1: "Lock",
+    2: "Normal",
+    3: "Recommend",
+    4: "Force",
+}

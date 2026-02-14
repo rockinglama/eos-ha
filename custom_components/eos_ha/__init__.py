@@ -14,7 +14,7 @@ from .coordinator import EOSCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = ["sensor", "binary_sensor", "number"]
+PLATFORMS = ["sensor", "binary_sensor", "number", "switch"]
 
 type EosHaConfigEntry = ConfigEntry[EOSCoordinator]
 
@@ -136,6 +136,42 @@ def _register_services(hass: HomeAssistant) -> None:
             ),
         )
 
+    async def handle_set_sg_ready_mode(call: ServiceCall) -> None:
+        """Handle set_sg_ready_mode service call."""
+        mode = call.data.get("mode")
+        if mode is None or mode not in (1, 2, 3, 4):
+            raise ServiceValidationError("Mode must be 1-4")
+        duration = call.data.get("duration", 60)
+        coordinators = _get_coordinators()
+        if not coordinators:
+            raise HomeAssistantError("No EOS HA instances configured")
+        for coordinator in coordinators:
+            try:
+                coordinator.set_sg_ready_override(mode, duration)
+                _LOGGER.info("SG-Ready override set: mode=%s, duration=%s min", mode, duration)
+                coordinator.async_set_updated_data(coordinator.data)
+            except Exception as err:
+                raise HomeAssistantError(
+                    f"Failed to set SG-Ready mode: {err}"
+                ) from err
+
+    if not hass.services.has_service(DOMAIN, "set_sg_ready_mode"):
+        hass.services.async_register(
+            DOMAIN,
+            "set_sg_ready_mode",
+            handle_set_sg_ready_mode,
+            schema=vol.Schema(
+                {
+                    vol.Required("mode"): vol.All(
+                        vol.Coerce(int), vol.Range(min=1, max=4)
+                    ),
+                    vol.Optional("duration", default=60): vol.All(
+                        vol.Coerce(int), vol.Range(min=0, max=1440)
+                    ),
+                }
+            ),
+        )
+
     if not hass.services.has_service(DOMAIN, "update_predictions"):
         hass.services.async_register(
             DOMAIN,
@@ -160,6 +196,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: EosHaConfigEntry) -> bo
         if not remaining:
             hass.services.async_remove(DOMAIN, "optimize_now")
             hass.services.async_remove(DOMAIN, "set_override")
+            hass.services.async_remove(DOMAIN, "set_sg_ready_mode")
             hass.services.async_remove(DOMAIN, "update_predictions")
 
     return unload_ok

@@ -107,7 +107,8 @@
           "price_source": "Electricity Price Source",
           "ev": "Electric Vehicle",
           "appliances": "Home Appliances",
-          "feed_in_tariff": "Feed-in Tariff"
+          "feed_in_tariff": "Feed-in Tariff",
+          "sg_ready": "SG-Ready Heat Pump"
         }
       },
       "price_source": {
@@ -198,6 +199,15 @@
           "power": "Peak Power (Wp)",
           "inverter_power": "Inverter Power (W)"
         }
+      },
+      "sg_ready": {
+        "title": "SG-Ready Heat Pump",
+        "description": "Configure SG-Ready smart grid control for your heat pump. Requires two relay switch entities.",
+        "data": {
+          "sg_ready_enabled": "Enable SG-Ready Control",
+          "sg_ready_switch_1": "SG-Ready Contact 1 (Switch Entity)",
+          "sg_ready_switch_2": "SG-Ready Contact 2 (Switch Entity)"
+        }
       }
     }
   },
@@ -217,6 +227,20 @@
         "duration": {
           "name": "Duration",
           "description": "Override duration in minutes (1-1440)"
+        }
+      }
+    },
+    "set_sg_ready_mode": {
+      "name": "Set SG-Ready Mode",
+      "description": "Manually set SG-Ready mode for heat pump control.",
+      "fields": {
+        "mode": {
+          "name": "Mode",
+          "description": "SG-Ready mode (1=Lock, 2=Normal, 3=Recommend, 4=Force)"
+        },
+        "duration": {
+          "name": "Duration",
+          "description": "Override duration in minutes (0 = permanent until next optimization)"
         }
       }
     },
@@ -268,6 +292,14 @@
       },
       "battery_storage_price": {
         "name": "Battery Storage Price"
+      },
+      "sg_ready_mode": {
+        "name": "SG Ready Mode"
+      }
+    },
+    "switch": {
+      "sg_ready_auto": {
+        "name": "SG Ready Auto Control"
       }
     },
     "binary_sensor": {
