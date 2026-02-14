@@ -198,7 +198,9 @@
         "data": {
           "name": "Appliance Name",
           "consumption_wh": "Energy per Run (Wh)",
-          "duration_h": "Duration (hours)"
+          "duration_h": "Duration (hours)",
+          "window_start": "Earliest Start Time",
+          "window_end": "Latest End Time"
         }
       },
       "feed_in_tariff": {

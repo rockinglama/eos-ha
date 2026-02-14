@@ -435,10 +435,13 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
             selector.SelectOptionDict(value="add", label="➕ Add Appliance"),
         ]
         for i, app in enumerate(self._appliances):
+            window = ""
+            if app.get("window_start") and app.get("window_end"):
+                window = f", {app['window_start']}-{app['window_end']}"
             options.append(
                 selector.SelectOptionDict(
                     value=f"remove_{i}",
-                    label=f"❌ Remove: {app['name']} ({app['consumption_wh']}Wh, {app['duration_h']}h)",
+                    label=f"❌ Remove: {app['name']} ({app['consumption_wh']}Wh, {app['duration_h']}h{window})",
                 )
             )
         options.append(selector.SelectOptionDict(value="save", label="💾 Save & Close"))
@@ -459,12 +462,19 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
     ) -> config_entries.FlowResult:
         """Add a home appliance."""
         if user_input is not None:
-            self._appliances.append({
+            app = {
                 "name": user_input["name"],
                 "device_id": user_input["name"].lower().replace(" ", "_"),
                 "consumption_wh": int(user_input["consumption_wh"]),
                 "duration_h": int(user_input["duration_h"]),
-            })
+            }
+            # Time window (optional)
+            start = user_input.get("window_start", "")
+            end = user_input.get("window_end", "")
+            if start and end:
+                app["window_start"] = start
+                app["window_end"] = end
+            self._appliances.append(app)
             return await self.async_step_appliances()
 
         return self.async_show_form(
@@ -478,6 +488,8 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
                     vol.Required("duration_h", default=2): selector.NumberSelector(
                         selector.NumberSelectorConfig(min=1, max=24, step=1, unit_of_measurement="h", mode=selector.NumberSelectorMode.BOX)
                     ),
+                    vol.Optional("window_start", default="06:00"): selector.TimeSelector(),
+                    vol.Optional("window_end", default="22:00"): selector.TimeSelector(),
                 }
             ),
         )

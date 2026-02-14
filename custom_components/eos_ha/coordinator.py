@@ -243,14 +243,34 @@ class EOSCoordinator(DataUpdateCoordinator):
         # Appliances
         appliances = self._get_config(CONF_APPLIANCES) or []
         if appliances:
-            devices["home_appliances"] = [
-                {
+            app_list = []
+            for app in appliances:
+                app_cfg: dict[str, Any] = {
                     "device_id": app.get("device_id", app["name"].lower().replace(" ", "_")),
                     "consumption_wh": app["consumption_wh"],
                     "duration_h": app["duration_h"],
                 }
-                for app in appliances
-            ]
+                # Time window support
+                w_start = app.get("window_start")
+                w_end = app.get("window_end")
+                if w_start and w_end:
+                    # Calculate duration from start to end
+                    from datetime import datetime
+                    t_start = datetime.strptime(w_start, "%H:%M")
+                    t_end = datetime.strptime(w_end, "%H:%M")
+                    delta = t_end - t_start
+                    if delta.total_seconds() <= 0:
+                        delta += timedelta(days=1)  # overnight window
+                    hours = int(delta.total_seconds() // 3600)
+                    minutes = int((delta.total_seconds() % 3600) // 60)
+                    app_cfg["time_windows"] = {
+                        "windows": [{
+                            "start_time": w_start,
+                            "duration": f"PT{hours}H{minutes}M" if minutes else f"PT{hours}H",
+                        }]
+                    }
+                app_list.append(app_cfg)
+            devices["home_appliances"] = app_list
 
         await self._eos_client.put_config("devices", devices)
 

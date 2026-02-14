@@ -198,7 +198,9 @@
         "data": {
           "name": "Gerätename",
           "consumption_wh": "Energie pro Durchlauf (Wh)",
-          "duration_h": "Dauer (Stunden)"
+          "duration_h": "Dauer (Stunden)",
+          "window_start": "Früheste Startzeit",
+          "window_end": "Späteste Endzeit"
         }
       },
       "feed_in_tariff": {
