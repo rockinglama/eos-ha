@@ -23,11 +23,64 @@ async def async_setup_entry(
     coordinator: EOSCoordinator = config_entry.runtime_data
     current = {**config_entry.data, **config_entry.options}
 
-    entities: list[ButtonEntity] = []
+    entities: list[ButtonEntity] = [
+        EOSOptimizeNowButton(coordinator),
+        EOSUpdatePredictionsButton(coordinator),
+    ]
     if current.get(CONF_BATTERY_ENERGY):
         entities.append(EOSBatteryPriceResetButton(coordinator))
 
     async_add_entities(entities)
+
+
+class EOSOptimizeNowButton(ButtonEntity):
+    """Button to trigger immediate optimization."""
+
+    _attr_has_entity_name = True
+    _attr_name = "Optimize Now"
+    _attr_icon = "mdi:flash"
+
+    def __init__(self, coordinator: EOSCoordinator) -> None:
+        self._coordinator = coordinator
+        self._attr_unique_id = (
+            f"{coordinator.config_entry.entry_id}_optimize_now"
+        )
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, coordinator.config_entry.entry_id)},
+            "name": "EOS",
+            "manufacturer": "Akkudoktor",
+        }
+
+    async def async_press(self) -> None:
+        """Trigger optimization."""
+        await self.hass.services.async_call(
+            DOMAIN, "optimize_now", {}, blocking=True
+        )
+
+
+class EOSUpdatePredictionsButton(ButtonEntity):
+    """Button to trigger prediction update."""
+
+    _attr_has_entity_name = True
+    _attr_name = "Update Predictions"
+    _attr_icon = "mdi:refresh"
+
+    def __init__(self, coordinator: EOSCoordinator) -> None:
+        self._coordinator = coordinator
+        self._attr_unique_id = (
+            f"{coordinator.config_entry.entry_id}_update_predictions"
+        )
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, coordinator.config_entry.entry_id)},
+            "name": "EOS",
+            "manufacturer": "Akkudoktor",
+        }
+
+    async def async_press(self) -> None:
+        """Trigger prediction update."""
+        await self.hass.services.async_call(
+            DOMAIN, "update_predictions", {}, blocking=True
+        )
 
 
 class EOSBatteryPriceResetButton(ButtonEntity):
