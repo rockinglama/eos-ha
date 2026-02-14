@@ -132,23 +132,19 @@ class AkkudoktorApiClient:
         self,
         lat: float,
         lon: float,
-        azimuth: float = 180,
-        tilt: float = 30,
-        power: float = 1000,
-        power_inverter: float = 1000,
-        inverter_efficiency: float = 1.0,
+        pv_arrays: list[dict] | None = None,
         timezone: str = "UTC",
     ) -> list[float]:
         """Fetch 48-hour PV forecast from Akkudoktor API.
 
+        Supports multiple PV arrays by repeating azimuth/tilt/power/powerInverter
+        parameters in the query string.
+
         Args:
             lat: Latitude
             lon: Longitude
-            azimuth: Panel azimuth in degrees (default 180 = south)
-            tilt: Panel tilt in degrees (default 30)
-            power: Panel power in W (default 1000)
-            power_inverter: Inverter power in W (default 1000)
-            inverter_efficiency: Inverter efficiency 0-1 (default 1.0)
+            pv_arrays: List of dicts with azimuth, tilt, power, inverter_power.
+                       If None/empty, uses single default array.
             timezone: Timezone string (default UTC)
 
         Returns:
@@ -157,18 +153,20 @@ class AkkudoktorApiClient:
         Raises:
             AkkudoktorApiError: If API request fails or data processing fails
         """
-        # Build request URL with query parameters matching existing pattern
-        url = (
-            f"{AKKUDOKTOR_API_URL}"
-            f"?lat={lat}"
-            f"&lon={lon}"
-            f"&azimuth={azimuth}"
-            f"&tilt={tilt}"
-            f"&power={power}"
-            f"&powerInverter={power_inverter}"
-            f"&inverterEfficiency={inverter_efficiency}"
-            f"&timezone={timezone}"
-        )
+        if not pv_arrays:
+            pv_arrays = [{"azimuth": 180, "tilt": 30, "power": 1000, "inverter_power": 1000}]
+
+        # Build URL with repeated params for multi-array
+        params = f"?lat={lat}&lon={lon}&timezone={timezone}"
+        for arr in pv_arrays:
+            params += (
+                f"&azimuth={arr['azimuth']}"
+                f"&tilt={arr['tilt']}"
+                f"&power={arr['power']}"
+                f"&powerInverter={arr.get('inverter_power', arr['power'])}"
+                f"&inverterEfficiency=1.0"
+            )
+        url = f"{AKKUDOKTOR_API_URL}{params}"
 
         try:
             timeout = aiohttp.ClientTimeout(total=10)

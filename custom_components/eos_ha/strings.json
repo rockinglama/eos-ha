@@ -27,6 +27,23 @@
           "max_soc": "Maximum SOC (%)",
           "inverter_power": "Inverter Power (W)"
         }
+      },
+      "pv_overview": {
+        "title": "PV Arrays",
+        "description": "Configure your PV arrays. Add at least one array for accurate solar forecasts.",
+        "data": {
+          "action": "Action"
+        }
+      },
+      "pv_add": {
+        "title": "Add PV Array",
+        "description": "Configure a PV array. Azimuth: 0°=North, 90°=East, 180°=South, 270°=West.",
+        "data": {
+          "azimuth": "Azimuth (°)",
+          "tilt": "Tilt (°)",
+          "power": "Peak Power (Wp)",
+          "inverter_power": "Inverter Power (W)"
+        }
       }
     },
     "error": {
@@ -43,15 +60,47 @@
     "step": {
       "init": {
         "title": "EOS HA Configuration",
-        "description": "Update your energy entities and battery parameters.",
+        "description": "Choose what to configure.",
+        "menu_options": {
+          "entities": "Input Entities",
+          "battery": "Battery Parameters",
+          "pv_arrays": "PV Arrays"
+        }
+      },
+      "entities": {
+        "title": "Input Entities",
+        "description": "Update your energy entity mappings.",
         "data": {
           "price_entity": "Electricity Price Entity",
           "soc_entity": "Battery State of Charge Entity",
-          "consumption_entity": "Consumption/Load Entity",
+          "consumption_entity": "Consumption/Load Entity"
+        }
+      },
+      "battery": {
+        "title": "Battery Parameters",
+        "description": "Update your battery system parameters.",
+        "data": {
           "battery_capacity": "Battery Capacity (kWh)",
           "max_charge_power": "Max Charge Power (W)",
           "min_soc": "Minimum SOC (%)",
           "max_soc": "Maximum SOC (%)",
+          "inverter_power": "Inverter Power (W)"
+        }
+      },
+      "pv_arrays": {
+        "title": "PV Arrays",
+        "description": "Manage your PV arrays.",
+        "data": {
+          "action": "Action"
+        }
+      },
+      "pv_add": {
+        "title": "Add PV Array",
+        "description": "Configure a PV array. Azimuth: 0°=North, 90°=East, 180°=South, 270°=West.",
+        "data": {
+          "azimuth": "Azimuth (°)",
+          "tilt": "Tilt (°)",
+          "power": "Peak Power (Wp)",
           "inverter_power": "Inverter Power (W)"
         }
       }
@@ -79,38 +128,25 @@
   },
   "entity": {
     "sensor": {
-      "ac_charge_power": {
-        "name": "AC Charge Power"
-      },
-      "dc_charge_power": {
-        "name": "DC Charge Power"
-      },
-      "current_mode": {
-        "name": "Current Mode"
-      },
-      "pv_forecast": {
-        "name": "PV Forecast"
-      },
-      "price_forecast": {
-        "name": "Price Forecast"
-      },
-      "consumption_forecast": {
-        "name": "Consumption Forecast"
-      },
-      "battery_soc_forecast": {
-        "name": "Battery SOC Forecast"
-      },
-      "total_cost": {
-        "name": "Total Cost"
-      },
-      "override_status": {
-        "name": "Override Status"
-      }
+      "ac_charge_power": { "name": "AC Charge Power" },
+      "dc_charge_power": { "name": "DC Charge Power" },
+      "current_mode": { "name": "Current Mode" },
+      "pv_forecast": { "name": "PV Forecast" },
+      "price_forecast": { "name": "Price Forecast" },
+      "consumption_forecast": { "name": "Consumption Forecast" },
+      "battery_soc_forecast": { "name": "Battery SOC Forecast" },
+      "total_cost": { "name": "Total Cost" },
+      "override_status": { "name": "Override Status" }
     },
     "binary_sensor": {
-      "discharge_allowed": {
-        "name": "Discharge Allowed"
-      }
+      "discharge_allowed": { "name": "Discharge Allowed" }
+    },
+    "number": {
+      "battery_capacity": { "name": "Battery Capacity" },
+      "max_charge_power": { "name": "Max Charge Power" },
+      "inverter_power": { "name": "Inverter Power" },
+      "min_soc": { "name": "Minimum SOC" },
+      "max_soc": { "name": "Maximum SOC" }
     }
   }
 }

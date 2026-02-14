@@ -28,6 +28,7 @@ from .const import (
     CONF_MAX_SOC,
     CONF_MIN_SOC,
     CONF_PRICE_ENTITY,
+    CONF_PV_ARRAYS,
     CONF_SOC_ENTITY,
     DEFAULT_SCAN_INTERVAL,
     PV_FORECAST_CACHE_HOURS,
@@ -216,9 +217,12 @@ class EOSCoordinator(DataUpdateCoordinator):
                     return self._pv_forecast_cache
                 return None
 
+            pv_arrays = self._get_config(CONF_PV_ARRAYS) or []
+
             forecast = await self._akkudoktor_client.get_pv_forecast(
                 lat=lat,
                 lon=lon,
+                pv_arrays=pv_arrays if pv_arrays else None,
                 timezone=self.hass.config.time_zone,
             )
 
