@@ -202,7 +202,7 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
                 )
             ),
             vol.Optional(CONF_BIDDING_ZONE, default=current.get(CONF_BIDDING_ZONE, DEFAULT_BIDDING_ZONE)): str,
-            vol.Optional(CONF_PRICE_ENTITY, default=current.get(CONF_PRICE_ENTITY, "")): selector.EntitySelector(
+            vol.Optional(CONF_PRICE_ENTITY, default=current.get(CONF_PRICE_ENTITY) or vol.UNDEFINED): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain="sensor")
             ),
         }
@@ -237,7 +237,7 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
         schema_dict[vol.Required(CONF_CONSUMPTION_ENTITY, default=current.get(CONF_CONSUMPTION_ENTITY))] = selector.EntitySelector(
             selector.EntitySelectorConfig(domain="sensor")
         )
-        schema_dict[vol.Optional(CONF_TEMPERATURE_ENTITY, default=current.get(CONF_TEMPERATURE_ENTITY, ""))] = selector.EntitySelector(
+        schema_dict[vol.Optional(CONF_TEMPERATURE_ENTITY, default=current.get(CONF_TEMPERATURE_ENTITY) or vol.UNDEFINED)] = selector.EntitySelector(
             selector.EntitySelectorConfig(domain=["sensor", "weather"])
         )
 
@@ -366,7 +366,7 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
                     vol.Required(CONF_EV_EFFICIENCY, default=current.get(CONF_EV_EFFICIENCY, DEFAULT_EV_EFFICIENCY)): selector.NumberSelector(
                         selector.NumberSelectorConfig(min=0.5, max=1.0, step=0.01, mode=selector.NumberSelectorMode.BOX)
                     ),
-                    vol.Optional(CONF_EV_SOC_ENTITY, default=current.get(CONF_EV_SOC_ENTITY, "")): selector.EntitySelector(
+                    vol.Optional(CONF_EV_SOC_ENTITY, default=current.get(CONF_EV_SOC_ENTITY) or vol.UNDEFINED): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="sensor")
                     ),
                 }
@@ -463,10 +463,10 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_SG_READY_ENABLED, default=current.get(CONF_SG_READY_ENABLED, False)): bool,
-                    vol.Optional(CONF_SG_READY_SWITCH_1, default=current.get(CONF_SG_READY_SWITCH_1, "")): selector.EntitySelector(
+                    vol.Optional(CONF_SG_READY_SWITCH_1, default=current.get(CONF_SG_READY_SWITCH_1) or vol.UNDEFINED): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="switch")
                     ),
-                    vol.Optional(CONF_SG_READY_SWITCH_2, default=current.get(CONF_SG_READY_SWITCH_2, "")): selector.EntitySelector(
+                    vol.Optional(CONF_SG_READY_SWITCH_2, default=current.get(CONF_SG_READY_SWITCH_2) or vol.UNDEFINED): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="switch")
                     ),
                 }
@@ -488,13 +488,13 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
             step_id="battery_sensors",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(CONF_BATTERY_GRID_POWER, default=current.get(CONF_BATTERY_GRID_POWER, "")): selector.EntitySelector(
+                    vol.Optional(CONF_BATTERY_GRID_POWER, default=current.get(CONF_BATTERY_GRID_POWER) or vol.UNDEFINED): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="sensor")
                     ),
-                    vol.Optional(CONF_BATTERY_PV_POWER, default=current.get(CONF_BATTERY_PV_POWER, "")): selector.EntitySelector(
+                    vol.Optional(CONF_BATTERY_PV_POWER, default=current.get(CONF_BATTERY_PV_POWER) or vol.UNDEFINED): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="sensor")
                     ),
-                    vol.Optional(CONF_BATTERY_ENERGY, default=current.get(CONF_BATTERY_ENERGY, "")): selector.EntitySelector(
+                    vol.Optional(CONF_BATTERY_ENERGY, default=current.get(CONF_BATTERY_ENERGY) or vol.UNDEFINED): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="sensor")
                     ),
                 }
@@ -706,7 +706,7 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_CONSUMPTION_ENTITY): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="sensor")
                     ),
-                    vol.Optional(CONF_TEMPERATURE_ENTITY, default=""): selector.EntitySelector(
+                    vol.Optional(CONF_TEMPERATURE_ENTITY): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain=["sensor", "weather"])
                     ),
                 }
@@ -733,7 +733,7 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_CONSUMPTION_ENTITY): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="sensor")
                     ),
-                    vol.Optional(CONF_TEMPERATURE_ENTITY, default=""): selector.EntitySelector(
+                    vol.Optional(CONF_TEMPERATURE_ENTITY): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain=["sensor", "weather"])
                     ),
                 }
@@ -791,13 +791,13 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="battery_sensors",
             data_schema=vol.Schema(
                 {
-                    vol.Optional(CONF_BATTERY_GRID_POWER, default=""): selector.EntitySelector(
+                    vol.Optional(CONF_BATTERY_GRID_POWER): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="sensor")
                     ),
-                    vol.Optional(CONF_BATTERY_PV_POWER, default=""): selector.EntitySelector(
+                    vol.Optional(CONF_BATTERY_PV_POWER): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="sensor")
                     ),
-                    vol.Optional(CONF_BATTERY_ENERGY, default=""): selector.EntitySelector(
+                    vol.Optional(CONF_BATTERY_ENERGY): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="sensor")
                     ),
                 }
@@ -826,7 +826,7 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_EV_EFFICIENCY, default=DEFAULT_EV_EFFICIENCY): selector.NumberSelector(
                         selector.NumberSelectorConfig(min=0.5, max=1.0, step=0.01, mode=selector.NumberSelectorMode.BOX)
                     ),
-                    vol.Optional(CONF_EV_SOC_ENTITY, default=""): selector.EntitySelector(
+                    vol.Optional(CONF_EV_SOC_ENTITY): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="sensor")
                     ),
                 }
