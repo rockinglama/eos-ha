@@ -1,0 +1,37 @@
+services:
+  eos:
+    image: akkudoktor/eos:latest
+    container_name: eos-server
+    ports:
+      - "8503:8503"
+      - "8504:8504"
+    environment:
+      - OPENBLAS_NUM_THREADS=1
+      - OMP_NUM_THREADS=1
+      - MKL_NUM_THREADS=1
+      - EOS_SERVER__HOST=0.0.0.0
+      - EOS_SERVER__EOSDASH_HOST=0.0.0.0
+      - EOS_SERVER__EOSDASH_PORT=8504
+    ulimits:
+      nproc: 65535
+      nofile: 65535
+    security_opt:
+      - seccomp=unconfined
+    restart: unless-stopped
+
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:stable
+    container_name: homeassistant
+    ports:
+      - "8123:8123"
+    volumes:
+      - ha_config:/config
+      - ./custom_components/eos_ha:/config/custom_components/eos_ha:ro
+    environment:
+      - TZ=Europe/Berlin
+    depends_on:
+      - eos
+    restart: unless-stopped
+
+volumes:
+  ha_config:
