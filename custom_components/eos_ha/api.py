@@ -71,6 +71,8 @@ class EOSApiClient:
                 url, json=eos_request, headers=headers, timeout=timeout,
             ) as resp:
                 if resp.status != 200:
+                    body = await resp.text()
+                    _LOGGER.error("EOS optimize returned %s: %s", resp.status, body[:500])
                     raise EOSOptimizationError(f"EOS returned status {resp.status}")
                 return await resp.json()
         except aiohttp.ClientError as err:

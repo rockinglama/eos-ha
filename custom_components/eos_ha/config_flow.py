@@ -134,7 +134,44 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
 
         return self.async_show_menu(
             step_id="init",
-            menu_options=["entities", "battery", "battery_sensors", "pv_arrays", "price_source", "ev", "appliances", "feed_in_tariff", "sg_ready"],
+            menu_options=["eos_server", "entities", "battery", "battery_sensors", "pv_arrays", "price_source", "ev", "appliances", "feed_in_tariff", "sg_ready"],
+        )
+
+    # -- EOS Server sub-step -----------------------------------------------
+
+    async def async_step_eos_server(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Change EOS server URL."""
+        errors: dict[str, str] = {}
+        current = {**self.config_entry.data, **self.config_entry.options}
+
+        if user_input is not None:
+            eos_url = user_input[CONF_EOS_URL].rstrip("/")
+            try:
+                session = async_get_clientsession(self.hass)
+                timeout = aiohttp.ClientTimeout(total=10)
+                async with session.get(f"{eos_url}/v1/health", timeout=timeout) as response:
+                    if response.status == 200:
+                        # Update both data and options
+                        self.hass.config_entries.async_update_entry(
+                            self.config_entry,
+                            data={**self.config_entry.data, CONF_EOS_URL: eos_url},
+                        )
+                        await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+                        return self.async_create_entry(title="", data={})
+                    errors["base"] = "invalid_response"
+            except aiohttp.ClientError:
+                errors["base"] = "cannot_connect"
+            except Exception:
+                errors["base"] = "invalid_response"
+
+        return self.async_show_form(
+            step_id="eos_server",
+            data_schema=vol.Schema({
+                vol.Required(CONF_EOS_URL, default=current.get(CONF_EOS_URL, "")): str,
+            }),
+            errors=errors,
         )
 
     # -- Price source sub-step ----------------------------------------------

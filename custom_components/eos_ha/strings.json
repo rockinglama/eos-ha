@@ -110,7 +110,8 @@
           "ev": "Electric Vehicle",
           "appliances": "Home Appliances",
           "feed_in_tariff": "Feed-in Tariff",
-          "sg_ready": "SG-Ready Heat Pump"
+          "sg_ready": "SG-Ready Heat Pump",
+          "eos_server": "EOS Server"
         }
       },
       "price_source": {
@@ -210,6 +211,12 @@
           "sg_ready_enabled": "Enable SG-Ready Control",
           "sg_ready_switch_1": "SG-Ready Contact 1 (Switch Entity)",
           "sg_ready_switch_2": "SG-Ready Contact 2 (Switch Entity)"
+        }
+      },
+      "eos_server": {
+        "title": "EOS Server",
+        "data": {
+          "eos_url": "EOS Server URL"
         }
       }
     }

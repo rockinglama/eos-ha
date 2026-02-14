@@ -110,7 +110,8 @@
           "ev": "Elektrofahrzeug",
           "appliances": "Flexible Lasten",
           "feed_in_tariff": "Einspeisevergütung",
-          "sg_ready": "SG-Ready Wärmepumpe"
+          "sg_ready": "SG-Ready Wärmepumpe",
+          "eos_server": "EOS Server"
         }
       },
       "price_source": {
@@ -210,6 +211,12 @@
           "sg_ready_enabled": "SG-Ready Steuerung aktivieren",
           "sg_ready_switch_1": "SG-Ready Kontakt 1 (Schalter-Entität)",
           "sg_ready_switch_2": "SG-Ready Kontakt 2 (Schalter-Entität)"
+        }
+      },
+      "eos_server": {
+        "title": "EOS Server",
+        "data": {
+          "eos_url": "EOS Server URL"
         }
       }
     }
