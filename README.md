@@ -7,27 +7,28 @@
   [![Add to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=rockinglama&repository=eos-ha&category=integration)
 
   A Home Assistant custom integration for [Akkudoktor EOS](https://github.com/Akkudoktor-EOS/EOS) energy optimization.
+  
+  German translations included · 4 automation blueprints · Startup in < 1 s
 </div>
 
 ## What It Does
 
-EOS-HA runs an optimization cycle every 5 minutes:
+EOS-HA connects Home Assistant to an [EOS](https://github.com/Akkudoktor-EOS/EOS) server using the **EOS HA Adapter** — a bidirectional data bridge:
 
-1. **Collects** electricity prices, battery SOC, consumption, and load history from your HA entities
-2. **Fetches** a 48-hour PV forecast via the EOS server's native `/pvforecast` endpoint (supports multiple PV arrays)
-3. **Pushes** current measurements (SOC + consumption) and 7-day hourly load history from the HA recorder to EOS
-4. **Sends** all data to your EOS server for optimization
-5. **Exposes** the results (charge/discharge plan, forecasts, costs, EV charge plan, appliance schedules) as HA entities
+1. **EOS reads from HA** — battery SOC, consumption, energy meters, electricity prices, temperature
+2. **EOS optimizes automatically** — runs optimization at a configurable interval (default: every hour)
+3. **EOS writes results back** — creates `sensor.eos_*` entities with charge plans, forecasts, and schedules
+4. **EOS-HA wraps those entities** — adds proper `unique_id`, device grouping, translations, and 48 h forecast attributes
 
-You keep full control — EOS-HA provides recommendations as sensor entities. You decide how to act on them with your own automations.
+No manual API calls. No polling. EOS handles all forecasts (PV, load, price) natively.
 
 ## Requirements
 
 - Home Assistant 2024.1+
-- A running [Akkudoktor EOS](https://github.com/Akkudoktor-EOS/EOS) server (reachable from HA)
+- A running [Akkudoktor EOS](https://github.com/Akkudoktor-EOS/EOS) server (addon mode recommended for full adapter support)
 - A battery SOC sensor
 - A consumption/load sensor
-- An electricity price sensor (only if using "External" price source — see below)
+- An electricity price sensor (only if using "External" price source)
 
 ## Installation
 
@@ -47,100 +48,91 @@ You keep full control — EOS-HA provides recommendations as sensor entities. Yo
 
 ![EOS Dashboard](docs/assets/images/dashboard.png)
 
-## Removal
-
-To remove the integration:
-
-1. Go to **Settings → Devices & Services → EOS HA**
-2. Click the **⋮** menu and select **Delete**
-3. Restart Home Assistant
-4. (Optional) Remove the `custom_components/eos_ha/` directory if installed manually, or uninstall via HACS
-
 ## Configuration
 
 Add the integration via **Settings → Devices & Services → + Add Integration → EOS HA**.
 
-### Config Flow (Multi-Step Setup Wizard)
+### Config Flow
 
 | Step | What You Configure |
 |------|--------------------|
-| **1. EOS Server URL** | URL of your EOS server (e.g. `http://192.168.1.94:8503`). EOS addon is auto-detected via Supervisor API if running as an add-on. |
-| **2. Entities** | HA entities for electricity price (if external), battery SOC, and consumption |
-| **3. Battery** | Capacity (kWh), max charge power (W), inverter power (W), SOC limits (%) |
-| **4. PV Arrays** | Add one or more solar arrays with azimuth, tilt, peak power, inverter power, efficiency |
-| **5. EV (optional)** | Electric vehicle — capacity, charge power, SOC entity, efficiency |
-| **6. Appliances (optional)** | Flexible home appliances (e.g. Brauchwasserwärmepumpe) |
-| **7. Battery Sensors (optional)** | Entities for battery storage price tracking (grid power, PV power, energy) |
-
-### EOS Addon Auto-Detection
-
-If you run the EOS addon on the same Home Assistant OS instance, the integration automatically detects it via the Supervisor API and pre-fills the server URL — no manual configuration needed.
-
-### Auto-Configuration of EOS Server
-
-At startup, EOS-HA sends your configured battery parameters, PV arrays, and price source to the EOS server via its configuration API, ensuring the server is always in sync with your HA settings.
+| **1. EOS Server URL** | URL of your EOS server (e.g. `http://192.168.1.94:8503`). Auto-detected when running as addon. |
+| **2. Price Source** | Akkudoktor (default), EnergyCharts (bidding zone), or External (any HA sensor) |
+| **3. Entities** | Battery SOC, consumption/load, electricity price (if external), temperature (optional) |
+| **4. Battery** | Capacity (kWh), max charge power (W), inverter power (W), SOC limits (%), feed-in tariff (Einspeisevergütung) |
+| **5. PV Arrays** | One or more solar arrays — azimuth, tilt, peak power, inverter power |
+| **6. Energy Meters** _(optional)_ | Load, grid import/export, PV production energy meters for the HA Adapter |
+| **7. EV** _(optional)_ | Electric vehicle — capacity, charge power, SOC entity, efficiency |
+| **8. Appliances** _(optional)_ | Flexible loads (e.g. Brauchwasserwärmepumpe) with time windows |
+| **9. SG-Ready** _(optional)_ | Heat pump relay entities for SG-Ready control |
+| **10. Battery Sensors** _(optional)_ | Entities for battery storage price tracking |
 
 ### Options Flow
 
-All parameters can be changed at any time via **Settings → Devices & Services → EOS HA → Configure**. The options flow presents a menu with sections:
+All parameters can be changed via **Settings → Devices & Services → EOS HA → Configure**. Menu sections:
 
-- **Entities** — Update input entity mappings
-- **Battery** — Change battery parameters
-- **PV Arrays** — Add/edit/remove solar arrays
-- **Price Source** — Switch between Akkudoktor, EnergyCharts, or external sensor
-- **EV** — Enable/configure electric vehicle
-- **Appliances** — Manage flexible loads
-- **Battery Sensors** — Configure battery storage price tracking entities
-- **Feed-in Tariff** — Adjust feed-in rate
+- EOS Server URL
+- Entities
+- Battery
+- PV Arrays
+- Price Source
+- Energy Meters
+- EV
+- Appliances
+- SG-Ready
+- Battery Sensors
+- Feed-in Tariff
+
+## EOS HA Adapter
+
+The adapter is the core of v0.6.0. Instead of the integration manually building optimization payloads:
+
+| Direction | What | How |
+|-----------|------|-----|
+| **HA → EOS** | SOC, consumption, energy meters, prices, temperature | EOS reads HA entity states directly via the adapter |
+| **EOS → HA** | Charge plans, forecasts, schedules, SG-Ready recommendations | EOS writes `sensor.eos_*` entities back into HA |
+
+**Energy Meters** (optional but recommended) give EOS access to actual metered data for improved forecasts:
+
+| Meter | Example Entity |
+|-------|---------------|
+| Load (Hausverbrauch) | `sensor.house_consumption_energy` |
+| Grid Import (Netzbezug) | `sensor.grid_import_energy` |
+| Grid Export (Einspeisung) | `sensor.grid_export_energy` |
+| PV Production | `sensor.pv_production_energy` |
 
 ## Price Sources
 
 | Source | Description |
 |--------|-------------|
-| **Akkudoktor** (default) | Built-in price forecast from EOS/Akkudoktor API |
-| **EnergyCharts** | EOS fetches from energy-charts.info (configurable bidding zone, default DE-LU) |
-| **External** | Use any HA sensor (Tibber, ENTSO-E, Awattar, etc.) — price in EUR/kWh |
-
-When using Tibber or other external sensors, the integration reads the price from the HA entity state and pushes it to EOS.
-
-## PV Forecast
-
-PV forecasts are fetched via the EOS server's native `/pvforecast` endpoint (not directly from Akkudoktor API). The integration sends your configured PV array parameters (azimuth, tilt, peak power, inverter power, efficiency) to EOS, which handles the forecast calculation. Supports **multiple PV arrays** for systems with panels on different roof faces.
-
-## Measurement Push
-
-Each optimization cycle pushes current data to EOS:
-
-- **SOC measurement** — Current battery state of charge
-- **Consumption measurement** — Current household consumption
-
-### Load History Push
-
-The integration queries the HA recorder for the last **7 days of hourly consumption statistics** and pushes them to EOS as historical load data. This improves consumption forecast accuracy.
+| **Akkudoktor** (default) | Built-in price forecast from EOS |
+| **EnergyCharts** | Fetched by EOS from energy-charts.info (configurable bidding zone, default DE-LU) |
+| **External** | Any HA sensor (Tibber, ENTSO-E, Awattar, etc.) — pushed to EOS via `ElecPriceImport` provider |
 
 ## Entities
+
+All entity IDs are prefixed with `sensor.eos_` (device name "EOS").
 
 ### Sensors
 
 | Entity | Description |
 |--------|-------------|
-| `optimization_status` | Optimization state: `optimized`, `failed`, `unknown` |
-| `ac_charge_power` | Recommended AC charge power (W) for current hour; 48h forecast in attributes |
-| `dc_charge_power` | Recommended DC charge power (W) for current hour; 48h forecast in attributes |
-| `current_mode` | Current mode: `Grid Charge`, `Allow Discharge`, `Avoid Discharge`, or override |
-| `pv_forecast` | Current hour PV forecast (W); 48h forecast in attributes |
-| `price_forecast` | Current hour price (EUR/Wh); 48h forecast in attributes |
-| `consumption_forecast` | Current hour consumption forecast (W); 48h forecast in attributes |
-| `battery_soc_forecast` | Current hour SOC (%); 48h forecast in attributes |
-| `override_status` | Active manual override (`charge`, `discharge`, or `none`) |
+| `optimization_status` | `optimized`, `failed`, or `unknown` |
+| `ac_charge_power` | Recommended AC charge power (W); 48 h forecast in attributes |
+| `dc_charge_power` | Recommended DC charge power (W); 48 h forecast in attributes |
+| `current_mode` | `Grid Charge`, `Allow Discharge`, `Avoid Discharge`, or override |
+| `pv_forecast` | PV forecast (W); 48 h in attributes |
+| `price_forecast` | Price (EUR/Wh); 48 h in attributes, cheapest hours |
+| `consumption_forecast` | Consumption forecast (W); 48 h in attributes |
+| `battery_soc_forecast` | SOC (%); 48 h in attributes |
+| `override_status` | Active override (`charge`, `discharge`, `none`) |
 | `total_cost` | Total optimized cost (EUR) |
-| `energy_plan` | Current operation mode from energy plan; full plan in attributes |
-| `battery_resource_status` | Battery resource availability (`available`/`unavailable`) |
-| `ev_charge_plan` | EV charge plan status (`active`/`inactive`); plan details in attributes |
-| `appliance_schedule` | Number of scheduled appliances; schedule details in attributes |
-| `battery_storage_price` | Weighted average cost of stored energy (EUR/kWh) — only if battery sensors configured |
-
-All entity IDs are prefixed with `sensor.eos_energy_optimizer_` (based on the default device name "EOS Energy Optimizer").
+| `energy_plan` | Current operation mode; full plan in attributes |
+| `battery_resource_status` | `available` / `unavailable` |
+| `ev_charge_plan` | EV charge plan (`active`/`inactive`); details in attributes |
+| `appliance_schedule` | Number of scheduled appliances; details in attributes |
+| `battery_storage_price` | Weighted average stored energy cost (EUR/kWh) |
+| `sg_ready_mode` | Recommended SG-Ready mode (1–4) |
 
 ### Binary Sensors
 
@@ -148,34 +140,37 @@ All entity IDs are prefixed with `sensor.eos_energy_optimizer_` (based on the de
 |--------|-------------|
 | `discharge_allowed` | Whether battery discharge is allowed this hour |
 
+### Switches
+
+| Entity | Description |
+|--------|-------------|
+| `sg_ready_auto_control` | Enable/disable automatic SG-Ready relay switching |
+
 ### Number Entities
 
-Adjustable at runtime — changes take effect on the next optimization cycle:
+Adjustable at runtime — changes take effect on the next optimization:
 
-| Entity | Description | Range |
-|--------|-------------|-------|
-| `battery_capacity` | Battery capacity | 0.1–100 kWh |
-| `max_charge_power` | Max charge power | 100–50000 W |
-| `inverter_power` | Inverter power | 100–50000 W |
-| `minimum_soc` | Minimum SOC limit | 0–100% |
-| `maximum_soc` | Maximum SOC limit | 0–100% |
+| Entity | Range |
+|--------|-------|
+| `battery_capacity` | 0.1–100 kWh |
+| `max_charge_power` | 100–50 000 W |
+| `inverter_power` | 100–50 000 W |
+| `minimum_soc` | 0–100 % |
+| `maximum_soc` | 0–100 % |
 
 ## Services
 
 ### `eos_ha.optimize_now`
 
-Trigger an immediate optimization cycle (instead of waiting for the 5-minute interval).
+Trigger an immediate optimization (instead of waiting for the auto-optimization interval).
 
 ### `eos_ha.set_override`
 
-Manually override the optimization mode:
-
 | Parameter | Description |
 |-----------|-------------|
-| `mode` | `charge` (force charge), `discharge` (force discharge), `auto` (clear override) |
-| `duration` | Duration in minutes (1–1440, default: 60) |
+| `mode` | `charge`, `discharge`, or `auto` (clear) |
+| `duration` | Minutes (1–1440, default 60) |
 
-**Example automation:**
 ```yaml
 service: eos_ha.set_override
 data:
@@ -183,55 +178,107 @@ data:
   duration: 120
 ```
 
+### `eos_ha.set_sg_ready_mode`
+
+Manually set SG-Ready mode for heat pump control.
+
+| Parameter | Description |
+|-----------|-------------|
+| `mode` | 1 = Lock, 2 = Normal, 3 = Recommend, 4 = Force |
+| `duration` | Minutes (0 = until next optimization, default 60) |
+
+```yaml
+service: eos_ha.set_sg_ready_mode
+data:
+  mode: 4
+  duration: 30
+```
+
 ### `eos_ha.update_predictions`
 
-Trigger EOS to recalculate all predictions (PV forecast, electricity prices, load forecast) without running a full optimization.
+Trigger EOS to recalculate all predictions (PV, prices, load) without a full optimization.
 
-## E-Auto (Electric Vehicle) Support
+### `eos_ha.reset_battery_price`
 
-Configure your EV in the setup wizard or options flow:
+Reset the battery storage price tracking to zero.
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| Capacity | Battery capacity (kWh) | 60 kWh |
-| Charge Power | Max charging power (W) | 11000 W |
-| SOC Entity | HA sensor for current EV SOC | — |
-| Efficiency | Charging efficiency (0–1) | 0.95 |
+## SG-Ready Heat Pump
 
-When enabled, the optimization includes the EV in the charge plan. The `ev_charge_plan` sensor shows the recommended charging schedule.
+Control your heat pump (Brauchwasserwärmepumpe, Wärmepumpe) via the [SG-Ready](https://www.waermepumpe.de/normen-technik/sg-ready/) standard.
+
+| Mode | Name | Relay 1 | Relay 2 | Meaning |
+|------|------|---------|---------|---------|
+| 1 | Lock (Sperre) | ON | OFF | Block heat pump (high-price hours) |
+| 2 | Normal | OFF | OFF | Standard operation |
+| 3 | Recommend (Empfehlung) | OFF | ON | Increased operation recommended (PV surplus / cheap power) |
+| 4 | Force (Anlaufbefehl) | ON | ON | Force maximum heating |
+
+**Setup:** Configure two relay switch entities in the SG-Ready config step. The `sg_ready_mode` sensor recommends the optimal mode based on PV surplus, electricity price, and battery SOC.
+
+**Auto mode:** Enable the `sg_ready_auto_control` switch to let the integration automatically set relays based on the recommended mode.
+
+**Manual override:** Use `eos_ha.set_sg_ready_mode` to force a specific mode for a given duration.
+
+## Temperature Entity
+
+Optionally configure a weather entity (`weather.*`) or temperature sensor for temperature forecasts. EOS uses this for load prediction accuracy. Falls back to 15 °C if not configured.
 
 ## Flexible Appliances
 
-Add flexible home appliances (e.g. Brauchwasserwärmepumpe / hot water heat pump) that can be scheduled by the optimizer. Each appliance is defined with:
+Add flexible home appliances that the optimizer schedules into the cheapest time slot. Each appliance has:
 
-- Name
-- Power consumption (W)
-- Duration (hours)
-- Allowed time window
+- **Name** — e.g. "Waschmaschine"
+- **Power** — consumption in W
+- **Duration** — run time in hours
+- **Earliest start** — earliest allowed start hour
+- **Latest end** — latest allowed end hour
 
-The optimizer finds the cheapest time slot to run each appliance. Results are exposed in the `appliance_schedule` sensor.
+Results appear in the `appliance_schedule` sensor.
+
+## E-Auto (Electric Vehicle)
+
+| Parameter | Default |
+|-----------|---------|
+| Capacity | 60 kWh |
+| Charge Power | 11 000 W |
+| Efficiency | 0.95 |
+| SOC Entity | — |
+
+The `ev_charge_plan` sensor shows the recommended charging schedule.
 
 ## Feed-in Tariff
 
-Configurable feed-in compensation rate (default: **0.082 EUR/kWh** — current German rate). Used by the optimizer to calculate the value of exporting surplus energy. Change it in the options flow under "Feed-in Tariff".
+Default: **0.082 EUR/kWh** (current German Einspeisevergütung). Change in options under "Feed-in Tariff".
 
-## Battery Storage Price Sensor
+## Battery Storage Price
 
-When battery sensor entities are configured (grid charge power, PV charge power, battery energy), the integration tracks the **weighted average cost of energy stored in the battery** in EUR/kWh.
+When battery sensor entities are configured, the integration tracks the **weighted average cost of stored energy** (EUR/kWh):
 
-- Grid-charged energy is valued at the current electricity price (adjusted for efficiency)
-- PV-charged energy is valued at 0 EUR/kWh
-- The sensor persists across restarts (uses HA's RestoreEntity)
-- Useful for deciding whether to discharge (compare storage price vs. current grid price)
+- Grid-charged energy → valued at current electricity price (adjusted for efficiency)
+- PV-charged energy → valued at 0 EUR/kWh
+- Persists across restarts (RestoreEntity)
+
+## Automation Blueprints
+
+Four ready-to-use blueprints are included in `blueprints/`:
+
+| Blueprint | Purpose |
+|-----------|---------|
+| `charge_battery_cheap` | Charge battery during cheapest hours |
+| `sg_ready_pv_surplus` | Activate heat pump on PV surplus |
+| `notify_cheap_power` | Notify when electricity is cheap |
+| `notify_negative_price` | Notify on negative electricity prices |
+
+Import via **Settings → Automations → Blueprints → Import Blueprint** or copy from the `blueprints/` directory.
 
 ## 48-Hour Forecasts
 
-All forecast sensors expose a `forecast` attribute containing the full 48-hour hourly forecast array. Use this in [ApexCharts Card](https://github.com/RomRider/apexcharts-card) or template sensors:
+All forecast sensors expose a `forecast` attribute with the full 48 h array. Example with [ApexCharts Card](https://github.com/RomRider/apexcharts-card):
 
 ```yaml
 type: custom:apexcharts-card
 series:
-  - entity: sensor.eos_energy_optimizer_pv_forecast
+  - entity: sensor.eos_pv_forecast
     data_generator: |
       return entity.attributes.forecast.map((val, idx) => {
         const d = new Date();
@@ -245,22 +292,19 @@ series:
 
 A ready-to-use Lovelace dashboard is included at [`dashboards/eos-energy.yaml`](dashboards/eos-energy.yaml).
 
-It includes:
-- **Status card** — optimization status, current mode, energy plan, discharge, override, costs
-- **PV Prognose** — 48h solar forecast (area chart, yellow)
-- **Strompreis** — 48h electricity price in ct/kWh (line chart, red)
-- **Batterie SOC** — 48h battery state of charge (area chart, blue)
-- **Lade-/Entlade-Plan** — 48h AC+DC charge plan (stacked column chart, green)
-- **Verbrauch** — 48h consumption forecast (area chart, purple)
-- **Batterie-Parameter** — adjustable number entities
+Cards: Status, PV Prognose, Strompreis, Batterie SOC, Lade-/Entlade-Plan, Verbrauch, Batterie-Parameter.
 
-**Requirements:** Install [apexcharts-card](https://github.com/RomRider/apexcharts-card) via HACS → Frontend.
-
-**To use:** Copy the YAML into a manual Lovelace dashboard or use HA's raw configuration editor.
+**Requires:** [apexcharts-card](https://github.com/RomRider/apexcharts-card) via HACS → Frontend.
 
 ## Diagnostics
 
-Download diagnostics via **Settings → Devices & Services → EOS HA → ⋮ → Download Diagnostics**. Sensitive data (coordinates, server URL) is automatically redacted.
+Download via **Settings → Devices & Services → EOS HA → ⋮ → Download Diagnostics**. Sensitive data is automatically redacted.
+
+## Removal
+
+1. **Settings → Devices & Services → EOS HA → ⋮ → Delete**
+2. Restart Home Assistant
+3. (Optional) Remove `custom_components/eos_ha/` or uninstall via HACS
 
 ## License
 
