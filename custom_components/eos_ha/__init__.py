@@ -14,7 +14,7 @@ from .coordinator import EOSCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = ["sensor", "binary_sensor", "number", "switch"]
+PLATFORMS = ["sensor", "binary_sensor", "number", "switch", "button"]
 
 type EosHaConfigEntry = ConfigEntry[EOSCoordinator]
 
@@ -180,6 +180,25 @@ def _register_services(hass: HomeAssistant) -> None:
             schema=vol.Schema({}),
         )
 
+    async def handle_reset_battery_price(call: ServiceCall) -> None:
+        """Handle reset_battery_price service call."""
+        hass.data.setdefault(DOMAIN, {})
+        sensors = hass.data[DOMAIN].get("battery_price_sensors", [])
+        if not sensors:
+            _LOGGER.warning("No battery storage price sensors found to reset")
+            return
+        for sensor in sensors:
+            sensor.reset_price()
+            _LOGGER.info("Battery storage price reset")
+
+    if not hass.services.has_service(DOMAIN, "reset_battery_price"):
+        hass.services.async_register(
+            DOMAIN,
+            "reset_battery_price",
+            handle_reset_battery_price,
+            schema=vol.Schema({}),
+        )
+
 
 async def async_unload_entry(hass: HomeAssistant, entry: EosHaConfigEntry) -> bool:
     """Unload a config entry."""
@@ -198,5 +217,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: EosHaConfigEntry) -> bo
             hass.services.async_remove(DOMAIN, "set_override")
             hass.services.async_remove(DOMAIN, "set_sg_ready_mode")
             hass.services.async_remove(DOMAIN, "update_predictions")
+            hass.services.async_remove(DOMAIN, "reset_battery_price")
 
     return unload_ok

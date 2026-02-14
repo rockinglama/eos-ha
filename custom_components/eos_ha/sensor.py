@@ -234,7 +234,12 @@ async def async_setup_entry(
     # Battery Storage Price Sensor — only if battery_energy_entity is configured
     current = {**config_entry.data, **config_entry.options}
     if current.get(CONF_BATTERY_ENERGY):
-        entities.append(EOSBatteryStoragePriceSensor(coordinator, current))
+        price_sensor = EOSBatteryStoragePriceSensor(coordinator, current)
+        entities.append(price_sensor)
+        # Register for service access
+        hass.data.setdefault(DOMAIN, {})
+        hass.data[DOMAIN].setdefault("battery_price_sensors", [])
+        hass.data[DOMAIN]["battery_price_sensors"].append(price_sensor)
 
     # SG-Ready Mode Sensor — only if SG-Ready is enabled
     if current.get(CONF_SG_READY_ENABLED, False):
@@ -487,6 +492,13 @@ class EOSBatteryStoragePriceSensor(RestoreEntity, SensorEntity):
                 self._total_value = self._price * circulating
 
         self._last_energy = current_energy
+
+    def reset_price(self) -> None:
+        """Reset the battery storage price tracking to zero."""
+        self._price = 0.0
+        self._circulating_energy = 0.0
+        self._total_value = 0.0
+        self.async_write_ha_state()
 
     @property
     def native_value(self) -> float:

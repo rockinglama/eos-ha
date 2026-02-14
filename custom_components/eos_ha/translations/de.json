@@ -257,6 +257,10 @@
     "update_predictions": {
       "name": "Prognosen aktualisieren",
       "description": "EOS anweisen, alle Prognosen neu zu berechnen (PV-Prognose, Strompreise, Lastprognose)."
+    },
+    "reset_battery_price": {
+      "name": "Batteriepreis zurücksetzen",
+      "description": "Setzt die Speicherpreis-Berechnung auf Null zurück."
     }
   },
   "entity": {
@@ -305,6 +309,11 @@
       },
       "sg_ready_mode": {
         "name": "SG-Ready Modus"
+      }
+    },
+    "button": {
+      "reset_battery_price": {
+        "name": "Batteriepreis zurücksetzen"
       }
     },
     "switch": {

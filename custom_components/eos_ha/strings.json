@@ -257,6 +257,10 @@
     "update_predictions": {
       "name": "Update Predictions",
       "description": "Trigger EOS to recalculate all predictions (PV forecast, electricity prices, load forecast)."
+    },
+    "reset_battery_price": {
+      "name": "Reset Battery Price",
+      "description": "Reset the battery storage price tracking to zero."
     }
   },
   "entity": {
@@ -305,6 +309,11 @@
       },
       "sg_ready_mode": {
         "name": "SG Ready Mode"
+      }
+    },
+    "button": {
+      "reset_battery_price": {
+        "name": "Reset Battery Price"
       }
     },
     "switch": {

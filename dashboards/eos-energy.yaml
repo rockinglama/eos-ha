@@ -36,6 +36,24 @@ views:
           - entity: sensor.eos_energy_optimizer_total_cost
             name: Gesamtkosten
 
+      # ── SG-Ready ────────────────────────────────────────────
+      - type: entities
+        title: "🔥 SG-Ready Wärmepumpe"
+        entities:
+          - entity: sensor.eos_energy_optimizer_sg_ready_mode
+            name: SG-Ready Modus
+          - entity: switch.eos_energy_optimizer_sg_ready_auto_control
+            name: SG-Ready Automatik
+
+      # ── Battery Storage Price ───────────────────────────────
+      - type: entities
+        title: "🔋 Batterie-Speicherpreis"
+        entities:
+          - entity: sensor.eos_energy_optimizer_battery_storage_price
+            name: Speicherpreis
+          - entity: button.eos_energy_optimizer_reset_battery_price
+            name: Speicherpreis zurücksetzen
+
       # ── PV Prognose (48 h) ─────────────────────────────────
       - type: custom:apexcharts-card
         header:
@@ -208,3 +226,18 @@ views:
             name: Min. SOC (%)
           - entity: number.eos_energy_optimizer_maximum_soc
             name: Max. SOC (%)
+
+      # ── Konfiguration ──────────────────────────────────────
+      - type: entities
+        title: "⚙️ Konfiguration"
+        entities:
+          - entity: sensor.eos_energy_optimizer_optimization_status
+            name: EOS Server
+            type: attribute
+            attribute: eos_server_url
+          - entity: sensor.eos_energy_optimizer_resource_status
+            name: Ressourcenstatus
+          - entity: sensor.eos_energy_optimizer_ev_charge_plan
+            name: E-Auto Ladeplan
+          - entity: sensor.eos_energy_optimizer_appliance_schedule
+            name: Geräte-Zeitplan

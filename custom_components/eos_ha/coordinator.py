@@ -158,10 +158,11 @@ class EOSCoordinator(DataUpdateCoordinator):
         # 4. Configure feed-in tariff
         feed_in_tariff = self._get_config(CONF_FEED_IN_TARIFF, DEFAULT_FEED_IN_TARIFF)
         if feed_in_tariff:
-            await self._eos_client.put_config("feedintariff", {
-                "provider": "FeedInTariffFixed",
-                "feed_in_tariff_eur_per_kwh": feed_in_tariff,
-            })
+            await self._eos_client.put_config("feedintariff/provider", "FeedInTariffFixed")
+            await self._eos_client.put_config(
+                "feedintariff/provider_settings/FeedInTariffFixed/feed_in_tariff_kwh",
+                feed_in_tariff,
+            )
 
         # 5. Configure load provider for history-based load
         await self._eos_client.put_config("load", {
