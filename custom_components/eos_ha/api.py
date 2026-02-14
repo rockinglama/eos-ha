@@ -89,7 +89,7 @@ class EOSApiClient:
 
     async def set_adapter_provider(self, provider: str) -> dict:
         """PUT /v1/config/adapter/provider — enable/disable adapter."""
-        return await self.put_config("adapter/provider", provider)
+        return await self.put_config("adapter/provider", [provider])
 
     # ---- Prediction update ----
 

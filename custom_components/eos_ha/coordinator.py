@@ -268,6 +268,13 @@ class EOSCoordinator(DataUpdateCoordinator):
             "solution_entity_ids": None,
         }
 
+        # Device measurements (SOC → EOS reads directly from HA)
+        soc_entity = self._get_config(CONF_SOC_ENTITY)
+        if soc_entity:
+            ha_config["device_measurement_entity_ids"] = {
+                "battery1/initial_soc_percentage": soc_entity,
+            }
+
         # Energy meter entities (optional)
         load_emr = self._get_config(CONF_LOAD_EMR_ENTITY)
         if load_emr:
@@ -285,14 +292,13 @@ class EOSCoordinator(DataUpdateCoordinator):
         if pv_production:
             ha_config["pv_production_emr_entity_ids"] = [pv_production]
 
-        adapter_config = {
-            "provider": "HomeAssistant",
-            "homeassistant": ha_config,
-        }
-
-        await self._eos_client.put_adapter_config(adapter_config)
-        # Also explicitly enable the adapter provider
+        # Enable the adapter provider first (must be a list)
         await self._eos_client.set_adapter_provider("HomeAssistant")
+
+        # Set individual adapter sub-keys (bulk PUT on /adapter fails)
+        for key, value in ha_config.items():
+            if value is not None:
+                await self._eos_client.put_config(f"adapter/homeassistant/{key}", value)
         _LOGGER.info("EOS HA adapter configured with entity mappings")
 
     async def _push_external_prices(self) -> None:
