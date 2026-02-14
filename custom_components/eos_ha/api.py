@@ -1,16 +1,11 @@
-"""API clients for EOS server and Akkudoktor."""
+"""API client for EOS server."""
 from __future__ import annotations
 
 import asyncio
-from datetime import timedelta
 import logging
 from typing import Any
 
 import aiohttp
-
-from homeassistant.util import dt as dt_util
-
-from .const import AKKUDOKTOR_API_URL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -18,17 +13,10 @@ _LOGGER = logging.getLogger(__name__)
 # Custom exceptions
 class EOSConnectionError(Exception):
     """Error connecting to EOS server."""
-    pass
 
 
 class EOSOptimizationError(Exception):
     """Error during EOS optimization."""
-    pass
-
-
-class AkkudoktorApiError(Exception):
-    """Error fetching data from Akkudoktor API."""
-    pass
 
 
 class EOSApiClient:
@@ -56,29 +44,6 @@ class EOSApiClient:
             raise EOSConnectionError(f"Connection error: {err}") from err
         except asyncio.TimeoutError as err:
             raise EOSConnectionError("Connection timeout") from err
-
-    async def optimize(self, eos_request: dict[str, Any], start_hour: int) -> dict[str, Any]:
-        """Send optimization request to EOS server."""
-        headers = {
-            "accept": "application/json",
-            "Content-Type": "application/json",
-        }
-        try:
-            timeout = aiohttp.ClientTimeout(total=180)
-            url = f"{self.base_url}/optimize?start_hour={start_hour}"
-            _LOGGER.debug("Sending optimization request to %s", url)
-            async with self.session.post(
-                url, json=eos_request, headers=headers, timeout=timeout,
-            ) as resp:
-                if resp.status != 200:
-                    body = await resp.text()
-                    _LOGGER.error("EOS optimize returned %s: %s", resp.status, body[:500])
-                    raise EOSOptimizationError(f"EOS returned status {resp.status}")
-                return await resp.json()
-        except aiohttp.ClientError as err:
-            raise EOSConnectionError(f"Connection error during optimization: {err}") from err
-        except asyncio.TimeoutError as err:
-            raise EOSOptimizationError("EOS optimization timed out") from err
 
     # ---- Config endpoints ----
 
@@ -116,49 +81,6 @@ class EOSApiClient:
             _LOGGER.error("Error putting config %s: %s", path, err)
             return {}
 
-    # ---- Strompreis endpoint ----
-
-    async def get_strompreis(self) -> list[float]:
-        """GET /strompreis — returns 48h price forecast in EUR/Wh."""
-        url = f"{self.base_url}/strompreis"
-        try:
-            timeout = aiohttp.ClientTimeout(total=15)
-            async with self.session.get(url, timeout=timeout) as resp:
-                if resp.status != 200:
-                    _LOGGER.error("GET /strompreis returned %s", resp.status)
-                    return []
-                data = await resp.json()
-                if isinstance(data, list):
-                    return data
-                _LOGGER.error("Unexpected strompreis response type: %s", type(data))
-                return []
-        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
-            _LOGGER.error("Error fetching strompreis: %s", err)
-            return []
-
-    # ---- PV Forecast endpoint ----
-
-    async def get_pvforecast(self) -> list[float]:
-        """GET /pvforecast — returns 48h PV forecast in W."""
-        url = f"{self.base_url}/pvforecast"
-        try:
-            timeout = aiohttp.ClientTimeout(total=30)
-            async with self.session.get(url, timeout=timeout) as resp:
-                if resp.status != 200:
-                    body = await resp.text()
-                    _LOGGER.error("GET /pvforecast returned %s: %s", resp.status, body[:200])
-                    return []
-                data = await resp.json()
-                if isinstance(data, list):
-                    return data
-                if isinstance(data, dict) and "pvpower" in data:
-                    return data["pvpower"]
-                _LOGGER.error("Unexpected pvforecast response type: %s", type(data))
-                return []
-        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
-            _LOGGER.error("Error fetching pvforecast: %s", err)
-            return []
-
     # ---- Prediction update ----
 
     async def update_predictions(self, force_update: bool = True) -> bool:
@@ -177,6 +99,48 @@ class EOSApiClient:
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
             _LOGGER.error("Error updating predictions: %s", err)
             return False
+
+    # ---- Prediction import ----
+
+    async def import_prediction(
+        self, provider_id: str, data: Any, force_enable: bool = True,
+    ) -> bool:
+        """PUT /v1/prediction/import/{provider_id} — push external prediction data."""
+        url = f"{self.base_url}/v1/prediction/import/{provider_id}"
+        params = {}
+        if force_enable:
+            params["force_enable"] = "true"
+        try:
+            timeout = aiohttp.ClientTimeout(total=15)
+            async with self.session.put(
+                url, json=data, params=params, timeout=timeout,
+                headers={"Content-Type": "application/json"},
+            ) as resp:
+                if resp.status != 200:
+                    body = await resp.text()
+                    _LOGGER.error("PUT prediction import %s returned %s: %s", provider_id, resp.status, body[:200])
+                    return False
+                return True
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+            _LOGGER.error("Error importing prediction %s: %s", provider_id, err)
+            return False
+
+    # ---- Prediction series ----
+
+    async def get_prediction_series(self, key: str) -> dict[str, Any]:
+        """GET /v1/prediction/series?key=... — get a prediction time series."""
+        url = f"{self.base_url}/v1/prediction/series"
+        params = {"key": key}
+        try:
+            timeout = aiohttp.ClientTimeout(total=10)
+            async with self.session.get(url, params=params, timeout=timeout) as resp:
+                if resp.status != 200:
+                    _LOGGER.debug("GET prediction series %s returned %s", key, resp.status)
+                    return {}
+                return await resp.json()
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+            _LOGGER.debug("Error fetching prediction series %s: %s", key, err)
+            return {}
 
     # ---- Measurement ----
 
@@ -213,7 +177,7 @@ class EOSApiClient:
             _LOGGER.debug("Error fetching resource status %s: %s", resource_id, err)
             return {}
 
-    # ---- Energy management plan ----
+    # ---- Energy management ----
 
     async def get_energy_plan(self) -> dict[str, Any]:
         """GET /v1/energy-management/plan."""
@@ -229,76 +193,16 @@ class EOSApiClient:
             _LOGGER.debug("Error fetching energy plan: %s", err)
             return {}
 
-
-class AkkudoktorApiClient:
-    """Async client for Akkudoktor PV forecast API."""
-
-    def __init__(self, session: aiohttp.ClientSession) -> None:
-        self.session = session
-
-    async def get_pv_forecast(
-        self,
-        lat: float,
-        lon: float,
-        pv_arrays: list[dict] | None = None,
-        timezone: str = "UTC",
-    ) -> list[float]:
-        """Fetch 48-hour PV forecast from Akkudoktor API."""
-        if not pv_arrays:
-            pv_arrays = [{"azimuth": 180, "tilt": 30, "power": 1000, "inverter_power": 1000}]
-
-        params = f"?lat={lat}&lon={lon}&timezone={timezone}"
-        for arr in pv_arrays:
-            params += (
-                f"&azimuth={arr['azimuth']}"
-                f"&tilt={arr['tilt']}"
-                f"&power={arr['power']}"
-                f"&powerInverter={arr.get('inverter_power', arr['power'])}"
-                f"&inverterEfficiency={arr.get('inverter_efficiency', 0.9)}"
-            )
-        url = f"{AKKUDOKTOR_API_URL}{params}"
-
+    async def get_optimization_solution(self) -> dict[str, Any]:
+        """GET /v1/energy-management/optimization/solution."""
+        url = f"{self.base_url}/v1/energy-management/optimization/solution"
         try:
-            timeout = aiohttp.ClientTimeout(total=10)
-            _LOGGER.debug("Fetching PV forecast from Akkudoktor API")
+            timeout = aiohttp.ClientTimeout(total=15)
             async with self.session.get(url, timeout=timeout) as resp:
                 if resp.status != 200:
-                    raise AkkudoktorApiError(f"Akkudoktor API returned status {resp.status}")
-                data = await resp.json(content_type=None)
-
-            forecast_values = []
-            current_time = dt_util.now().replace(hour=0, minute=0, second=0, microsecond=0)
-            end_time = current_time + timedelta(hours=48)
-
-            for forecast_entry in data.get("values", []):
-                for forecast in forecast_entry:
-                    entry_time = dt_util.parse_datetime(forecast["datetime"])
-                    if entry_time is None:
-                        continue
-                    if current_time <= entry_time < end_time:
-                        value = forecast.get("power", 0)
-                        if value < 0:
-                            value = 0
-                        forecast_values.append(value)
-
-            if forecast_values:
-                forecast_values.pop(0)
-                forecast_values.append(0)
-
-            if len(forecast_values) > 48:
-                forecast_values = forecast_values[:48]
-            elif len(forecast_values) < 48:
-                if forecast_values:
-                    forecast_values.extend([forecast_values[-1]] * (48 - len(forecast_values)))
-                else:
-                    forecast_values = [0.0] * 48
-
-            _LOGGER.debug("PV forecast fetched successfully: %s values", len(forecast_values))
-            return forecast_values
-
-        except aiohttp.ClientError as err:
-            raise AkkudoktorApiError(f"Connection error: {err}") from err
-        except asyncio.TimeoutError as err:
-            raise AkkudoktorApiError("Request timeout") from err
-        except (ValueError, TypeError, KeyError) as err:
-            raise AkkudoktorApiError(f"Error processing forecast data: {err}") from err
+                    _LOGGER.debug("GET optimization solution returned %s", resp.status)
+                    return {}
+                return await resp.json()
+        except (aiohttp.ClientError, asyncio.TimeoutError) as err:
+            _LOGGER.debug("Error fetching optimization solution: %s", err)
+            return {}

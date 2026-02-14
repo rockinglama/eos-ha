@@ -5,10 +5,6 @@ DOMAIN = "eos_ha"
 # Polling interval
 DEFAULT_SCAN_INTERVAL = 300  # 5 minutes in seconds
 
-# External APIs
-AKKUDOKTOR_API_URL = "https://api.akkudoktor.net/forecast"
-PV_FORECAST_CACHE_HOURS = 6
-
 # Configuration keys
 CONF_EOS_URL = "eos_url"
 CONF_PRICE_ENTITY = "price_entity"

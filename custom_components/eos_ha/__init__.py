@@ -58,13 +58,16 @@ def _register_services(hass: HomeAssistant) -> None:
         ]
 
     async def handle_optimize_now(call: ServiceCall) -> None:
-        """Handle optimize_now service call."""
+        """Handle optimize_now service call — trigger prediction update then fetch solution."""
         coordinators = _get_coordinators()
         if not coordinators:
             raise HomeAssistantError("No EOS HA instances configured")
         for coordinator in coordinators:
             try:
                 _LOGGER.info("Manual optimization triggered via service call")
+                # Trigger EOS to update predictions (which triggers re-optimization)
+                await coordinator.eos_client.update_predictions(force_update=True)
+                # Then refresh our data from the new solution
                 await coordinator.async_request_refresh()
             except Exception as err:
                 raise HomeAssistantError(
