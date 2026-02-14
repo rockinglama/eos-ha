@@ -8,11 +8,28 @@
           "eos_url": "EOS Server URL"
         }
       },
+      "price_source": {
+        "title": "Electricity Price Source",
+        "description": "Choose how electricity prices are obtained.",
+        "data": {
+          "price_source": "Price Source",
+          "bidding_zone": "Bidding Zone (for EnergyCharts)",
+          "price_entity": "Price Entity (for External)"
+        }
+      },
       "entities": {
         "title": "Entity Selection",
         "description": "Select the Home Assistant entities that provide energy data.",
         "data": {
           "price_entity": "Electricity Price Entity",
+          "soc_entity": "Battery State of Charge Entity",
+          "consumption_entity": "Consumption/Load Entity"
+        }
+      },
+      "entities_no_price": {
+        "title": "Entity Selection",
+        "description": "Select the Home Assistant entities that provide energy data. Electricity prices are provided by EOS.",
+        "data": {
           "soc_entity": "Battery State of Charge Entity",
           "consumption_entity": "Consumption/Load Entity"
         }
@@ -64,7 +81,17 @@
         "menu_options": {
           "entities": "Input Entities",
           "battery": "Battery Parameters",
-          "pv_arrays": "PV Arrays"
+          "pv_arrays": "PV Arrays",
+          "price_source": "Electricity Price Source"
+        }
+      },
+      "price_source": {
+        "title": "Electricity Price Source",
+        "description": "Choose how electricity prices are obtained. For EnergyCharts, set the bidding zone. For External, select your price sensor.",
+        "data": {
+          "price_source": "Price Source",
+          "bidding_zone": "Bidding Zone (for EnergyCharts)",
+          "price_entity": "Price Entity (for External)"
         }
       },
       "entities": {
@@ -124,6 +151,10 @@
           "description": "Override duration in minutes (1-1440)"
         }
       }
+    },
+    "update_predictions": {
+      "name": "Update Predictions",
+      "description": "Trigger EOS to recalculate all predictions (PV forecast, electricity prices, load forecast)."
     }
   },
   "entity": {
@@ -136,7 +167,9 @@
       "consumption_forecast": { "name": "Consumption Forecast" },
       "battery_soc_forecast": { "name": "Battery SOC Forecast" },
       "total_cost": { "name": "Total Cost" },
-      "override_status": { "name": "Override Status" }
+      "override_status": { "name": "Override Status" },
+      "energy_plan": { "name": "Energy Plan" },
+      "resource_status": { "name": "Battery Resource Status" }
     },
     "binary_sensor": {
       "discharge_allowed": { "name": "Discharge Allowed" }

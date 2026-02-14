@@ -62,6 +62,17 @@ def _register_services(hass: HomeAssistant) -> None:
             _LOGGER.info("Override set: mode=%s, duration=%s min", mode, duration)
             await coordinator.async_request_refresh()
 
+    async def handle_update_predictions(call: ServiceCall) -> None:
+        """Handle update_predictions service call — triggers EOS prediction recalculation."""
+        for coordinator in hass.data.get(DOMAIN, {}).values():
+            _LOGGER.info("Triggering EOS prediction update via service call")
+            success = await coordinator.eos_client.update_predictions(force_update=True)
+            if success:
+                _LOGGER.info("EOS predictions updated, triggering optimization refresh")
+                await coordinator.async_request_refresh()
+            else:
+                _LOGGER.warning("EOS prediction update failed")
+
     if not hass.services.has_service(DOMAIN, "optimize_now"):
         hass.services.async_register(
             DOMAIN,
@@ -87,6 +98,14 @@ def _register_services(hass: HomeAssistant) -> None:
             ),
         )
 
+    if not hass.services.has_service(DOMAIN, "update_predictions"):
+        hass.services.async_register(
+            DOMAIN,
+            "update_predictions",
+            handle_update_predictions,
+            schema=vol.Schema({}),
+        )
+
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
@@ -99,5 +118,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if not hass.data.get(DOMAIN):
             hass.services.async_remove(DOMAIN, "optimize_now")
             hass.services.async_remove(DOMAIN, "set_override")
+            hass.services.async_remove(DOMAIN, "update_predictions")
 
     return unload_ok

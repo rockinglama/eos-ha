@@ -21,6 +21,7 @@ from .api import (
 )
 from .const import (
     CONF_BATTERY_CAPACITY,
+    CONF_BIDDING_ZONE,
     CONF_CONSUMPTION_ENTITY,
     CONF_EOS_URL,
     CONF_INVERTER_POWER,
@@ -28,9 +29,14 @@ from .const import (
     CONF_MAX_SOC,
     CONF_MIN_SOC,
     CONF_PRICE_ENTITY,
+    CONF_PRICE_SOURCE,
     CONF_PV_ARRAYS,
     CONF_SOC_ENTITY,
+    DEFAULT_BIDDING_ZONE,
     DEFAULT_SCAN_INTERVAL,
+    PRICE_SOURCE_AKKUDOKTOR,
+    PRICE_SOURCE_ENERGYCHARTS,
+    PRICE_SOURCE_EXTERNAL,
     PV_FORECAST_CACHE_HOURS,
 )
 
@@ -41,46 +47,39 @@ class EOSCoordinator(DataUpdateCoordinator):
     """DataUpdateCoordinator to manage EOS optimization cycle."""
 
     def __init__(self, hass: HomeAssistant, config_entry) -> None:
-        """Initialize the coordinator.
-
-        Args:
-            hass: Home Assistant instance
-            config_entry: ConfigEntry with user configuration
-        """
         super().__init__(
             hass,
             _LOGGER,
             name="EOS Optimization",
             update_interval=timedelta(seconds=DEFAULT_SCAN_INTERVAL),
         )
-
         self.config_entry = config_entry
-
-        # Create shared aiohttp session for all API calls
         self.session = aiohttp.ClientSession()
-
-        # Initialize API clients
         self._eos_client = EOSApiClient(
             self.session,
             config_entry.data[CONF_EOS_URL],
         )
         self._akkudoktor_client = AkkudoktorApiClient(self.session)
 
-        # PV forecast cache
+        # PV forecast cache (for fallback/external mode)
         self._pv_forecast_cache: list[float] | None = None
         self._pv_forecast_timestamp = None
 
-        # Track if first refresh (skip optimization, just validate)
         self._first_refresh = True
+        self._eos_configured = False
 
         # Manual override state
-        self._override_mode: str | None = None  # "charge", "discharge", or None
+        self._override_mode: str | None = None
         self._override_until = None
 
-        # Last used forecasts (for exposing in sensors)
+        # Last used forecasts
         self._last_pv_forecast: list[float] = []
         self._last_consumption_forecast: list[float] = []
         self._last_price_forecast: list[float] = []
+
+        # EOS native data
+        self._energy_plan: dict[str, Any] = {}
+        self._resource_status: dict[str, Any] = {}
 
     def _get_config(self, key: str, default=None):
         """Get config value from options (runtime) with data (setup) as fallback."""
@@ -88,110 +87,210 @@ class EOSCoordinator(DataUpdateCoordinator):
             key, self.config_entry.data.get(key, default)
         )
 
+    @property
+    def eos_client(self) -> EOSApiClient:
+        """Expose EOS client for service calls."""
+        return self._eos_client
+
+    async def _push_eos_config(self) -> None:
+        """Push HA configuration to EOS server at setup time."""
+        if self._eos_configured:
+            return
+
+        _LOGGER.info("Pushing HA configuration to EOS server")
+
+        # 1. Set location
+        lat = self.config_entry.data.get("latitude")
+        lon = self.config_entry.data.get("longitude")
+        tz = self.hass.config.time_zone
+        if lat and lon:
+            await self._eos_client.put_config("general", {
+                "latitude": lat,
+                "longitude": lon,
+                "timezone": tz,
+            })
+
+        # 2. Configure electricity price provider
+        price_source = self._get_config(CONF_PRICE_SOURCE, PRICE_SOURCE_AKKUDOKTOR)
+        if price_source == PRICE_SOURCE_AKKUDOKTOR:
+            await self._eos_client.put_config("elecprice", {
+                "provider": "ElecPriceAkkudoktor",
+            })
+        elif price_source == PRICE_SOURCE_ENERGYCHARTS:
+            bidding_zone = self._get_config(CONF_BIDDING_ZONE, DEFAULT_BIDDING_ZONE)
+            await self._eos_client.put_config("elecprice", {
+                "provider": "ElecPriceEnergyCharts",
+                "energycharts": {"bidding_zone": bidding_zone},
+            })
+        # external: don't configure EOS elecprice, we'll push prices ourselves
+
+        # 3. Configure PV forecast
+        pv_arrays = self._get_config(CONF_PV_ARRAYS) or []
+        if pv_arrays:
+            planes = []
+            for arr in pv_arrays:
+                planes.append({
+                    "surface_azimuth": arr["azimuth"],
+                    "surface_tilt": arr["tilt"],
+                    "peakpower": arr["power"] / 1000.0,  # Wp -> kWp
+                    "inverter_paco": arr.get("inverter_power", arr["power"]),
+                })
+            await self._eos_client.put_config("pvforecast", {
+                "provider": "PVForecastAkkudoktor",
+                "planes": planes,
+            })
+
+        self._eos_configured = True
+        _LOGGER.info("EOS server configured successfully")
+
+    async def _push_measurements(self) -> None:
+        """Push current SOC and consumption to EOS measurement store."""
+        soc_entity = self._get_config(CONF_SOC_ENTITY)
+        consumption_entity = self._get_config(CONF_CONSUMPTION_ENTITY)
+        now_str = dt_util.now().isoformat()
+
+        if soc_entity:
+            soc_state = self.hass.states.get(soc_entity)
+            if soc_state and soc_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+                try:
+                    soc_val = float(soc_state.state)
+                    await self._eos_client.put_measurement_value(now_str, "soc_percentage", soc_val)
+                except (ValueError, TypeError):
+                    pass
+
+        if consumption_entity:
+            cons_state = self.hass.states.get(consumption_entity)
+            if cons_state and cons_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+                try:
+                    cons_val = float(cons_state.state)
+                    await self._eos_client.put_measurement_value(now_str, "load_wh", cons_val)
+                except (ValueError, TypeError):
+                    pass
+
     async def _async_update_data(self) -> dict[str, Any]:
-        """Fetch data from HA entities and run optimization cycle.
+        """Fetch data from HA entities and run optimization cycle."""
 
-        This is the core optimization cycle that runs every 5 minutes.
-        On the first refresh (during setup), we skip optimization to avoid
-        timeout issues and return empty data so entities can be created.
-
-        Returns:
-            Dict containing optimization results and metadata
-
-        Raises:
-            UpdateFailed: If optimization cannot proceed
-        """
-        # First refresh: return empty structure so setup completes quickly
+        # First refresh: push config and return empty structure
         if self._first_refresh:
             self._first_refresh = False
-            _LOGGER.info("First refresh: skipping optimization, scheduling full update")
-            return {
-                "ac_charge": [],
-                "dc_charge": [],
-                "discharge_allowed": [],
-                "start_solution": None,
-                "battery_soc_forecast": [],
-                "cost_per_hour": [],
-                "revenue_per_hour": [],
-                "grid_consumption_per_hour": [],
-                "grid_feedin_per_hour": [],
-                "load_per_hour": [],
-                "losses_per_hour": [],
-                "gesamtkosten_euro": None,
-                "gesamteinnahmen_euro": None,
-                "gesamtbilanz_euro": None,
-                "total_losses": None,
-                "electricity_price": [],
-                "pv_forecast": [],
-                "consumption_forecast": [],
-                "price_forecast": [],
-                "raw_response": {},
-                "last_update": dt_util.now().isoformat(),
-                "last_success": False,
-            }
+            _LOGGER.info("First refresh: configuring EOS, scheduling full update")
+            try:
+                await self._push_eos_config()
+            except Exception as err:
+                _LOGGER.warning("Failed to push EOS config: %s", err)
+            return self._empty_data()
 
-        # Step 1: Read HA input entities
-        price_entity = self._get_config(CONF_PRICE_ENTITY)
+        # Ensure EOS is configured
+        if not self._eos_configured:
+            try:
+                await self._push_eos_config()
+            except Exception as err:
+                _LOGGER.warning("Failed to push EOS config: %s", err)
+
+        # Push measurements (best effort)
+        try:
+            await self._push_measurements()
+        except Exception as err:
+            _LOGGER.debug("Failed to push measurements: %s", err)
+
+        # Fetch EOS native data (best effort)
+        try:
+            self._energy_plan = await self._eos_client.get_energy_plan()
+        except Exception:
+            pass
+
+        try:
+            self._resource_status = await self._eos_client.get_resource_status("battery1")
+        except Exception:
+            pass
+
+        # Read HA input entities
         soc_entity = self._get_config(CONF_SOC_ENTITY)
         consumption_entity = self._get_config(CONF_CONSUMPTION_ENTITY)
 
-        price_state = self.hass.states.get(price_entity)
         soc_state = self.hass.states.get(soc_entity)
         consumption_state = self.hass.states.get(consumption_entity)
 
-        # Check for unavailable entities
-        unavailable_entities = []
-        if price_state is None or price_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
-            unavailable_entities.append(f"price ({price_entity})")
+        unavailable = []
         if soc_state is None or soc_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
-            unavailable_entities.append(f"SOC ({soc_entity})")
+            unavailable.append(f"SOC ({soc_entity})")
         if consumption_state is None or consumption_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
-            unavailable_entities.append(f"consumption ({consumption_entity})")
+            unavailable.append(f"consumption ({consumption_entity})")
 
-        if unavailable_entities:
-            _LOGGER.debug(
-                "Required entities unavailable: %s. Skipping optimization, keeping last valid data.",
-                ", ".join(unavailable_entities),
-            )
-            # Return last valid data if available
+        # Price handling depends on source
+        price_source = self._get_config(CONF_PRICE_SOURCE, PRICE_SOURCE_AKKUDOKTOR)
+        price_state = None
+
+        if price_source == PRICE_SOURCE_EXTERNAL:
+            price_entity = self._get_config(CONF_PRICE_ENTITY)
+            price_state = self.hass.states.get(price_entity)
+            if price_state is None or price_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+                unavailable.append(f"price ({price_entity})")
+
+        if unavailable:
+            _LOGGER.debug("Required entities unavailable: %s", ", ".join(unavailable))
             if self.data:
                 return self.data
-            # No previous data, raise error
-            raise UpdateFailed(f"Required input entities unavailable: {', '.join(unavailable_entities)}")
+            raise UpdateFailed(f"Required entities unavailable: {', '.join(unavailable)}")
 
-        # Step 2: Fetch PV forecast with caching
-        pv_forecast = await self._get_pv_forecast_cached()
+        # Get PV forecast
+        pv_forecast = await self._get_pv_forecast(price_source)
         if pv_forecast is None:
-            raise UpdateFailed("PV forecast unavailable and cache expired")
+            pv_forecast = [0.0] * 48
 
-        # Step 3: Build EOS request
+        # Get price forecast
+        price_forecast = await self._get_price_forecast(price_source, price_state)
+
+        # Build EOS request and optimize
         eos_request = self._build_eos_request(
-            price_state,
+            price_forecast,
             soc_state,
             consumption_state,
             pv_forecast,
         )
 
-        # Step 4: Send optimization
         try:
             current_hour = dt_util.now().hour
             result = await self._eos_client.optimize(eos_request, current_hour)
         except (EOSConnectionError, EOSOptimizationError) as err:
             raise UpdateFailed(str(err)) from err
 
-        # Step 5: Parse response
         return self._parse_optimization_response(result)
 
+    async def _get_pv_forecast(self, price_source: str) -> list[float] | None:
+        """Get PV forecast — prefer EOS native, fallback to Akkudoktor API."""
+        # Try EOS native pvforecast first
+        pv_arrays = self._get_config(CONF_PV_ARRAYS) or []
+        if pv_arrays:
+            eos_forecast = await self._eos_client.get_pvforecast()
+            if eos_forecast:
+                self._pv_forecast_cache = eos_forecast
+                self._pv_forecast_timestamp = dt_util.now()
+                return eos_forecast
+
+        # Fallback to direct Akkudoktor API
+        return await self._get_pv_forecast_cached()
+
+    async def _get_price_forecast(self, price_source: str, price_state) -> list[float]:
+        """Get price forecast based on configured source."""
+        if price_source in (PRICE_SOURCE_AKKUDOKTOR, PRICE_SOURCE_ENERGYCHARTS):
+            prices = await self._eos_client.get_strompreis()
+            if prices:
+                self._last_price_forecast = prices
+                return prices
+            _LOGGER.warning("EOS strompreis empty, using flat fallback")
+
+        # External or fallback
+        if price_state:
+            return self._extract_price_forecast(price_state)
+
+        # Last resort
+        if self._last_price_forecast:
+            return self._last_price_forecast
+        return [0.0001] * 48  # ~0.10 EUR/kWh default
+
     async def _get_pv_forecast_cached(self) -> list[float] | None:
-        """Get PV forecast with 6-hour caching.
-
-        Returns:
-            48-hour PV forecast array, or None if API down and no cache available
-
-        Raises:
-            Does not raise - returns None on failure
-        """
-        # Check cache validity (6 hours)
+        """Get PV forecast with 6-hour caching from Akkudoktor API."""
         cache_valid = False
         if self._pv_forecast_cache and self._pv_forecast_timestamp:
             age = dt_util.now() - self._pv_forecast_timestamp
@@ -199,71 +298,41 @@ class EOSCoordinator(DataUpdateCoordinator):
                 cache_valid = True
 
         if cache_valid:
-            _LOGGER.debug("Using cached PV forecast")
             return self._pv_forecast_cache
 
-        # Cache invalid or missing, fetch from API
         try:
-            # Get location from config entry
-            # Config Flow stores these from hass.config
             lat = self.config_entry.data.get("latitude")
             lon = self.config_entry.data.get("longitude")
-
             if lat is None or lon is None:
-                _LOGGER.error("Latitude/longitude not found in config entry")
-                # Return expired cache if available
                 if self._pv_forecast_cache:
-                    _LOGGER.warning("Using expired cache due to missing location")
                     return self._pv_forecast_cache
                 return None
 
             pv_arrays = self._get_config(CONF_PV_ARRAYS) or []
-
             forecast = await self._akkudoktor_client.get_pv_forecast(
-                lat=lat,
-                lon=lon,
+                lat=lat, lon=lon,
                 pv_arrays=pv_arrays if pv_arrays else None,
                 timezone=self.hass.config.time_zone,
             )
-
-            # Update cache
             self._pv_forecast_cache = forecast
             self._pv_forecast_timestamp = dt_util.now()
-
-            _LOGGER.debug("PV forecast refreshed and cached")
             return forecast
-
         except AkkudoktorApiError as err:
             _LOGGER.warning("Akkudoktor API error: %s", err)
-            # Return cached data even if expired
             if self._pv_forecast_cache:
-                _LOGGER.info("Using expired PV forecast cache due to API error")
                 return self._pv_forecast_cache
-            # No cache at all
             return None
 
     def _build_eos_request(
         self,
-        price_state,
+        price_forecast: list[float],
         soc_state,
         consumption_state,
         pv_forecast: list[float],
     ) -> dict[str, Any]:
-        """Build EOS optimization request from entity states and forecast.
-
-        Args:
-            price_state: Price entity state
-            soc_state: Battery SOC entity state
-            consumption_state: Consumption entity state
-            pv_forecast: 48-hour PV forecast array
-
-        Returns:
-            EOS request dict matching existing format
-        """
-        price_forecast = self._extract_price_forecast(price_state)
+        """Build EOS optimization request."""
         consumption_forecast = self._extract_consumption_forecast(consumption_state)
 
-        # Cache for sensor exposure
         self._last_pv_forecast = pv_forecast
         self._last_price_forecast = price_forecast
         self._last_consumption_forecast = consumption_forecast
@@ -272,13 +341,12 @@ class EOSCoordinator(DataUpdateCoordinator):
             "ems": {
                 "pv_prognose_wh": pv_forecast,
                 "strompreis_euro_pro_wh": price_forecast,
-                "einspeiseverguetung_euro_pro_wh": [0.0] * 48,  # Feed-in tariff, 0 for v1
-                "preis_euro_pro_wh_akku": 0.0,  # Battery cost per Wh, 0 for v1
+                "einspeiseverguetung_euro_pro_wh": [0.0] * 48,
+                "preis_euro_pro_wh_akku": 0.0,
                 "gesamtlast": consumption_forecast,
             },
             "pv_akku": {
                 "device_id": "battery1",
-                # CRITICAL: Convert kWh (user input) to Wh (EOS expects), must be int
                 "capacity_wh": int(self._get_config(CONF_BATTERY_CAPACITY) * 1000),
                 "charging_efficiency": 0.88,
                 "discharging_efficiency": 0.88,
@@ -293,71 +361,33 @@ class EOSCoordinator(DataUpdateCoordinator):
                 "battery_id": "battery1",
             },
             "eauto": None,
-            # Default temperature forecast (15 degrees, matching existing pattern)
             "temperature_forecast": [15.0] * 48,
         }
 
     def _extract_price_forecast(self, price_state) -> list[float]:
-        """Extract price forecast from entity state.
-
-        For v1, replicate current price across 48 hours.
-        Future versions can parse Tibber attributes for actual forecasts.
-
-        Args:
-            price_state: Price entity state
-
-        Returns:
-            48-hour price forecast array
-        """
+        """Extract price forecast from HA entity state."""
         try:
             current_price = float(price_state.state)
         except (ValueError, TypeError):
-            _LOGGER.warning("Cannot convert price to float, using 0.0")
             current_price = 0.0
-
         return [current_price] * 48
 
     def _extract_consumption_forecast(self, consumption_state) -> list[float]:
-        """Extract consumption forecast from entity state.
-
-        For v1, replicate current consumption across 48 hours.
-
-        Args:
-            consumption_state: Consumption entity state
-
-        Returns:
-            48-hour consumption forecast array
-        """
+        """Extract consumption forecast from HA entity state."""
         try:
             current_consumption = float(consumption_state.state)
         except (ValueError, TypeError):
-            _LOGGER.warning("Cannot convert consumption to float, using default 500.0")
-            current_consumption = 500.0  # Reasonable default ~500Wh per hour
-
+            current_consumption = 500.0
         return [current_consumption] * 48
 
     def _parse_optimization_response(self, response: dict[str, Any]) -> dict[str, Any]:
-        """Parse optimization response from EOS server.
-
-        Args:
-            response: Raw EOS optimization response
-
-        Returns:
-            Structured dict with optimization results
-
-        Raises:
-            UpdateFailed: If response is invalid or contains errors
-        """
-        # Check for error in response
+        """Parse optimization response from EOS server."""
         if "error" in response:
-            _LOGGER.error("EOS optimization returned error: %s", response["error"])
             raise UpdateFailed(f"EOS optimization error: {response['error']}")
 
-        # Validate expected keys are present
         required_keys = ["ac_charge", "dc_charge", "discharge_allowed"]
         missing_keys = [key for key in required_keys if key not in response]
         if missing_keys:
-            _LOGGER.error("EOS response missing keys: %s", missing_keys)
             raise UpdateFailed(f"Invalid EOS response: missing {missing_keys}")
 
         result = response.get("result", {})
@@ -367,7 +397,6 @@ class EOSCoordinator(DataUpdateCoordinator):
             "dc_charge": response.get("dc_charge", []),
             "discharge_allowed": response.get("discharge_allowed", []),
             "start_solution": response.get("start_solution"),
-            # Result fields
             "battery_soc_forecast": result.get("akku_soc_pro_stunde", []),
             "cost_per_hour": result.get("Kosten_Euro_pro_Stunde", []),
             "revenue_per_hour": result.get("Einnahmen_Euro_pro_Stunde", []),
@@ -380,33 +409,54 @@ class EOSCoordinator(DataUpdateCoordinator):
             "total_revenue": result.get("Gesamteinnahmen_Euro"),
             "total_losses": result.get("Gesamt_Verluste"),
             "electricity_price": result.get("Electricity_price", []),
-            # Input forecasts (from request building)
             "pv_forecast": self._last_pv_forecast,
             "consumption_forecast": self._last_consumption_forecast,
             "price_forecast": self._last_price_forecast,
-            # Override state
             "active_override": self.active_override,
-            # Metadata
+            "energy_plan": self._energy_plan,
+            "resource_status": self._resource_status,
             "raw_response": response,
             "last_update": dt_util.now().isoformat(),
             "last_success": True,
         }
 
-    def set_override(self, mode: str, duration_minutes: int) -> None:
-        """Set manual override mode.
+    def _empty_data(self) -> dict[str, Any]:
+        """Return empty data structure for first refresh."""
+        return {
+            "ac_charge": [],
+            "dc_charge": [],
+            "discharge_allowed": [],
+            "start_solution": None,
+            "battery_soc_forecast": [],
+            "cost_per_hour": [],
+            "revenue_per_hour": [],
+            "grid_consumption_per_hour": [],
+            "grid_feedin_per_hour": [],
+            "load_per_hour": [],
+            "losses_per_hour": [],
+            "gesamtkosten_euro": None,
+            "gesamteinnahmen_euro": None,
+            "gesamtbilanz_euro": None,
+            "total_losses": None,
+            "electricity_price": [],
+            "pv_forecast": [],
+            "consumption_forecast": [],
+            "price_forecast": [],
+            "energy_plan": {},
+            "resource_status": {},
+            "raw_response": {},
+            "last_update": dt_util.now().isoformat(),
+            "last_success": False,
+        }
 
-        Args:
-            mode: "charge", "discharge", or "auto" (auto clears override)
-            duration_minutes: Duration in minutes (1-1440)
-        """
+    def set_override(self, mode: str, duration_minutes: int) -> None:
+        """Set manual override mode."""
         if mode == "auto":
             self._override_mode = None
             self._override_until = None
-            _LOGGER.info("Override cleared")
         else:
             self._override_mode = mode
             self._override_until = dt_util.now() + timedelta(minutes=duration_minutes)
-            _LOGGER.info("Override set: %s for %d minutes", mode, duration_minutes)
 
     @property
     def active_override(self) -> str | None:
@@ -414,7 +464,6 @@ class EOSCoordinator(DataUpdateCoordinator):
         if self._override_mode and self._override_until:
             if dt_util.now() < self._override_until:
                 return self._override_mode
-            # Expired
             self._override_mode = None
             self._override_until = None
         return None

@@ -35,10 +35,7 @@ def _current_hour_value(data: dict, key: str) -> float | None:
 
 
 def _derive_mode(data: dict) -> str:
-    """Derive current operating mode from optimization data.
-
-    If a manual override is active, it takes priority.
-    """
+    """Derive current operating mode from optimization data."""
     override = data.get("active_override")
     if override == "charge":
         return "Override: Charge"
@@ -52,6 +49,16 @@ def _derive_mode(data: dict) -> str:
     if discharge and discharge[0] == 0:
         return "Avoid Discharge"
     return "Allow Discharge"
+
+
+def _energy_plan_mode(data: dict) -> str | None:
+    """Get current operation mode from energy plan."""
+    plan = data.get("energy_plan", {})
+    instructions = plan.get("instructions", [])
+    if not instructions:
+        return None
+    # The last instruction before now is the active one
+    return instructions[0].get("operation_mode_id", "unknown")
 
 
 SENSOR_DESCRIPTIONS: tuple[EOSSensorEntityDescription, ...] = (
@@ -131,6 +138,26 @@ SENSOR_DESCRIPTIONS: tuple[EOSSensorEntityDescription, ...] = (
         icon="mdi:cash",
         value_fn=lambda d: round(d["total_cost"], 2) if d.get("total_cost") is not None else None,
     ),
+    EOSSensorEntityDescription(
+        key="energy_plan",
+        translation_key="energy_plan",
+        icon="mdi:calendar-clock",
+        value_fn=_energy_plan_mode,
+        attrs_fn=lambda d: {
+            "plan_id": d.get("energy_plan", {}).get("id"),
+            "generated_at": d.get("energy_plan", {}).get("generated_at"),
+            "valid_from": d.get("energy_plan", {}).get("valid_from"),
+            "valid_until": d.get("energy_plan", {}).get("valid_until"),
+            "instructions": d.get("energy_plan", {}).get("instructions", []),
+        },
+    ),
+    EOSSensorEntityDescription(
+        key="resource_status",
+        translation_key="resource_status",
+        icon="mdi:battery-heart-variant",
+        value_fn=lambda d: "available" if d.get("resource_status") else "unavailable",
+        attrs_fn=lambda d: d.get("resource_status", {}),
+    ),
 )
 
 
@@ -159,7 +186,6 @@ class EOSSensor(CoordinatorEntity, SensorEntity):
         coordinator: EOSCoordinator,
         description: EOSSensorEntityDescription,
     ) -> None:
-        """Initialize."""
         super().__init__(coordinator)
         self.entity_description = description
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{description.key}"
@@ -172,14 +198,12 @@ class EOSSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def native_value(self) -> Any:
-        """Return sensor value."""
         if not self.coordinator.data:
             return None
         return self.entity_description.value_fn(self.coordinator.data)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any] | None:
-        """Return extra attributes."""
         if not self.coordinator.data or not self.entity_description.attrs_fn:
             return None
         return self.entity_description.attrs_fn(self.coordinator.data)
@@ -189,7 +213,6 @@ class EOSOptimizationStatusSensor(CoordinatorEntity, SensorEntity):
     """Sensor showing EOS optimization status and health."""
 
     def __init__(self, coordinator: EOSCoordinator) -> None:
-        """Initialize the optimization status sensor."""
         super().__init__(coordinator)
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_optimization_status"
         self._attr_name = "EOS Optimization Status"
@@ -203,7 +226,6 @@ class EOSOptimizationStatusSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def native_value(self) -> str:
-        """Return the state of the sensor."""
         if self.coordinator.data and self.coordinator.data.get("last_success"):
             return "optimized"
         if self.coordinator.last_update_success is False:
@@ -212,7 +234,6 @@ class EOSOptimizationStatusSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, any]:
-        """Return additional state attributes."""
         attrs = {
             "eos_server_url": self.coordinator.config_entry.data.get(CONF_EOS_URL),
             "update_interval_seconds": DEFAULT_SCAN_INTERVAL,

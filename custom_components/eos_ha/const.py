@@ -20,6 +20,16 @@ CONF_MIN_SOC = "min_soc"
 CONF_MAX_SOC = "max_soc"
 CONF_INVERTER_POWER = "inverter_power"
 
+# Price source configuration
+CONF_PRICE_SOURCE = "price_source"
+CONF_BIDDING_ZONE = "bidding_zone"
+
+PRICE_SOURCE_AKKUDOKTOR = "akkudoktor"
+PRICE_SOURCE_ENERGYCHARTS = "energycharts"
+PRICE_SOURCE_EXTERNAL = "external"
+
+DEFAULT_BIDDING_ZONE = "DE-LU"
+
 # Default battery values
 DEFAULT_BATTERY_CAPACITY = 10.0  # kWh
 DEFAULT_MAX_CHARGE_POWER = 5000  # W

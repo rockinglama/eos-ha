@@ -30,3 +30,7 @@ set_override:
           step: 1
           unit_of_measurement: "min"
           mode: box
+
+update_predictions:
+  name: Update Predictions
+  description: Trigger EOS to recalculate all predictions (PV forecast, electricity prices, load forecast).
