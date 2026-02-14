@@ -149,6 +149,8 @@ class EOSApiClient:
                 data = await resp.json()
                 if isinstance(data, list):
                     return data
+                if isinstance(data, dict) and "pvpower" in data:
+                    return data["pvpower"]
                 _LOGGER.error("Unexpected pvforecast response type: %s", type(data))
                 return []
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
