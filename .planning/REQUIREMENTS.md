@@ -83,7 +83,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | Direct inverter control (Fronius API) | User builds automations; tight coupling to hardware is anti-pattern |
 | Custom dashboard panel | HA native dashboard cards are sufficient; maintenance burden |
 | YAML configuration | Deprecated HA pattern; Config Flow + Options Flow is standard |
-| Built-in price APIs (Tibber, Stromligning) | Price integrations are mature in HA; avoid duplicate API calls |
+| Built-in price APIs (Tibber, Stromlinging) | Price integrations are mature in HA; avoid duplicate API calls |
 | Real-time (sub-minute) updates | EOS optimization is computationally expensive; 5min default sufficient |
 | OpenHAB integration | HA only; OpenHAB users use the existing Docker container |
 | Flask web server / REST API | Replaced by native HA entities and services |
@@ -95,40 +95,40 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | — | Pending |
-| FOUND-02 | — | Pending |
-| FOUND-03 | — | Pending |
-| FOUND-04 | — | Pending |
-| FOUND-05 | — | Pending |
-| INPUT-01 | — | Pending |
-| INPUT-02 | — | Pending |
-| INPUT-03 | — | Pending |
-| INPUT-04 | — | Pending |
-| INPUT-05 | — | Pending |
-| OPT-01 | — | Pending |
-| OPT-02 | — | Pending |
-| OPT-03 | — | Pending |
-| OUT-01 | — | Pending |
-| OUT-02 | — | Pending |
-| OUT-03 | — | Pending |
-| OUT-04 | — | Pending |
-| OUT-05 | — | Pending |
-| OUT-06 | — | Pending |
-| OUT-07 | — | Pending |
-| OUT-08 | — | Pending |
-| CONF-01 | — | Pending |
-| CONF-02 | — | Pending |
-| CONF-03 | — | Pending |
-| CONF-04 | — | Pending |
-| SVC-01 | — | Pending |
-| SVC-02 | — | Pending |
-| DIAG-01 | — | Pending |
+| FOUND-01 | Phase 1, Phase 4 | Pending |
+| FOUND-02 | Phase 1 | Pending |
+| FOUND-03 | Phase 3 | Pending |
+| FOUND-04 | Phase 1 | Pending |
+| FOUND-05 | Phase 1 | Pending |
+| INPUT-01 | Phase 1 | Pending |
+| INPUT-02 | Phase 1 | Pending |
+| INPUT-03 | Phase 1 | Pending |
+| INPUT-04 | Phase 1 | Pending |
+| INPUT-05 | Phase 1 | Pending |
+| OPT-01 | Phase 1 | Pending |
+| OPT-02 | Phase 1 | Pending |
+| OPT-03 | Phase 1 | Pending |
+| OUT-01 | Phase 2 | Pending |
+| OUT-02 | Phase 2 | Pending |
+| OUT-03 | Phase 2 | Pending |
+| OUT-04 | Phase 2 | Pending |
+| OUT-05 | Phase 2 | Pending |
+| OUT-06 | Phase 2 | Pending |
+| OUT-07 | Phase 2 | Pending |
+| OUT-08 | Phase 2 | Pending |
+| CONF-01 | Phase 3 | Pending |
+| CONF-02 | Phase 3 | Pending |
+| CONF-03 | Phase 3 | Pending |
+| CONF-04 | Phase 3 | Pending |
+| SVC-01 | Phase 3 | Pending |
+| SVC-02 | Phase 3 | Pending |
+| DIAG-01 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 28 total
-- Mapped to phases: 0
-- Unmapped: 28 ⚠️
+- Mapped to phases: 28
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-02-14*
-*Last updated: 2026-02-14 after initial definition*
+*Last updated: 2026-02-14 after roadmap creation with phase mappings*
