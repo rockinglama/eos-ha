@@ -34,6 +34,97 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
+class EOSHAOptionsFlow(config_entries.OptionsFlow):
+    """Handle options flow for EOS HA (runtime config changes)."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Handle options step - change entities and battery params."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        current = {**self.config_entry.data, **self.config_entry.options}
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_PRICE_ENTITY,
+                        default=current.get(CONF_PRICE_ENTITY),
+                    ): selector.EntitySelector(
+                        selector.EntitySelectorConfig(domain="sensor")
+                    ),
+                    vol.Required(
+                        CONF_SOC_ENTITY,
+                        default=current.get(CONF_SOC_ENTITY),
+                    ): selector.EntitySelector(
+                        selector.EntitySelectorConfig(
+                            domain="sensor", device_class="battery"
+                        )
+                    ),
+                    vol.Required(
+                        CONF_CONSUMPTION_ENTITY,
+                        default=current.get(CONF_CONSUMPTION_ENTITY),
+                    ): selector.EntitySelector(
+                        selector.EntitySelectorConfig(domain="sensor")
+                    ),
+                    vol.Required(
+                        CONF_BATTERY_CAPACITY,
+                        default=current.get(CONF_BATTERY_CAPACITY, DEFAULT_BATTERY_CAPACITY),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0.5, max=200.0, step=0.5,
+                            unit_of_measurement="kWh",
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
+                    vol.Required(
+                        CONF_MAX_CHARGE_POWER,
+                        default=current.get(CONF_MAX_CHARGE_POWER, DEFAULT_MAX_CHARGE_POWER),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=100, max=50000, step=100,
+                            unit_of_measurement="W",
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
+                    vol.Required(
+                        CONF_MIN_SOC,
+                        default=current.get(CONF_MIN_SOC, DEFAULT_MIN_SOC),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0, max=100, step=1,
+                            unit_of_measurement="%",
+                            mode=selector.NumberSelectorMode.SLIDER,
+                        )
+                    ),
+                    vol.Required(
+                        CONF_MAX_SOC,
+                        default=current.get(CONF_MAX_SOC, DEFAULT_MAX_SOC),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0, max=100, step=1,
+                            unit_of_measurement="%",
+                            mode=selector.NumberSelectorMode.SLIDER,
+                        )
+                    ),
+                    vol.Required(
+                        CONF_INVERTER_POWER,
+                        default=current.get(CONF_INVERTER_POWER, DEFAULT_INVERTER_POWER),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=100, max=100000, step=100,
+                            unit_of_measurement="W",
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
+                }
+            ),
+        )
+
+
 class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for EOS HA."""
 
@@ -42,6 +133,11 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         """Initialize the config flow."""
         self.data: dict[str, Any] = {}
+
+    @staticmethod
+    def async_get_options_flow(config_entry):
+        """Get the options flow handler."""
+        return EOSHAOptionsFlow()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None

@@ -72,6 +72,16 @@ class EOSCoordinator(DataUpdateCoordinator):
         # Track if first refresh (skip optimization, just validate)
         self._first_refresh = True
 
+        # Manual override state
+        self._override_mode: str | None = None  # "charge", "discharge", or None
+        self._override_until = None
+
+    def _get_config(self, key: str, default=None):
+        """Get config value from options (runtime) with data (setup) as fallback."""
+        return self.config_entry.options.get(
+            key, self.config_entry.data.get(key, default)
+        )
+
         # Last used forecasts (for exposing in sensors)
         self._last_pv_forecast: list[float] = []
         self._last_consumption_forecast: list[float] = []
@@ -120,9 +130,9 @@ class EOSCoordinator(DataUpdateCoordinator):
             }
 
         # Step 1: Read HA input entities
-        price_entity = self.config_entry.data[CONF_PRICE_ENTITY]
-        soc_entity = self.config_entry.data[CONF_SOC_ENTITY]
-        consumption_entity = self.config_entry.data[CONF_CONSUMPTION_ENTITY]
+        price_entity = self._get_config(CONF_PRICE_ENTITY)
+        soc_entity = self._get_config(CONF_SOC_ENTITY)
+        consumption_entity = self._get_config(CONF_CONSUMPTION_ENTITY)
 
         price_state = self.hass.states.get(price_entity)
         soc_state = self.hass.states.get(soc_entity)
@@ -265,17 +275,17 @@ class EOSCoordinator(DataUpdateCoordinator):
             "pv_akku": {
                 "device_id": "battery1",
                 # CRITICAL: Convert kWh (user input) to Wh (EOS expects), must be int
-                "capacity_wh": int(self.config_entry.data[CONF_BATTERY_CAPACITY] * 1000),
+                "capacity_wh": int(self._get_config(CONF_BATTERY_CAPACITY) * 1000),
                 "charging_efficiency": 0.88,
                 "discharging_efficiency": 0.88,
-                "max_charge_power_w": self.config_entry.data[CONF_MAX_CHARGE_POWER],
+                "max_charge_power_w": self._get_config(CONF_MAX_CHARGE_POWER),
                 "initial_soc_percentage": round(float(soc_state.state)),
-                "min_soc_percentage": self.config_entry.data[CONF_MIN_SOC],
-                "max_soc_percentage": self.config_entry.data[CONF_MAX_SOC],
+                "min_soc_percentage": self._get_config(CONF_MIN_SOC),
+                "max_soc_percentage": self._get_config(CONF_MAX_SOC),
             },
             "inverter": {
                 "device_id": "inverter1",
-                "max_power_wh": self.config_entry.data[CONF_INVERTER_POWER],
+                "max_power_wh": self._get_config(CONF_INVERTER_POWER),
                 "battery_id": "battery1",
             },
             "eauto": None,
@@ -375,6 +385,33 @@ class EOSCoordinator(DataUpdateCoordinator):
             "last_update": dt_util.now().isoformat(),
             "last_success": True,
         }
+
+    def set_override(self, mode: str, duration_minutes: int) -> None:
+        """Set manual override mode.
+
+        Args:
+            mode: "charge", "discharge", or "auto" (auto clears override)
+            duration_minutes: Duration in minutes (1-1440)
+        """
+        if mode == "auto":
+            self._override_mode = None
+            self._override_until = None
+            _LOGGER.info("Override cleared")
+        else:
+            self._override_mode = mode
+            self._override_until = dt_util.now() + timedelta(minutes=duration_minutes)
+            _LOGGER.info("Override set: %s for %d minutes", mode, duration_minutes)
+
+    @property
+    def active_override(self) -> str | None:
+        """Return active override mode or None if expired/not set."""
+        if self._override_mode and self._override_until:
+            if dt_util.now() < self._override_until:
+                return self._override_mode
+            # Expired
+            self._override_mode = None
+            self._override_until = None
+        return None
 
     async def async_shutdown(self) -> None:
         """Clean up coordinator resources."""
