@@ -39,6 +39,7 @@ from .const import (
     CONF_PRICE_SOURCE,
     CONF_PV_ARRAYS,
     CONF_SOC_ENTITY,
+    CONF_TEMPERATURE_ENTITY,
     DEFAULT_BIDDING_ZONE,
     DEFAULT_EV_CAPACITY,
     DEFAULT_EV_CHARGE_POWER,
@@ -466,8 +467,46 @@ class EOSCoordinator(DataUpdateCoordinator):
             },
             "eauto": self._build_ev_params(soc_state),
             "home_appliances": self._build_appliances_params(),
-            "temperature_forecast": [15.0] * 48,
+            "temperature_forecast": self._get_temperature_forecast(),
         }
+
+    def _get_temperature_forecast(self) -> list[float]:
+        """Get temperature forecast from configured entity, fallback to 15°C."""
+        temp_entity_id = self._get_config(CONF_TEMPERATURE_ENTITY)
+        if not temp_entity_id:
+            return [15.0] * 48
+
+        state = self.hass.states.get(temp_entity_id)
+        if state is None or state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+            _LOGGER.debug("Temperature entity %s unavailable, using 15°C fallback", temp_entity_id)
+            return [15.0] * 48
+
+        # Check if it's a weather entity with forecast attribute
+        forecast = state.attributes.get("forecast")
+        if forecast and isinstance(forecast, list):
+            try:
+                temps = []
+                for entry in forecast:
+                    temp = entry.get("temperature")
+                    if temp is not None:
+                        temps.append(float(temp))
+                    if len(temps) >= 48:
+                        break
+                if temps:
+                    # Pad to 48 hours if needed
+                    while len(temps) < 48:
+                        temps.append(temps[-1])
+                    return temps[:48]
+            except (ValueError, TypeError) as err:
+                _LOGGER.debug("Error parsing weather forecast: %s", err)
+
+        # Simple temperature sensor — use current value for all 48h
+        try:
+            current_temp = float(state.state)
+            return [current_temp] * 48
+        except (ValueError, TypeError):
+            _LOGGER.debug("Cannot parse temperature from %s, using 15°C fallback", temp_entity_id)
+            return [15.0] * 48
 
     def _build_ev_params(self, soc_state) -> dict[str, Any] | None:
         """Build EV parameters if enabled."""

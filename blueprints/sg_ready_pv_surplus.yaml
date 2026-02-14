@@ -1,0 +1,62 @@
+blueprint:
+  name: SG-Ready on PV surplus
+  description: >
+    Activates SG-Ready mode 3 or 4 for your heat pump when the PV forecast
+    exceeds a configurable threshold (default: 3000W).
+  domain: automation
+  input:
+    pv_sensor:
+      name: PV Forecast Sensor
+      description: The EOS PV forecast sensor entity.
+      selector:
+        entity:
+          domain: sensor
+          integration: eos_ha
+    pv_threshold:
+      name: PV Threshold (W)
+      description: Activate SG-Ready when PV forecast exceeds this value.
+      default: 3000
+      selector:
+        number:
+          min: 500
+          max: 20000
+          step: 100
+          unit_of_measurement: W
+          mode: box
+    sg_ready_mode:
+      name: SG-Ready Mode
+      description: "Which SG-Ready mode to activate (3 = Recommend, 4 = Force)."
+      default: 3
+      selector:
+        select:
+          options:
+            - label: "3 - Recommend"
+              value: "3"
+            - label: "4 - Force"
+              value: "4"
+    duration:
+      name: Duration (minutes)
+      description: How long to keep the SG-Ready override active.
+      default: 60
+      selector:
+        number:
+          min: 15
+          max: 480
+          step: 15
+          unit_of_measurement: min
+          mode: box
+
+trigger:
+  - platform: state
+    entity_id: !input pv_sensor
+
+condition:
+  - condition: numeric_state
+    entity_id: !input pv_sensor
+    above: !input pv_threshold
+
+action:
+  - service: eos_ha.set_sg_ready_mode
+    data:
+      mode: "{{ input.sg_ready_mode | int(3) }}"
+      duration: "{{ input.duration | int(60) }}"

@@ -1,0 +1,50 @@
+blueprint:
+  name: Notify on cheap electricity
+  description: >
+    Sends a notification when the current electricity price drops below
+    a configurable threshold.
+  domain: automation
+  input:
+    price_sensor:
+      name: Price Forecast Sensor
+      description: The EOS price forecast sensor entity.
+      selector:
+        entity:
+          domain: sensor
+          integration: eos_ha
+    price_threshold:
+      name: Price Threshold (EUR/Wh)
+      description: >
+        Notify when the price falls below this value.
+        Note: EOS prices are in EUR/Wh (e.g. 0.00025 = 0.25 EUR/kWh).
+      default: 0.00020
+      selector:
+        number:
+          min: 0.0
+          max: 0.001
+          step: 0.00001
+          mode: box
+    notify_service:
+      name: Notification Service
+      description: The notification service to use (e.g. notify.mobile_app_phone).
+      default: notify.notify
+      selector:
+        text:
+
+trigger:
+  - platform: state
+    entity_id: !input price_sensor
+
+condition:
+  - condition: numeric_state
+    entity_id: !input price_sensor
+    below: !input price_threshold
+
+action:
+  - service: "{{ input.notify_service }}"
+    data:
+      title: "⚡ Cheap Electricity"
+      message: >
+        Current electricity price is {{ states(trigger.entity_id) }} EUR/Wh
+        ({{ (states(trigger.entity_id) | float * 1000) | round(2) }} ct/kWh).
+        Good time to charge!

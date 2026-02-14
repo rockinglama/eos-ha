@@ -1,0 +1,337 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "EOS HA",
+        "description": "Geben Sie die URL Ihres EOS-Optimierungsservers ein. {detected}",
+        "data": {
+          "eos_url": "EOS Server URL"
+        }
+      },
+      "price_source": {
+        "title": "Strompreisquelle",
+        "description": "Wählen Sie, wie Strompreise bezogen werden.",
+        "data": {
+          "price_source": "Preisquelle",
+          "bidding_zone": "Gebotszone (für EnergyCharts)",
+          "price_entity": "Preis-Entität (für extern)"
+        }
+      },
+      "entities": {
+        "title": "Entitäten-Auswahl",
+        "description": "Wählen Sie die Home Assistant Entitäten, die Energiedaten liefern.",
+        "data": {
+          "price_entity": "Strompreis-Entität",
+          "soc_entity": "Batterie-Ladezustand-Entität",
+          "consumption_entity": "Verbrauchs-Entität",
+          "temperature_entity": "Temperatur-Entität (optional)"
+        }
+      },
+      "entities_no_price": {
+        "title": "Entitäten-Auswahl",
+        "description": "Wählen Sie die Home Assistant Entitäten, die Energiedaten liefern. Strompreise werden von EOS bereitgestellt.",
+        "data": {
+          "soc_entity": "Batterie-Ladezustand-Entität",
+          "consumption_entity": "Verbrauchs-Entität",
+          "temperature_entity": "Temperatur-Entität (optional)"
+        }
+      },
+      "battery": {
+        "title": "Batterie- & Einspeiseparameter",
+        "description": "Konfigurieren Sie Ihr Batteriesystem und die Einspeisevergütung.",
+        "data": {
+          "battery_capacity": "Batteriekapazität (kWh)",
+          "max_charge_power": "Max. Ladeleistung (W)",
+          "min_soc": "Minimaler SOC (%)",
+          "max_soc": "Maximaler SOC (%)",
+          "inverter_power": "Wechselrichterleistung (W)",
+          "feed_in_tariff": "Einspeisevergütung (EUR/kWh)"
+        }
+      },
+      "battery_sensors": {
+        "title": "Batteriesensoren (optional)",
+        "description": "Konfigurieren Sie Batterie-Sensor-Entitäten für die Speicherpreis-Berechnung. Überspringen Sie diesen Schritt, wenn Sie den Speicherpreis-Sensor nicht benötigen.",
+        "data": {
+          "battery_grid_power_entity": "Batterie Netzlade-Leistung (W)",
+          "battery_pv_power_entity": "Batterie PV-Ladeleistung (W)",
+          "battery_energy_entity": "Batterie-Energie-Entität (kWh)"
+        }
+      },
+      "ev": {
+        "title": "Elektrofahrzeug (optional)",
+        "description": "Konfigurieren Sie Ihr Elektrofahrzeug für optimiertes Laden. Deaktiviert lassen, wenn Sie kein E-Auto haben.",
+        "data": {
+          "ev_enabled": "E-Auto Ladeoptimierung aktivieren",
+          "ev_capacity": "E-Auto Batteriekapazität (kWh)",
+          "ev_charge_power": "Max. Ladeleistung (W)",
+          "ev_efficiency": "Ladeeffizienz",
+          "ev_soc_entity": "E-Auto SOC-Entität (optional)"
+        }
+      },
+      "pv_overview": {
+        "title": "PV-Anlagen",
+        "description": "Konfigurieren Sie Ihre PV-Anlagen. Fügen Sie mindestens eine Anlage für genaue Solarprognosen hinzu.",
+        "data": {
+          "action": "Aktion"
+        }
+      },
+      "pv_add": {
+        "title": "PV-Anlage hinzufügen",
+        "description": "Konfigurieren Sie eine PV-Anlage. Azimut: 0°=Nord, 90°=Ost, 180°=Süd, 270°=West.",
+        "data": {
+          "azimuth": "Azimut (°)",
+          "tilt": "Neigung (°)",
+          "power": "Spitzenleistung (Wp)",
+          "inverter_power": "Wechselrichterleistung (W)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zum EOS-Server nicht möglich. Überprüfen Sie die URL und stellen Sie sicher, dass der Server läuft.",
+      "invalid_response": "Verbunden, aber unerwartete Antwort erhalten. Stellen Sie sicher, dass es sich um einen EOS-Server handelt.",
+      "timeout": "Zeitüberschreitung bei der Verbindung. Überprüfen Sie die URL und das Netzwerk."
+    },
+    "abort": {
+      "already_configured": "EOS HA ist bereits konfiguriert.",
+      "no_home_location": "Standort nicht in Home Assistant konfiguriert. Setzen Sie Ihren Standort unter Einstellungen > System > Allgemein."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "EOS HA Konfiguration",
+        "description": "Wählen Sie, was Sie konfigurieren möchten.",
+        "menu_options": {
+          "entities": "Eingangs-Entitäten",
+          "battery": "Batterieparameter",
+          "battery_sensors": "Batteriesensoren (Speicherpreis)",
+          "pv_arrays": "PV-Anlagen",
+          "price_source": "Strompreisquelle",
+          "ev": "Elektrofahrzeug",
+          "appliances": "Flexible Lasten",
+          "feed_in_tariff": "Einspeisevergütung",
+          "sg_ready": "SG-Ready Wärmepumpe"
+        }
+      },
+      "price_source": {
+        "title": "Strompreisquelle",
+        "description": "Wählen Sie, wie Strompreise bezogen werden. Für EnergyCharts die Gebotszone einstellen. Für extern Ihren Preissensor wählen.",
+        "data": {
+          "price_source": "Preisquelle",
+          "bidding_zone": "Gebotszone (für EnergyCharts)",
+          "price_entity": "Preis-Entität (für extern)"
+        }
+      },
+      "entities": {
+        "title": "Eingangs-Entitäten",
+        "description": "Aktualisieren Sie Ihre Energie-Entitäten-Zuordnungen.",
+        "data": {
+          "price_entity": "Strompreis-Entität",
+          "soc_entity": "Batterie-Ladezustand-Entität",
+          "consumption_entity": "Verbrauchs-Entität",
+          "temperature_entity": "Temperatur-Entität (optional)"
+        }
+      },
+      "battery": {
+        "title": "Batterieparameter",
+        "description": "Aktualisieren Sie Ihre Batteriesystem-Parameter.",
+        "data": {
+          "battery_capacity": "Batteriekapazität (kWh)",
+          "max_charge_power": "Max. Ladeleistung (W)",
+          "min_soc": "Minimaler SOC (%)",
+          "max_soc": "Maximaler SOC (%)",
+          "inverter_power": "Wechselrichterleistung (W)"
+        }
+      },
+      "battery_sensors": {
+        "title": "Batteriesensoren (Speicherpreis)",
+        "description": "Konfigurieren Sie Batterie-Sensor-Entitäten für die Speicherpreis-Berechnung.",
+        "data": {
+          "battery_grid_power_entity": "Batterie Netzlade-Leistung (W)",
+          "battery_pv_power_entity": "Batterie PV-Ladeleistung (W)",
+          "battery_energy_entity": "Batterie-Energie-Entität (kWh)"
+        }
+      },
+      "ev": {
+        "title": "Elektrofahrzeug",
+        "description": "Konfigurieren Sie Ihr Elektrofahrzeug für optimiertes Laden.",
+        "data": {
+          "ev_enabled": "E-Auto Ladeoptimierung aktivieren",
+          "ev_capacity": "E-Auto Batteriekapazität (kWh)",
+          "ev_charge_power": "Max. Ladeleistung (W)",
+          "ev_efficiency": "Ladeeffizienz",
+          "ev_soc_entity": "E-Auto SOC-Entität (optional)"
+        }
+      },
+      "appliances": {
+        "title": "Flexible Lasten",
+        "description": "Verwalten Sie flexible Lasten (z.B. Brauchwasser-Wärmepumpe).",
+        "data": {
+          "action": "Aktion"
+        }
+      },
+      "appliance_add": {
+        "title": "Last hinzufügen",
+        "description": "Fügen Sie eine flexible Last für optimierte Planung hinzu.",
+        "data": {
+          "name": "Gerätename",
+          "consumption_wh": "Energie pro Durchlauf (Wh)",
+          "duration_h": "Dauer (Stunden)"
+        }
+      },
+      "feed_in_tariff": {
+        "title": "Einspeisevergütung",
+        "description": "Konfigurieren Sie die Einspeisevergütung für Netzeinspeisung.",
+        "data": {
+          "feed_in_tariff": "Einspeisevergütung (EUR/kWh)"
+        }
+      },
+      "pv_arrays": {
+        "title": "PV-Anlagen",
+        "description": "Verwalten Sie Ihre PV-Anlagen.",
+        "data": {
+          "action": "Aktion"
+        }
+      },
+      "pv_add": {
+        "title": "PV-Anlage hinzufügen",
+        "description": "Konfigurieren Sie eine PV-Anlage. Azimut: 0°=Nord, 90°=Ost, 180°=Süd, 270°=West.",
+        "data": {
+          "azimuth": "Azimut (°)",
+          "tilt": "Neigung (°)",
+          "power": "Spitzenleistung (Wp)",
+          "inverter_power": "Wechselrichterleistung (W)"
+        }
+      },
+      "sg_ready": {
+        "title": "SG-Ready Wärmepumpe",
+        "description": "Konfigurieren Sie die SG-Ready Smart-Grid-Steuerung für Ihre Wärmepumpe. Benötigt zwei Relais-Schalter-Entitäten.",
+        "data": {
+          "sg_ready_enabled": "SG-Ready Steuerung aktivieren",
+          "sg_ready_switch_1": "SG-Ready Kontakt 1 (Schalter-Entität)",
+          "sg_ready_switch_2": "SG-Ready Kontakt 2 (Schalter-Entität)"
+        }
+      }
+    }
+  },
+  "services": {
+    "optimize_now": {
+      "name": "Jetzt optimieren",
+      "description": "Löst einen sofortigen EOS-Optimierungszyklus aus."
+    },
+    "set_override": {
+      "name": "Überschreibung setzen",
+      "description": "Manuelles Überschreiben des Optimierungsmodus für eine bestimmte Dauer.",
+      "fields": {
+        "mode": {
+          "name": "Modus",
+          "description": "Überschreibungsmodus: charge (Laden), discharge (Entladen) oder auto (Überschreibung aufheben)"
+        },
+        "duration": {
+          "name": "Dauer",
+          "description": "Überschreibungsdauer in Minuten (1-1440)"
+        }
+      }
+    },
+    "set_sg_ready_mode": {
+      "name": "SG-Ready Modus setzen",
+      "description": "Manuell SG-Ready Modus für die Wärmepumpensteuerung setzen.",
+      "fields": {
+        "mode": {
+          "name": "Modus",
+          "description": "SG-Ready Modus (1=Sperre, 2=Normal, 3=Empfehlung, 4=Erzwingen)"
+        },
+        "duration": {
+          "name": "Dauer",
+          "description": "Überschreibungsdauer in Minuten (0 = dauerhaft bis zur nächsten Optimierung)"
+        }
+      }
+    },
+    "update_predictions": {
+      "name": "Prognosen aktualisieren",
+      "description": "EOS anweisen, alle Prognosen neu zu berechnen (PV-Prognose, Strompreise, Lastprognose)."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "ac_charge_power": {
+        "name": "AC-Ladeleistung"
+      },
+      "dc_charge_power": {
+        "name": "DC-Ladeleistung"
+      },
+      "current_mode": {
+        "name": "Aktueller Modus"
+      },
+      "pv_forecast": {
+        "name": "PV-Prognose"
+      },
+      "price_forecast": {
+        "name": "Strompreis-Prognose"
+      },
+      "consumption_forecast": {
+        "name": "Verbrauchs-Prognose"
+      },
+      "battery_soc_forecast": {
+        "name": "Batterie-SOC-Prognose"
+      },
+      "total_cost": {
+        "name": "Gesamtkosten"
+      },
+      "override_status": {
+        "name": "Überschreibungs-Status"
+      },
+      "energy_plan": {
+        "name": "Energieplan"
+      },
+      "resource_status": {
+        "name": "Batterie-Ressourcenstatus"
+      },
+      "ev_charge_plan": {
+        "name": "E-Auto Ladeplan"
+      },
+      "appliance_schedule": {
+        "name": "Geräte-Zeitplan"
+      },
+      "battery_storage_price": {
+        "name": "Batterie-Speicherpreis"
+      },
+      "sg_ready_mode": {
+        "name": "SG-Ready Modus"
+      }
+    },
+    "switch": {
+      "sg_ready_auto": {
+        "name": "SG-Ready Automatik"
+      }
+    },
+    "binary_sensor": {
+      "discharge_allowed": {
+        "name": "Entladung erlaubt"
+      }
+    },
+    "number": {
+      "battery_capacity": {
+        "name": "Batteriekapazität"
+      },
+      "max_charge_power": {
+        "name": "Max. Ladeleistung"
+      },
+      "inverter_power": {
+        "name": "Wechselrichterleistung"
+      },
+      "min_soc": {
+        "name": "Minimaler SOC"
+      },
+      "max_soc": {
+        "name": "Maximaler SOC"
+      },
+      "ev_capacity": {
+        "name": "E-Auto Batteriekapazität"
+      },
+      "ev_charge_power": {
+        "name": "E-Auto Max. Ladeleistung"
+      }
+    }
+  }
+}

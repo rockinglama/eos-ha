@@ -1,0 +1,38 @@
+blueprint:
+  name: Notify on negative electricity price
+  description: >
+    Sends a notification when the electricity price becomes negative.
+    Negative prices mean you get paid for consuming electricity!
+  domain: automation
+  input:
+    price_sensor:
+      name: Price Forecast Sensor
+      description: The EOS price forecast sensor entity.
+      selector:
+        entity:
+          domain: sensor
+          integration: eos_ha
+    notify_service:
+      name: Notification Service
+      description: The notification service to use (e.g. notify.mobile_app_phone).
+      default: notify.notify
+      selector:
+        text:
+
+trigger:
+  - platform: state
+    entity_id: !input price_sensor
+
+condition:
+  - condition: numeric_state
+    entity_id: !input price_sensor
+    below: 0
+
+action:
+  - service: "{{ input.notify_service }}"
+    data:
+      title: "💰 Negative Electricity Price!"
+      message: >
+        The electricity price is now negative:
+        {{ (states(trigger.entity_id) | float * 1000) | round(2) }} ct/kWh.
+        You get paid for consuming electricity!

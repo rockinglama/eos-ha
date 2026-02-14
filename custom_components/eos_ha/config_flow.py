@@ -38,6 +38,7 @@ from .const import (
     CONF_PRICE_SOURCE,
     CONF_PV_ARRAYS,
     CONF_SOC_ENTITY,
+    CONF_TEMPERATURE_ENTITY,
     DEFAULT_BATTERY_CAPACITY,
     DEFAULT_BIDDING_ZONE,
     DEFAULT_EV_CAPACITY,
@@ -198,6 +199,9 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
         )
         schema_dict[vol.Required(CONF_CONSUMPTION_ENTITY, default=current.get(CONF_CONSUMPTION_ENTITY))] = selector.EntitySelector(
             selector.EntitySelectorConfig(domain="sensor")
+        )
+        schema_dict[vol.Optional(CONF_TEMPERATURE_ENTITY, default=current.get(CONF_TEMPERATURE_ENTITY, ""))] = selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=["sensor", "weather"])
         )
 
         return self.async_show_form(
@@ -649,6 +653,7 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self.data[CONF_PRICE_ENTITY] = user_input[CONF_PRICE_ENTITY]
             self.data[CONF_SOC_ENTITY] = user_input[CONF_SOC_ENTITY]
             self.data[CONF_CONSUMPTION_ENTITY] = user_input[CONF_CONSUMPTION_ENTITY]
+            self.data[CONF_TEMPERATURE_ENTITY] = user_input.get(CONF_TEMPERATURE_ENTITY, "")
             return await self.async_step_battery()
 
         return self.async_show_form(
@@ -664,6 +669,9 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_CONSUMPTION_ENTITY): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="sensor")
                     ),
+                    vol.Optional(CONF_TEMPERATURE_ENTITY, default=""): selector.EntitySelector(
+                        selector.EntitySelectorConfig(domain=["sensor", "weather"])
+                    ),
                 }
             ),
         )
@@ -675,6 +683,7 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             self.data[CONF_SOC_ENTITY] = user_input[CONF_SOC_ENTITY]
             self.data[CONF_CONSUMPTION_ENTITY] = user_input[CONF_CONSUMPTION_ENTITY]
+            self.data[CONF_TEMPERATURE_ENTITY] = user_input.get(CONF_TEMPERATURE_ENTITY, "")
             return await self.async_step_battery()
 
         return self.async_show_form(
@@ -686,6 +695,9 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ),
                     vol.Required(CONF_CONSUMPTION_ENTITY): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="sensor")
+                    ),
+                    vol.Optional(CONF_TEMPERATURE_ENTITY, default=""): selector.EntitySelector(
+                        selector.EntitySelectorConfig(domain=["sensor", "weather"])
                     ),
                 }
             ),

@@ -23,7 +23,8 @@
         "data": {
           "price_entity": "Electricity Price Entity",
           "soc_entity": "Battery State of Charge Entity",
-          "consumption_entity": "Consumption/Load Entity"
+          "consumption_entity": "Consumption/Load Entity",
+          "temperature_entity": "Temperature Entity (optional)"
         }
       },
       "entities_no_price": {
@@ -31,7 +32,8 @@
         "description": "Select the Home Assistant entities that provide energy data. Electricity prices are provided by EOS.",
         "data": {
           "soc_entity": "Battery State of Charge Entity",
-          "consumption_entity": "Consumption/Load Entity"
+          "consumption_entity": "Consumption/Load Entity",
+          "temperature_entity": "Temperature Entity (optional)"
         }
       },
       "battery": {
@@ -126,7 +128,8 @@
         "data": {
           "price_entity": "Electricity Price Entity",
           "soc_entity": "Battery State of Charge Entity",
-          "consumption_entity": "Consumption/Load Entity"
+          "consumption_entity": "Consumption/Load Entity",
+          "temperature_entity": "Temperature Entity (optional)"
         }
       },
       "battery": {

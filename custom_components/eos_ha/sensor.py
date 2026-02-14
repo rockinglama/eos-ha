@@ -89,6 +89,21 @@ def _energy_plan_mode(data: dict) -> str | None:
     return instructions[0].get("operation_mode_id", "unknown")
 
 
+def _price_forecast_attrs(data: dict) -> dict[str, Any]:
+    """Build enhanced price forecast attributes."""
+    forecast = data.get("price_forecast", [])
+    attrs: dict[str, Any] = {"forecast": forecast}
+    if forecast:
+        avg = sum(forecast) / len(forecast)
+        current = forecast[0] if forecast else 0
+        attrs["price_below_average"] = current < avg
+        # Find 5 cheapest upcoming hours (index, price)
+        indexed = [(i, p) for i, p in enumerate(forecast)]
+        indexed.sort(key=lambda x: x[1])
+        attrs["cheapest_hours"] = [{"hour": i, "price": round(p, 6)} for i, p in indexed[:5]]
+    return attrs
+
+
 SENSOR_DESCRIPTIONS: tuple[EOSSensorEntityDescription, ...] = (
     EOSSensorEntityDescription(
         key="ac_charge_power",
@@ -131,7 +146,7 @@ SENSOR_DESCRIPTIONS: tuple[EOSSensorEntityDescription, ...] = (
         native_unit_of_measurement="EUR/Wh",
         icon="mdi:currency-eur",
         value_fn=lambda d: _current_hour_value(d, "price_forecast"),
-        attrs_fn=lambda d: {"forecast": d.get("price_forecast", [])},
+        attrs_fn=lambda d: _price_forecast_attrs(d),
     ),
     EOSSensorEntityDescription(
         key="consumption_forecast",
@@ -296,6 +311,11 @@ class EOSOptimizationStatusSensor(CoordinatorEntity, SensorEntity):
         else:
             attrs["last_update"] = None
             attrs["last_success"] = None
+        # Add optimization error info
+        if self.coordinator.last_exception:
+            attrs["optimization_error"] = str(self.coordinator.last_exception)
+        else:
+            attrs["optimization_error"] = None
         return attrs
 
 
