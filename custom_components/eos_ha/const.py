@@ -23,7 +23,7 @@ CONF_INVERTER_POWER = "inverter_power"
 # Default battery values
 DEFAULT_BATTERY_CAPACITY = 10.0  # kWh
 DEFAULT_MAX_CHARGE_POWER = 5000  # W
-DEFAULT_MIN_SOC = 10  # percent
+DEFAULT_MIN_SOC = 15  # percent
 DEFAULT_MAX_SOC = 90  # percent
 DEFAULT_INVERTER_POWER = 10000  # W
 
