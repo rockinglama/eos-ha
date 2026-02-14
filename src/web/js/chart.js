@@ -1,5 +1,5 @@
 /**
- * Chart Manager for EOS Connect
+ * Chart Manager for EOS HA
  * Handles chart creation, updates and display functionality
  * Extracted from legacy index.html
  */

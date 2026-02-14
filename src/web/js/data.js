@@ -1,5 +1,5 @@
 /**
- * Data Manager for EOS Connect
+ * Data Manager for EOS HA
  * Handles all API communication and data fetching
  */
 
@@ -50,7 +50,7 @@ class DataManager {
     }
 
     /**
-     * Fetch EOS Connect data files
+     * Fetch EOS HA data files
      * This replaces the original fetch_EOS_Connect_Data function
      * Routes test files to the dynamic test endpoint
      */

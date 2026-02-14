@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Guide - EOS Connect Documentation</title>
+    <title>User Guide - EOS HA Documentation</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 </head>
@@ -17,8 +17,8 @@
     <nav class="nav-header">
         <div class="nav-container">
             <a href="../index.html" class="nav-logo">
-                <img src="../assets/images/icon.png" alt="EOS Connect" style="height: 48px; vertical-align: middle; margin-right: 8px;">
-                <span>EOS Connect</span>
+                <img src="../assets/images/icon.png" alt="EOS HA" style="height: 48px; vertical-align: middle; margin-right: 8px;">
+                <span>EOS HA</span>
                 <span class="version-badge">v0.2.30</span>
             </a>
             <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle menu">
@@ -31,8 +31,8 @@
                 <li><a href="configuration.html">Configuration</a></li>
                 <li><a href="../advanced/index.html">Advanced</a></li>
                 <li><a href="../developer/index.html">Developer</a></li>
-                <li><a href="https://github.com/ohAnd/EOS_connect" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
-                <li><a href="https://github.com/sponsors/ohAnd" target="_blank" title="Sponsor the project"><i class="fas fa-mug-hot"></i></a></li>
+                <li><a href="https://github.com/rockinglama/eos-ha" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
+                <li><a href="https://github.com/sponsors/rockinglama" target="_blank" title="Sponsor the project"><i class="fas fa-mug-hot"></i></a></li>
             </ul>
         </div>
     </nav>
@@ -60,7 +60,7 @@
             <main class="main-content">
         <div class="hero">
             <h1>User Guide</h1>
-            <p>Install, configure, and use EOS Connect to bridge your energy system with optimization engines</p>
+            <p>Install, configure, and use EOS HA to bridge your energy system with optimization engines</p>
         </div>
 
         <!-- Quick Navigation -->
@@ -102,7 +102,7 @@
         <!-- Quick Start -->
         <div class="content-section" id="installation">
             <h2><i class="fas fa-rocket"></i> Quick Start</h2>
-            <p>Get EOS Connect running in 4 simple steps:</p>
+            <p>Get EOS HA running in 4 simple steps:</p>
 
             <h3>Step 1: Requirements</h3>
             <ul>
@@ -116,11 +116,11 @@
             
             <h4>Option A: Home Assistant Add-on</h4>
             <ol>
-                <li>Add repository: <a href="https://github.com/ohAnd/ha_addons" target="_blank">ohAnd/ha_addons</a></li>
+                <li>Add repository: <a href="https://github.com/rockinglama/ha_addons" target="_blank">rockinglama/ha_addons</a></li>
                 <li>Option A: Install <strong>EOS Server</strong> add-on: <a href="https://github.com/Duetting/ha_eos_addon" target="_blank">Duetting/ha_eos_addon</a> or <a href="https://github.com/thecem/ha_eos_addon" target="_blank">thecem/ha_eos_addon</a></li>
                 <li>Option B: Install <strong>EVopt</strong> add-on: <a href="https://github.com/thecem/hassio-evopt" target="_blank">thecem/hassio-evopt</a></li>
-                <li>Install "EOS Connect" add-on</li>
-                    <li>Easily configure the EOS_connect add-on using the Home Assistant add-on UI—no manual editing of config files is needed, and EOS or EVopt require no special setup. For advanced options or details, see the <a href="configuration.html">user-guide/configuration</a>.</li>
+                <li>Install "EOS HA" add-on</li>
+                    <li>Easily configure the eos-ha add-on using the Home Assistant add-on UI—no manual editing of config files is needed, and EOS or EVopt require no special setup. For advanced options or details, see the <a href="configuration.html">user-guide/configuration</a>.</li>
                 </li>
                 <li>Start all add-ons</li>
             </ol>
@@ -128,17 +128,17 @@
             <h4>Option B: Docker</h4>
                 <h4>Option B: Docker</h4>
                 <p>For EOS backend, see <a href="https://github.com/Akkudoktor-EOS/EOS" target="_blank">Akkudoktor EOS</a>. For EVopt backend, see <a href="https://github.com/thecem/hassio-evopt" target="_blank">EVopt</a>.</p>
-                <pre><code>git clone https://github.com/ohAnd/EOS_connect.git
-cd EOS_connect
+                <pre><code>git clone https://github.com/rockinglama/eos-ha.git
+cd eos-ha
 docker-compose up --pull always -d</code></pre>
 
             <h4>Option C: Local Python</h4>
                 <h4>Option C: Local Python</h4>
                 <p>For EOS backend, see <a href="https://github.com/Akkudoktor-EOS/EOS" target="_blank">Akkudoktor EOS</a>. For EVopt backend, see <a href="https://github.com/thecem/hassio-evopt" target="_blank">EVopt</a>.</p>
-                <pre><code>git clone https://github.com/ohAnd/EOS_connect.git
-cd EOS_connect
+                <pre><code>git clone https://github.com/rockinglama/eos-ha.git
+cd eos-ha
 pip install -r requirements.txt
-python src/eos_connect.py</code></pre>
+python src/eos_ha.py</code></pre>
 
             <h3>Step 3: Configure</h3>
             <p>Edit <code>src/config.yaml</code> with your system details:</p>
@@ -168,14 +168,14 @@ pv_forecast:
             </ul>
 
             <div class="alert alert-success">
-                <strong><i class="fas fa-check-circle"></i> Success!</strong> You should see the EOS Connect dashboard with real-time data and forecasts.
+                <strong><i class="fas fa-check-circle"></i> Success!</strong> You should see the EOS HA dashboard with real-time data and forecasts.
             </div>
         </div>
 
         <!-- EOS Configuration Requirements -->
         <div class="content-section" id="eos-requirements">
             <h2><i class="fas fa-server"></i> EOS Configuration Requirements</h2>
-            <p><strong>Important:</strong> EOS Connect requires specific prediction settings in your EOS instance. The default EOS configuration should work out-of-the-box, but verify these settings if you experience issues with forecasting.</p>
+            <p><strong>Important:</strong> EOS HA requires specific prediction settings in your EOS instance. The default EOS configuration should work out-of-the-box, but verify these settings if you experience issues with forecasting.</p>
 
             <div class="alert alert-warning">
                 <h4><i class="fas fa-exclamation-triangle"></i> Required EOS Prediction Settings</h4>
@@ -183,7 +183,7 @@ pv_forecast:
                 <pre><code class="yaml"># EOS config.yml - Prediction and Optimization settings
 prediction:
   # Prediction horizon (default: 48 hours)
-  # EOS Connect requires at least 48 hours for proper optimization
+  # EOS HA requires at least 48 hours for proper optimization
   hours_ahead: 48
   
 optimization:
@@ -192,11 +192,11 @@ optimization:
   hours_ahead: 48</code></pre>
             </div>
 
-            <h3>What EOS Connect Handles</h3>
+            <h3>What EOS HA Handles</h3>
             <ul>
-                <li><strong>Optimization Requests:</strong> EOS Connect sends optimization requests to EOS on a configurable interval (e.g., every 3 minutes)</li>
-                <li><strong>No EOS Internal Scheduling:</strong> EOS Connect manages all timing - no internal EOS optimization intervals are used</li>
-                <li><strong>48-Hour Forecasting:</strong> EOS Connect provides 48-hour load and PV forecasts to EOS for optimal decision making</li>
+                <li><strong>Optimization Requests:</strong> EOS HA sends optimization requests to EOS on a configurable interval (e.g., every 3 minutes)</li>
+                <li><strong>No EOS Internal Scheduling:</strong> EOS HA manages all timing - no internal EOS optimization intervals are used</li>
+                <li><strong>48-Hour Forecasting:</strong> EOS HA provides 48-hour load and PV forecasts to EOS for optimal decision making</li>
             </ul>
 
             <h3>Troubleshooting EOS Configuration</h3>
@@ -217,8 +217,8 @@ optimization:
                         <td>Ensure <code>optimization.hours_ahead</code> is set to 48 or less than prediction horizon</td>
                     </tr>
                     <tr>
-                        <td>EOS Connect timing issues</td>
-                        <td>All optimization scheduling is handled by EOS Connect, not EOS internal timers</td>
+                        <td>EOS HA timing issues</td>
+                        <td>All optimization scheduling is handled by EOS HA, not EOS internal timers</td>
                     </tr>
                 </tbody>
             </table>
@@ -231,10 +231,10 @@ optimization:
         <!-- Data Collection -->
         <div class="content-section" id="data-collection">
             <h2><i class="fas fa-database"></i> Data Collection Requirements</h2>
-            <p>EOS Connect collects historical load data from your smart home platform to create accurate forecasts for optimization.</p>
+            <p>EOS HA collects historical load data from your smart home platform to create accurate forecasts for optimization.</p>
 
             <h3>How Data Collection Works</h3>
-            <p>EOS Connect is a self-running system that periodically collects:</p>
+            <p>EOS HA is a self-running system that periodically collects:</p>
             <ul>
                 <li>Local energy consumption data (from Home Assistant or OpenHAB)</li>
                 <li>PV solar forecasts for the next 48 hours</li>
@@ -275,7 +275,7 @@ optimization:
 
             <h4>Home Assistant Persistence Configuration</h4>
             <div class="alert alert-warning">
-                <strong><i class="fas fa-exclamation-triangle"></i> Important:</strong> Home Assistant's default retention is only <strong>10 days</strong>. EOS Connect needs data from up to <strong>2 weeks ago</strong> for accurate forecasting.
+                <strong><i class="fas fa-exclamation-triangle"></i> Important:</strong> Home Assistant's default retention is only <strong>10 days</strong>. EOS HA needs data from up to <strong>2 weeks ago</strong> for accurate forecasting.
             </div>
 
             <p>To extend retention, add this to your <code>configuration.yaml</code>:</p>
@@ -298,7 +298,7 @@ recorder:
         <!-- Configuration Overview -->
         <div class="content-section" id="configuration">
             <h2><i class="fas fa-cog"></i> Configuration Overview</h2>
-            <p>EOS Connect uses a YAML configuration file (<code>config.yaml</code>) with the following main sections:</p>
+            <p>EOS HA uses a YAML configuration file (<code>config.yaml</code>) with the following main sections:</p>
 
             <table>
                 <thead>
@@ -387,9 +387,9 @@ recorder:
         <!-- Battery Pricing -->
         <div class="content-section" id="battery-pricing">
             <h2><i class="fas fa-coins"></i> Battery Energy Pricing</h2>
-            <p>EOS Connect can track the cost of energy stored in your battery in three different ways. Understanding which pricing mode you're using helps you understand optimization decisions.</p>
+            <p>EOS HA can track the cost of energy stored in your battery in three different ways. Understanding which pricing mode you're using helps you understand optimization decisions.</p>
             <div class="alert alert-info">
-                <strong><i class="fas fa-wand-magic-sparkles"></i> Automatic Sensor Detection:</strong> EOS Connect <strong>auto-detects</strong> your battery and grid sensor conventions (polarity) to correctly attribute charging energy to <strong>PV</strong> vs <strong>Grid</strong> — even if your grid sensor reports import as negative.
+                <strong><i class="fas fa-wand-magic-sparkles"></i> Automatic Sensor Detection:</strong> EOS HA <strong>auto-detects</strong> your battery and grid sensor conventions (polarity) to correctly attribute charging energy to <strong>PV</strong> vs <strong>Grid</strong> — even if your grid sensor reports import as negative.
                 <br>Check logs for: <code>[BATTERY-PRICE] Detected conventions: battery=... grid=...</code>
             </div>
             
@@ -446,7 +446,7 @@ recorder:
   grid_charge_threshold_w: 100                     # Minimum grid import to attribute to grid vs PV</code></pre>
 
             <h5>Step 3: Verify Sensor Conventions</h5>
-            <p><strong>Good news:</strong> You <em>do not</em> need to manually set sensor polarity. EOS Connect automatically detects and normalizes battery and grid conventions using an energy balance check:</p>
+            <p><strong>Good news:</strong> You <em>do not</em> need to manually set sensor polarity. EOS HA automatically detects and normalizes battery and grid conventions using an energy balance check:</p>
             <ul>
                 <li><strong>Battery Power:</strong> <em>Auto-detected</em> (charging vs discharging sign)</li>
                 <li><strong>Grid Power:</strong> <em>Auto-detected</em> (import vs export sign)</li>
@@ -656,7 +656,7 @@ recorder:
         <!-- Troubleshooting -->
         <div class="content-section" id="troubleshooting">
             <h2><i class="fas fa-wrench"></i> Troubleshooting</h2>
-            <p>Common issues and solutions for EOS Connect.</p>
+            <p>Common issues and solutions for EOS HA.</p>
 
             <h3>Connection Issues</h3>
             <table>
@@ -686,7 +686,7 @@ recorder:
                     <tr>
                         <td>Cannot reach dashboard</td>
                         <td>Port conflict or firewall</td>
-                        <td>Check <code>eos_connect_web_port: 8081</code> is not in use, verify firewall rules</td>
+                        <td>Check <code>eos_ha_web_port: 8081</code> is not in use, verify firewall rules</td>
                     </tr>
                     <tr>
                         <td>Segmentation Fault on startup (Proxmox/VM)</td>
@@ -818,8 +818,8 @@ recorder:
                 <h4><i class="fas fa-question-circle"></i> Still Need Help?</h4>
                 <ul>
                     <li><strong>Logs:</strong> Check logs in dashboard (top menu → Logs) or enable <code>log_level: debug</code></li>
-                    <li><strong>GitHub Issues:</strong> Search <a href="https://github.com/ohAnd/EOS_connect/issues" target="_blank">existing issues</a> or create a new one</li>
-                    <li><strong>Discussions:</strong> Ask questions in <a href="https://github.com/ohAnd/EOS_connect/discussions" target="_blank">GitHub Discussions</a></li>
+                    <li><strong>GitHub Issues:</strong> Search <a href="https://github.com/rockinglama/eos-ha/issues" target="_blank">existing issues</a> or create a new one</li>
+                    <li><strong>Discussions:</strong> Ask questions in <a href="https://github.com/rockinglama/eos-ha/discussions" target="_blank">GitHub Discussions</a></li>
                     <li><strong>Documentation:</strong> Review <a href="configuration.html">Configuration Reference</a> and <a href="../advanced/index.html">Advanced Topics</a></li>
                 </ul>
             </div>
@@ -828,10 +828,10 @@ recorder:
         <!-- EOS Server Setup -->
         <div class="content-section" id="eos-server-setup">
             <h2><i class="fas fa-desktop"></i> EOS/EVopt Server Setup</h2>
-            <p><strong>EOS Connect requires a running optimization backend to calculate energy strategies.</strong></p>
+            <p><strong>EOS HA requires a running optimization backend to calculate energy strategies.</strong></p>
             
             <div class="alert alert-info">
-                <strong><i class="fas fa-lightbulb"></i> Remember:</strong> EOS Connect is an <strong>integration and control platform</strong>. The optimization calculations are performed by:
+                <strong><i class="fas fa-lightbulb"></i> Remember:</strong> EOS HA is an <strong>integration and control platform</strong>. The optimization calculations are performed by:
                 <ul style="margin-top: 0.5rem;">
                     <li><strong>EOS</strong> - Akkudoktor Energy Optimization System (port 8503)</li>
                     <li><strong>EVopt</strong> - Lightweight optimizer (port 7050)</li>
@@ -866,8 +866,8 @@ pv_prognose_tomorrow: 0.0
 eauto: 0
 gesamtlast: 0.0</code></pre>
 
-            <h4>What EOS Connect Provides</h4>
-            <p>EOS Connect automatically sends these values in optimization requests:</p>
+            <h4>What EOS HA Provides</h4>
+            <p>EOS HA automatically sends these values in optimization requests:</p>
             <ul>
                 <li>PV forecasts (from your configured provider)</li>
                 <li>Load predictions (from historical data or default profile)</li>
@@ -876,7 +876,7 @@ gesamtlast: 0.0</code></pre>
                 <li>EVCC requirements (if configured)</li>
             </ul>
 
-            <h3>Troubleshooting EOS Connection</h3>
+            <h3>Troubleshooting EOS HAion</h3>
             <ul>
                 <li><strong>Connection refused:</strong> Check EOS server is running on configured port</li>
                 <li><strong>Timeout:</strong> Increase <code>eos.timeout</code> in config (default 180s)</li>
@@ -909,7 +909,7 @@ gesamtlast: 0.0</code></pre>
     </div>
 
     <footer class="footer">
-        <p>EOS Connect Documentation | <a href="../index.html">Home</a> | <a href="https://github.com/ohAnd/EOS_connect">GitHub</a> | <a href="https://github.com/sponsors/ohAnd">Sponsor</a></p>
+        <p>EOS HA Documentation | <a href="../index.html">Home</a> | <a href="https://github.com/rockinglama/eos-ha">GitHub</a> | <a href="https://github.com/sponsors/rockinglama">Sponsor</a></p>
     </footer>
 
     <!-- Scroll spy for TOC -->

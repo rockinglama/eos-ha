@@ -1,5 +1,5 @@
 /**
- * Controls Manager for EOS Connect
+ * Controls Manager for EOS HA
  * Handles all control-related functionality including override controls, mode changes, and UI interactions
  */
 

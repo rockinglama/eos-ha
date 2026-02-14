@@ -1,6 +1,6 @@
 # Technology Stack
 
-**Project:** EOS Connect Home Assistant Integration
+**Project:** EOS HA Home Assistant Integration
 **Researched:** 2026-02-14
 **Confidence:** HIGH
 
@@ -145,11 +145,11 @@
 **Required fields:**
 ```json
 {
-  "domain": "eos_connect",
-  "name": "EOS Connect",
+  "domain": "eos_ha",
+  "name": "EOS HA",
   "version": "1.0.0",
-  "documentation": "https://github.com/yourusername/eos_connect",
-  "issue_tracker": "https://github.com/yourusername/eos_connect/issues",
+  "documentation": "https://github.com/yourusername/eos_ha",
+  "issue_tracker": "https://github.com/yourusername/eos_ha/issues",
   "codeowners": ["@yourusername"],
   "config_flow": true,
   "dependencies": [],
@@ -174,7 +174,7 @@
 ## Repository Structure
 
 ```
-custom_components/eos_connect/
+custom_components/eos_ha/
 ├── __init__.py              # Integration setup, coordinator initialization
 ├── manifest.json            # Integration metadata (see above)
 ├── config_flow.py           # UI-based configuration
@@ -188,7 +188,7 @@ custom_components/eos_connect/
 ├── translations/
 │   └── en.json              # English translations (mirrors strings.json)
 └── icons/
-    └── eos_connect.png      # Integration icon (optional, use brands repo instead)
+    └── eos_ha.png      # Integration icon (optional, use brands repo instead)
 ```
 
 ## Installation (Development)

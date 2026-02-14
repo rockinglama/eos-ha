@@ -94,10 +94,10 @@ class TestGridChargeLimiting:
         # Get the needed AC charge power
         needed_ac_power = base_control.get_needed_ac_charge_power()
 
-        # This would be 2000W, but needs to be limited by max_grid_charge_rate in eos_connect.py
+        # This would be 2000W, but needs to be limited by max_grid_charge_rate in eos_ha.py
         assert needed_ac_power == 2000, "BaseControl returns 2000W (battery limit)"
 
-        # Simulate the limiting done in eos_connect.py (lines 1177-1180)
+        # Simulate the limiting done in eos_ha.py (lines 1177-1180)
         battery_max_charge = 2000  # From battery_interface.get_max_charge_power()
         max_grid_charge_rate = config_zendure["inverter"]["max_grid_charge_rate"]
 
@@ -131,7 +131,7 @@ class TestGridChargeLimiting:
 
         needed_ac_power = base_control.get_needed_ac_charge_power()
 
-        # Simulate the limiting done in eos_connect.py
+        # Simulate the limiting done in eos_ha.py
         battery_max_charge = 2000
         max_grid_charge_rate = config_zendure["inverter"]["max_grid_charge_rate"]
 
@@ -166,7 +166,7 @@ class TestGridChargeLimiting:
 
         needed_ac_power = base_control.get_needed_ac_charge_power()
 
-        # Simulate the limiting done in eos_connect.py
+        # Simulate the limiting done in eos_ha.py
         battery_max_charge = 3000  # Limited by charging curve
         max_grid_charge_rate = config_standard["inverter"]["max_grid_charge_rate"]
 
@@ -209,7 +209,7 @@ class TestPVChargeLimiting:
 
         needed_dc_power = base_control.get_current_dc_charge_demand()
 
-        # Simulate the limiting done in eos_connect.py (lines 1183-1186)
+        # Simulate the limiting done in eos_ha.py (lines 1183-1186)
         battery_max_charge = 2000
         max_pv_charge_rate = config_zendure["inverter"]["max_pv_charge_rate"]
 
@@ -257,7 +257,7 @@ class TestPVChargeLimiting:
 
         needed_dc_power = base_control.get_current_dc_charge_demand()
 
-        # Simulate the limiting done in eos_connect.py
+        # Simulate the limiting done in eos_ha.py
         battery_max_charge = 5000
         max_pv_charge_rate = config_low_pv["inverter"]["max_pv_charge_rate"]
 
@@ -297,7 +297,7 @@ class TestCombinedChargeScenarios:
         base_control.set_current_dc_charge_demand(1.0)  # Wants 2000W from PV
         base_control.set_current_bat_charge_max(2000)
 
-        # Simulate the limiting done in eos_connect.py
+        # Simulate the limiting done in eos_ha.py
         battery_max_charge = 2000
         max_grid_charge_rate = config_zendure["inverter"]["max_grid_charge_rate"]
         max_pv_charge_rate = config_zendure["inverter"]["max_pv_charge_rate"]
@@ -342,7 +342,7 @@ class TestCombinedChargeScenarios:
         needed_ac_power = base_control.get_needed_ac_charge_power()
         assert needed_ac_power == 4000, "15-min interval needs 4000W for 1000Wh"
 
-        # Simulate the limiting done in eos_connect.py
+        # Simulate the limiting done in eos_ha.py
         battery_max_charge = 2000
         max_grid_charge_rate = config_zendure["inverter"]["max_grid_charge_rate"]
 

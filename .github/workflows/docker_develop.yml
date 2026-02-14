@@ -96,16 +96,16 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/${{ env.owner }}/eos_connect:develop
-            ghcr.io/${{ env.owner }}/eos_connect:${{ env.VERSION }}
+            ghcr.io/${{ env.owner }}/eos_ha:develop
+            ghcr.io/${{ env.owner }}/eos_ha:${{ env.VERSION }}
           push: ${{ github.event_name == 'push' }}
 
       - name: Upload Docker image as artifact
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          name: eos_connect_image-${{ env.VERSION }}
-          path: eos_connect_${{ env.VERSION }}.tar.gz
+          name: eos_ha_image-${{ env.VERSION }}
+          path: eos_ha_${{ env.VERSION }}.tar.gz
 
   cleanup_old_develops:
     needs: publish_image
@@ -116,7 +116,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Cleaning up old Docker images..."
-            ghcr_images=$(gh api -H "Authorization: token $GH_TOKEN" /user/packages/container/eos_connect/versions | jq -r '.[] | select(.metadata.container.tags[] | endswith("${{ env.VERSION_SUFFIX }}")) | .id' | tail -n +4)
+            ghcr_images=$(gh api -H "Authorization: token $GH_TOKEN" /user/packages/container/eos_ha/versions | jq -r '.[] | select(.metadata.container.tags[] | endswith("${{ env.VERSION_SUFFIX }}")) | .id' | tail -n +4)
           for image_id in $ghcr_images; do
-            gh api -X DELETE -H "Authorization: token $GH_TOKEN" /user/packages/container/eos_connect/versions/$image_id
+            gh api -X DELETE -H "Authorization: token $GH_TOKEN" /user/packages/container/eos_ha/versions/$image_id
           done

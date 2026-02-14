@@ -1,5 +1,5 @@
 /**
- * EVCC Manager for EOS Connect
+ * EVCC Manager for EOS HA
  * Handles Electric Vehicle Charging Control functionality
  * Extracted from legacy index.html
  */

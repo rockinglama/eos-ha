@@ -115,7 +115,7 @@ async function showCurrentData() {
     document.getElementById('timestamp_next_run').innerText = minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0') + " min";
 
     // display current eos connect version
-    document.getElementById('version_overlay').innerText = "EOS connect version: " + data_controls["eos_connect_version"];
+    document.getElementById('version_overlay').innerText = "EOS connect version: " + data_controls["eos_ha_version"];
 
     const menuElement = document.getElementById('current_header_left');
 
@@ -142,7 +142,7 @@ async function showCurrentData() {
 
         // Add single event listener
         newMenuElement.addEventListener('click', function () {
-            showMainMenu(data_controls["eos_connect_version"], data_controls["used_optimization_source"], data_controls["used_time_frame_base"]);
+            showMainMenu(data_controls["eos_ha_version"], data_controls["used_optimization_source"], data_controls["used_time_frame_base"]);
         });
 
         console.log('[Main] Updated menu element and preserved notification dot');
@@ -241,7 +241,7 @@ async function init() {
         chartManager.updateLegendVisibility();
 
     } catch (error) {
-        console.error('[EOS Connect] Error during initialization:', error);
+        console.error('[EOS HA] Error during initialization:', error);
 
         // Show error in overlay
         const overlay = document.getElementById('overlay');

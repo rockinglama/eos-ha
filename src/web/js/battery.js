@@ -1,5 +1,5 @@
 /**
- * Battery Manager for EOS Connect
+ * Battery Manager for EOS HA
  * Handles battery status, charging data and display
  * Extracted from legacy index.html
  */

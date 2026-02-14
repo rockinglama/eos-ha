@@ -1,5 +1,5 @@
 /**
- * Constants for EOS Connect
+ * Constants for EOS HA
  * Color modes and other application constants
  * Extracted from legacy index.html
  */

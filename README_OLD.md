@@ -1,8 +1,8 @@
-# EOS Connect
+# EOS HA
 
-**EOS Connect** is an open-source tool for intelligent energy management and optimization.  
+**EOS HA** is an open-source tool for intelligent energy management and optimization.  
 It supports two optimization backends: the full-featured Akkudoktor EOS (default) and the lightweight EVopt (optional, very fast).  
-EOS Connect fetches real-time and forecast data, processes it via your chosen optimizer, and controls devices to optimize your energy usage and costs.
+EOS HA fetches real-time and forecast data, processes it via your chosen optimizer, and controls devices to optimize your energy usage and costs.
 
 **Key Features:**
 - **Automated Energy Optimization:**  
@@ -18,10 +18,10 @@ EOS Connect fetches real-time and forecast data, processes it via your chosen op
 - **Flexible Configuration:**  
   Easy to set up and extend for a wide range of energy systems and user needs.
 
-EOS Connect helps you get the most out of your solar and storage systems—whether you want to save money, increase self-sufficiency, or simply monitor your energy flows in real time.
+EOS HA helps you get the most out of your solar and storage systems—whether you want to save money, increase self-sufficiency, or simply monitor your energy flows in real time.
 
 
-- [EOS Connect](#eos-connect)
+- [EOS HA](#eos-connect)
   - [Key Features](#key-features)
     - [**Energy Optimization**](#energy-optimization)
     - [**Interactive Web Interface**](#interactive-web-interface)
@@ -34,7 +34,7 @@ EOS Connect helps you get the most out of your solar and storage systems—wheth
     - [4. Explore](#4-explore)
   - [EOS Configuration Requirements](#eos-configuration-requirements)
     - [Required EOS Prediction Settings](#required-eos-prediction-settings)
-    - [What EOS Connect Handles](#what-eos-connect-handles)
+    - [What EOS HA Handles](#what-eos-connect-handles)
     - [Troubleshooting](#troubleshooting)
   - [How it Works](#how-it-works)
     - [Base](#base)
@@ -127,7 +127,7 @@ EOS Connect helps you get the most out of your solar and storage systems—wheth
     - `fronius_gen24`: Enhanced interface with firmware-based authentication for all firmware versions
     - `fronius_gen24_legacy`: Legacy interface for corner cases or troubleshooting
   - OPTION 2: Use the [evcc external battery control](https://docs.evcc.io/docs/integrations/rest-api) to interact with all inverter/ battery systems that [are supported by evcc](https://docs.evcc.io/en/docs/devices/meters) (hint: the dynamic max charge power is currently not supported by evcc external battery control)
-  - OPTION 3: using without a direct control interface to get the resulting commands by **EOS connect** MQTT or web API to control within your own environment (e.g. [Integrate inverter e.g. sungrow SH10RT #35](https://github.com/ohAnd/EOS_connect/discussions/35)  )
+  - OPTION 3: using without a direct control interface to get the resulting commands by **EOS connect** MQTT or web API to control within your own environment (e.g. [Integrate inverter e.g. sungrow SH10RT #35](https://github.com/rockinglama/eos-ha/discussions/35)  )
   - Retrieves real-time data such as grid charge power, discharge power, and battery SOC.
 - **MQTT Broker**:
   - Acts as the central hub for real-time data exchange.
@@ -160,26 +160,26 @@ This project is in its early stages and is actively being developed and enhanced
 
 ## Quick Start
 
-Get up and running with EOS Connect in just a few steps!
+Get up and running with EOS HA in just a few steps!
 
 ### 1. Requirements
 
 - **Home Assistant** (recommended for most users)  
   *(Or see [Installation and Running](#installation-and-running) for Docker and local options)*
 - **An already running instance of [EOS (Energy Optimization System)](https://github.com/Akkudoktor-EOS/EOS)**  
-  EOS Connect acts as a client and requires a reachable EOS server for optimization and control. (Or use the EOS HA addon mentioned in next step.)
+  EOS HA acts as a client and requires a reachable EOS server for optimization and control. (Or use the EOS HA addon mentioned in next step.)
 - **Properly configured EOS for prediction** (see [EOS Configuration Requirements](#eos-configuration-requirements) below)
 
 ### 2. Install via Home Assistant Add-on
 
-- Add the [ohAnd/ha_addons](https://github.com/ohAnd/ha_addons) repository to your Home Assistant add-on store.
+- Add the [rockinglama/ha_addons](https://github.com/rockinglama/ha_addons) repository to your Home Assistant add-on store.
 - select your preferred optimization backend:
   - [if needed] Add the [Duetting/ha_eos_addon](https://github.com/Duetting/ha_eos_addon) (or [thecem/ha_eos_addon](https://github.com/thecem/ha_eos_addon)) repository to your Home Assistant add-on store.
   - [if needed] Install [EVopt](https://github.com/thecem/hassio-evopt) (Lightweight alternative).
-- Install both the **EOS Add-on** (or **EVopt**) and the **EOS Connect Add-on**. 
+- Install both the **EOS Add-on** (or **EVopt**) and the **EOS HA Add-on**. 
 - Configure both add-ons via the Home Assistant UI.
 - Start both add-ons.  
-  The EOS Connect web dashboard will be available at [http://homeassistant.local:8081](http://homeassistant.local:8081) (or your HA IP).
+  The EOS HA web dashboard will be available at [http://homeassistant.local:8081](http://homeassistant.local:8081) (or your HA IP).
 
 [![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fohand%2Fha_addons)
 
@@ -199,7 +199,7 @@ Get up and running with EOS Connect in just a few steps!
 
 ## EOS Configuration Requirements
 
-**Important**: EOS Connect requires specific prediction settings in your EOS instance. The default EOS configuration should work out-of-the-box, but verify these settings if you experience issues with forecasting.
+**Important**: EOS HA requires specific prediction settings in your EOS instance. The default EOS configuration should work out-of-the-box, but verify these settings if you experience issues with forecasting.
 
 ### Required EOS Prediction Settings
 
@@ -209,7 +209,7 @@ In your EOS `config.yml`, ensure these prediction parameters are configured:
 # EOS config.yml - Prediction and Optimization settings
 prediction:
   # Prediction horizon (default: 48 hours)
-  # EOS Connect requires at least 48 hours for proper optimization
+  # EOS HA requires at least 48 hours for proper optimization
   hours_ahead: 48
   
 optimization:
@@ -218,17 +218,17 @@ optimization:
   hours_ahead: 48
 ```
 
-### What EOS Connect Handles
+### What EOS HA Handles
 
-- **Optimization Requests**: EOS Connect sends optimization requests to EOS on a configurable interval (e.g., every 3 minutes)
-- **No EOS Internal Scheduling**: EOS Connect manages all timing - no internal EOS optimization intervals are used
-- **48-Hour Forecasting**: EOS Connect provides 48-hour load and PV forecasts to EOS for optimal decision making
+- **Optimization Requests**: EOS HA sends optimization requests to EOS on a configurable interval (e.g., every 3 minutes)
+- **No EOS Internal Scheduling**: EOS HA manages all timing - no internal EOS optimization intervals are used
+- **48-Hour Forecasting**: EOS HA provides 48-hour load and PV forecasts to EOS for optimal decision making
 
 ### Troubleshooting
 
 - **Short/No predictions**: Verify `prediction.hours_ahead: 48` in EOS config
 - **Optimization errors**: Ensure `optimization.hours_ahead` is set to 48 or less than prediction horizon
-- **EOS Connect timing**: All optimization scheduling is handled by EOS Connect, not EOS internal timers
+- **EOS HA timing**: All optimization scheduling is handled by EOS HA, not EOS internal timers
 
 The default EOS configuration typically includes these 48-hour settings. If you've customized your EOS config, ensure these values are properly set.
 
@@ -245,14 +245,14 @@ For detailed EOS configuration, refer to the [EOS documentation](https://github.
 
 ### Base
 
-**EOS Connect** is a self-running system that periodically collects:
+**EOS HA** is a self-running system that periodically collects:
 - Local energy consumption data.
 - PV solar forecasts for the next 48 hours.
 - Upcoming energy prices.
 
 Using this data, a request is sent to EOS, which creates a model predicting the energy needs based on different energy sources and loads (grid, battery, PV).
 
-**EOS Connect** waits for the response from EOS (e.g., ~2 min 15 sec for a full 48-hour prediction on a Raspberry Pi 5). After receiving the response, it is analyzed to extract the necessary values.
+**EOS HA** waits for the response from EOS (e.g., ~2 min 15 sec for a full 48-hour prediction on a Raspberry Pi 5). After receiving the response, it is analyzed to extract the necessary values.
 
 Finally, the system sets up the inverter based on the following states:
 - `MODE_CHARGE_FROM_GRID` with a specific target charging power (based on your configuration).
@@ -263,10 +263,10 @@ The system repeats this process periodically, e.g., every 3 minutes, as defined 
 
 <div align="center">
 
-<img src="docs\assets\images\eos_connect_flow.png" alt="EOS connect flow" width="450"/>
+<img src="docs\assets\images\eos_ha_flow.png" alt="EOS connect flow" width="450"/>
 
 <br>
-<sub><i>Figure: EOS Connect process flow</i></sub>
+<sub><i>Figure: EOS HA process flow</i></sub>
 <br>
 <sub><i>Note: Due to my limited drawing skills ;-) , the principle diagram above was generated with the help of an AI image engine.</i></sub>
 </div>
@@ -285,7 +285,7 @@ Load data is retrieved from:
 
 **Load Sensor Requirements:**
 - **Data Quality**: The sensor must provide numeric values and in unit 'watts'.
-- **Value Handling**: EOS Connect accepts both positive and negative values from your sensor. For the internal processing: all values are converted to absolute positive values for load calculations.
+- **Value Handling**: EOS HA accepts both positive and negative values from your sensor. For the internal processing: all values are converted to absolute positive values for load calculations.
 - **Sensor Types**: Use sensors representing the overall net household consumption. Expected that all additonal loads as ev charge or an optional load are included here.
 
 (See [Home Assistant Persistance](#home-assistant-persistance) for more details.)
@@ -296,7 +296,7 @@ Load data is retrieved from the last two days:
 - **Car Load Adjustment**: Similar to Home Assistant, the EV load is subtracted from the household load to isolate non-EV energy consumption.
 
 #### PV Forecast
-EOS Connect supports multiple sources for solar (PV) production forecasts. You can choose the provider that best fits your location and needs. The following PV forecast sources are available and configurable:
+EOS HA supports multiple sources for solar (PV) production forecasts. You can choose the provider that best fits your location and needs. The following PV forecast sources are available and configurable:
 
 - **Akkudoktor** (default)  
   Direct integration with the [Akkudoktor API](https://api.akkudoktor.net/forecast) for reliable PV forecasts.
@@ -311,7 +311,7 @@ EOS Connect supports multiple sources for solar (PV) production forecasts. You c
   Connects to the [Forecast.Solar API](https://doc.forecast.solar/api) for detailed PV production forecasts.
 
 - **Solcast**  
-  Integrates with the [Solcast API](https://solcast.com/) for high-precision solar forecasting using satellite data and machine learning models. Requires creating a rooftop site in your Solcast account and using the resource ID (not location coordinates). Free Solcast API key provides up to 10 API calls per day. **Note: EOS Connect automatically uses extended update intervals (2.5 hours) when Solcast is selected to stay within rate limits.**
+  Integrates with the [Solcast API](https://solcast.com/) for high-precision solar forecasting using satellite data and machine learning models. Requires creating a rooftop site in your Solcast account and using the resource ID (not location coordinates). Free Solcast API key provides up to 10 API calls per day. **Note: EOS HA automatically uses extended update intervals (2.5 hours) when Solcast is selected to stay within rate limits.**
 
 - **EVCC**  
   Retrieves PV forecasts directly from an existing [EVCC](https://evcc.io/) installation via its API. This option leverages EVCC's built-in solar forecast capabilities, including its automatic scaling feature that adjusts forecasts based on your actual historical PV production data for improved accuracy.
@@ -320,7 +320,7 @@ EOS Connect supports multiple sources for solar (PV) production forecasts. You c
 Energy price forecasts are retrieved from the chosen source (e.g. tibber, Akkudoktor, Smartenergy, ...). **Note**: Prices for tomorrow are available earliest at 1 PM. Until then, today's prices are used to feed the model.
 
 #### Battery Price Analysis (Inventory Valuation)
-EOS Connect calculates the actual cost of the energy currently stored in your battery by analyzing your recent charging history. Instead of a simple average, it uses an **Inventory Valuation (LIFO)** model:
+EOS HA calculates the actual cost of the energy currently stored in your battery by analyzing your recent charging history. Instead of a simple average, it uses an **Inventory Valuation (LIFO)** model:
 - **Smart Tracking**: It automatically identifies if energy came from your solar panels (0€) or the grid.
 - **Inventory Focus**: It calculates the price based on the most recent charging sessions that match your current battery level. This means the price reflects the "value" of the energy actually inside the battery.
 - **Live Pricing**: For grid charging, it uses the exact electricity price at that time.
@@ -344,11 +344,11 @@ The dashbaord of **EOS connect** is available at `http://localhost:8081`.
 
 ## Provided Data per **EOS connect** API
 
-EOS Connect can be integrated with your smart home or automation tools using MQTT or its built-in web API. See below for details.
+EOS HA can be integrated with your smart home or automation tools using MQTT or its built-in web API. See below for details.
 
 ### Web API (REST/JSON)
 
-EOS Connect provides a RESTful web API for real-time data access and remote control.  
+EOS HA provides a RESTful web API for real-time data access and remote control.  
 All endpoints return JSON and can be accessed via HTTP requests.
 
 <details>
@@ -471,7 +471,7 @@ Get current system control states and battery information.
     },
     "used_optimization_source": "eos_server",
     "used_time_frame_base": 3600,
-    "eos_connect_version": "0.2.01.138-develop",
+    "eos_ha_version": "0.2.01.138-develop",
     "timestamp": "2024-06-01T12:00:00+02:00",
     "api_version": "0.0.3"
 }
@@ -856,13 +856,13 @@ The logging API enables real-time monitoring, alerting systems, and debugging wi
 
 ### MQTT - provided data and possible commands
 
-EOS Connect publishes a wide range of real-time system data and control states to MQTT topics. You can use these topics to monitor system status, battery and inverter data, optimization results, and more from any MQTT-compatible tool (e.g., Home Assistant, Node-RED, Grafana, etc.).
+EOS HA publishes a wide range of real-time system data and control states to MQTT topics. You can use these topics to monitor system status, battery and inverter data, optimization results, and more from any MQTT-compatible tool (e.g., Home Assistant, Node-RED, Grafana, etc.).
 
 <details>
 <summary>MQTT Data Published</summary>
 
 **Base topic:**  
-`<mqtt_configured_prefix>/eos_connect/`  
+`<mqtt_configured_prefix>/eos_ha/`  
 *(Set `<mqtt_configured_prefix>` in your `config.yaml`, e.g., `myhome`)*
 
 ---
@@ -871,28 +871,28 @@ EOS Connect publishes a wide range of real-time system data and control states t
 
 | Topic Suffix                                  | Full Topic Example                                               | Payload Type / Example     | Description                                                 |
 | --------------------------------------------- | ---------------------------------------------------------------- | -------------------------- | ----------------------------------------------------------- |
-| `optimization/state`                          | `myhome/eos_connect/optimization/state`                          | String (`"ok"`, `"error"`) | Current optimization request state                          |
-| `optimization/last_run`                       | `myhome/eos_connect/optimization/last_run`                       | ISO timestamp              | Timestamp of the last optimization run                      |
-| `optimization/next_run`                       | `myhome/eos_connect/optimization/next_run`                       | ISO timestamp              | Timestamp of the next scheduled optimization run            |
-| `control/override_charge_power`               | `myhome/eos_connect/control/override_charge_power`               | Integer (W)                | Override charge power                                       |
-| `control/override_active`                     | `myhome/eos_connect/control/override_active`                     | Boolean (`true`/`false`)   | Whether override is active                                  |
-| `control/override_end_time`                   | `myhome/eos_connect/control/override_end_time`                   | ISO timestamp              | When override ends                                          |
-| `control/overall_state`                       | `myhome/eos_connect/control/overall_state`                       | Integer (see mode table)   | Current overall system mode - see System Mode Control below |
-| `control/eos_homeappliance_released`          | `myhome/eos_connect/control/eos_homeappliance_released`          | Boolean                    | Home appliance released flag                                |
-| `control/eos_homeappliance_start_hour`        | `myhome/eos_connect/control/eos_homeappliance_start_hour`        | Integer (hour)             | Home appliance start hour                                   |
-| `battery/soc`                                 | `myhome/eos_connect/battery/soc`                                 | Float (%)                  | Battery state of charge                                     |
-| `battery/remaining_energy`                    | `myhome/eos_connect/battery/remaining_energy`                    | Integer (Wh)               | Usable battery capacity                                     |
-| `battery/dyn_max_charge_power`                | `myhome/eos_connect/battery/dyn_max_charge_power`                | Integer (W)                | Dynamic max charge power                                    |
-| `inverter/special/temperature_inverter`       | `myhome/eos_connect/inverter/special/temperature_inverter`       | Float (°C)                 | Inverter temperature (if Fronius V1/V2)                     |
-| `inverter/special/temperature_ac_module`      | `myhome/eos_connect/inverter/special/temperature_ac_module`      | Float (°C)                 | AC module temperature (if Fronius V1/V2)                    |
-| `inverter/special/temperature_dc_module`      | `myhome/eos_connect/inverter/special/temperature_dc_module`      | Float (°C)                 | DC module temperature (if Fronius V1/V2)                    |
-| `inverter/special/temperature_battery_module` | `myhome/eos_connect/inverter/special/temperature_battery_module` | Float (°C)                 | Battery module temperature (if Fronius V1/V2)               |
-| `inverter/special/fan_control_01`             | `myhome/eos_connect/inverter/special/fan_control_01`             | Integer                    | Fan control 1 (if Fronius V1/V2)                            |
-| `inverter/special/fan_control_02`             | `myhome/eos_connect/inverter/special/fan_control_02`             | Integer                    | Fan control 2 (if Fronius V1/V2)                            |
-| `status`                                      | `myhome/eos_connect/status`                                      | String (`"online"`)        | Always set to `"online"`                                    |
-| `control/eos_ac_charge_demand`                | `myhome/eos_connect/control/eos_ac_charge_demand`                | Integer (W)                | AC charge demand                                            |
-| `control/eos_dc_charge_demand`                | `myhome/eos_connect/control/eos_dc_charge_demand`                | Integer (W)                | DC charge demand                                            |
-| `control/eos_discharge_allowed`               | `myhome/eos_connect/control/eos_discharge_allowed`               | Boolean                    | Discharge allowed (final effective state after all overrides) |
+| `optimization/state`                          | `myhome/eos_ha/optimization/state`                          | String (`"ok"`, `"error"`) | Current optimization request state                          |
+| `optimization/last_run`                       | `myhome/eos_ha/optimization/last_run`                       | ISO timestamp              | Timestamp of the last optimization run                      |
+| `optimization/next_run`                       | `myhome/eos_ha/optimization/next_run`                       | ISO timestamp              | Timestamp of the next scheduled optimization run            |
+| `control/override_charge_power`               | `myhome/eos_ha/control/override_charge_power`               | Integer (W)                | Override charge power                                       |
+| `control/override_active`                     | `myhome/eos_ha/control/override_active`                     | Boolean (`true`/`false`)   | Whether override is active                                  |
+| `control/override_end_time`                   | `myhome/eos_ha/control/override_end_time`                   | ISO timestamp              | When override ends                                          |
+| `control/overall_state`                       | `myhome/eos_ha/control/overall_state`                       | Integer (see mode table)   | Current overall system mode - see System Mode Control below |
+| `control/eos_homeappliance_released`          | `myhome/eos_ha/control/eos_homeappliance_released`          | Boolean                    | Home appliance released flag                                |
+| `control/eos_homeappliance_start_hour`        | `myhome/eos_ha/control/eos_homeappliance_start_hour`        | Integer (hour)             | Home appliance start hour                                   |
+| `battery/soc`                                 | `myhome/eos_ha/battery/soc`                                 | Float (%)                  | Battery state of charge                                     |
+| `battery/remaining_energy`                    | `myhome/eos_ha/battery/remaining_energy`                    | Integer (Wh)               | Usable battery capacity                                     |
+| `battery/dyn_max_charge_power`                | `myhome/eos_ha/battery/dyn_max_charge_power`                | Integer (W)                | Dynamic max charge power                                    |
+| `inverter/special/temperature_inverter`       | `myhome/eos_ha/inverter/special/temperature_inverter`       | Float (°C)                 | Inverter temperature (if Fronius V1/V2)                     |
+| `inverter/special/temperature_ac_module`      | `myhome/eos_ha/inverter/special/temperature_ac_module`      | Float (°C)                 | AC module temperature (if Fronius V1/V2)                    |
+| `inverter/special/temperature_dc_module`      | `myhome/eos_ha/inverter/special/temperature_dc_module`      | Float (°C)                 | DC module temperature (if Fronius V1/V2)                    |
+| `inverter/special/temperature_battery_module` | `myhome/eos_ha/inverter/special/temperature_battery_module` | Float (°C)                 | Battery module temperature (if Fronius V1/V2)               |
+| `inverter/special/fan_control_01`             | `myhome/eos_ha/inverter/special/fan_control_01`             | Integer                    | Fan control 1 (if Fronius V1/V2)                            |
+| `inverter/special/fan_control_02`             | `myhome/eos_ha/inverter/special/fan_control_02`             | Integer                    | Fan control 2 (if Fronius V1/V2)                            |
+| `status`                                      | `myhome/eos_ha/status`                                      | String (`"online"`)        | Always set to `"online"`                                    |
+| `control/eos_ac_charge_demand`                | `myhome/eos_ha/control/eos_ac_charge_demand`                | Integer (W)                | AC charge demand                                            |
+| `control/eos_dc_charge_demand`                | `myhome/eos_ha/control/eos_dc_charge_demand`                | Integer (W)                | DC charge demand                                            |
+| `control/eos_discharge_allowed`               | `myhome/eos_ha/control/eos_discharge_allowed`               | Boolean                    | Discharge allowed (final effective state after all overrides) |
 
 
 
@@ -901,13 +901,13 @@ EOS Connect publishes a wide range of real-time system data and control states t
 #### Example Usage
 
 - **Monitor battery SOC in Home Assistant:**
-  - Subscribe to `myhome/eos_connect/battery/soc` to get real-time battery state of charge.
+  - Subscribe to `myhome/eos_ha/battery/soc` to get real-time battery state of charge.
 - **Track optimization runs:**
-  - Subscribe to `myhome/eos_connect/optimization/last_run` and `myhome/eos_connect/optimization/next_run` for scheduling info.
+  - Subscribe to `myhome/eos_ha/optimization/last_run` and `myhome/eos_ha/optimization/next_run` for scheduling info.
 - **Visualize inverter temperatures:**
-  - Subscribe to `myhome/eos_connect/inverter/special/temperature_inverter` (if Fronius V1/V2 inverter is connected).
+  - Subscribe to `myhome/eos_ha/inverter/special/temperature_inverter` (if Fronius V1/V2 inverter is connected).
 - **Check if override is active:**
-  - Subscribe to `myhome/eos_connect/control/override_active`.
+  - Subscribe to `myhome/eos_ha/control/override_active`.
 
 You can use any MQTT client, automation platform, or dashboard tool to subscribe to these topics and visualize or process the data as needed.
 
@@ -917,11 +917,11 @@ You can use any MQTT client, automation platform, or dashboard tool to subscribe
 - The `<mqtt_configured_prefix>` is set in your configuration file (see `config.yaml`).
 - Some topics (e.g., inverter special values) are only published if the corresponding hardware is present and enabled.
 - All topics are published with real-time updates as soon as new data is available.
-- **State Consistency**: The `control/eos_discharge_allowed` topic reflects the **final effective state** after combining optimizer output, EVCC overrides, and manual overrides. This ensures that all outputs (MQTT, Web API, inverter commands) consistently represent EOS_connect's final decision.
+- **State Consistency**: The `control/eos_discharge_allowed` topic reflects the **final effective state** after combining optimizer output, EVCC overrides, and manual overrides. This ensures that all outputs (MQTT, Web API, inverter commands) consistently represent eos-ha's final decision.
 
 </details>
 </br>
-EOS Connect can be remotely controlled via MQTT by publishing messages to specific topics. This allows you to change system modes, set override durations, and adjust grid charge power from external tools such as Home Assistant, Node-RED, or any MQTT client.
+EOS HA can be remotely controlled via MQTT by publishing messages to specific topics. This allows you to change system modes, set override durations, and adjust grid charge power from external tools such as Home Assistant, Node-RED, or any MQTT client.
 </br></br>
 <details>
 <summary>MQTT Data Subscribed</summary>
@@ -929,7 +929,7 @@ EOS Connect can be remotely controlled via MQTT by publishing messages to specif
 
 
 **Base topic:**  
-`<mqtt_configured_prefix>/eos_connect/`  
+`<mqtt_configured_prefix>/eos_ha/`  
 *(Set `<mqtt_configured_prefix>` in your `config.yaml`, e.g., `myhome`)*
 
 ---
@@ -938,9 +938,9 @@ EOS Connect can be remotely controlled via MQTT by publishing messages to specif
 
 | Topic Suffix                        | Full Topic Example                                     | Expected Payload         | Description / Effect                               |
 | ----------------------------------- | ------------------------------------------------------ | ------------------------ | -------------------------------------------------- |
-| `control/overall_state/set`         | `myhome/eos_connect/control/overall_state/set`         | Integer or string (mode) | Changes the system mode (see table below)          |
-| `control/override_remain_time/set`  | `myhome/eos_connect/control/override_remain_time/set`  | String `"HH:MM"`         | Sets the override duration (e.g., `"02:00"`)       |
-| `control/override_charge_power/set` | `myhome/eos_connect/control/override_charge_power/set` | Integer (watts)          | Sets the override grid charge power (e.g., `2000`) |
+| `control/overall_state/set`         | `myhome/eos_ha/control/overall_state/set`         | Integer or string (mode) | Changes the system mode (see table below)          |
+| `control/override_remain_time/set`  | `myhome/eos_ha/control/override_remain_time/set`  | String `"HH:MM"`         | Sets the override duration (e.g., `"02:00"`)       |
+| `control/override_charge_power/set` | `myhome/eos_ha/control/override_charge_power/set` | Integer (watts)          | Sets the override grid charge power (e.g., `2000`) |
 
 ---
 
@@ -970,30 +970,30 @@ You can set the system mode by publishing either the **mode name** (string) or t
 
 - **Set system mode to "Auto":**
   ```bash
-  mosquitto_pub -t "myhome/eos_connect/control/overall_state/set" -m "Auto"
+  mosquitto_pub -t "myhome/eos_ha/control/overall_state/set" -m "Auto"
   ```
   or
   ```bash
-  mosquitto_pub -t "myhome/eos_connect/control/overall_state/set" -m "-2"
+  mosquitto_pub -t "myhome/eos_ha/control/overall_state/set" -m "-2"
   ```
 
 - **Force battery charging from grid:**
   ```bash
-  mosquitto_pub -t "myhome/eos_connect/control/overall_state/set" -m "Charge from Grid"
+  mosquitto_pub -t "myhome/eos_ha/control/overall_state/set" -m "Charge from Grid"
   ```
   or
   ```bash
-  mosquitto_pub -t "myhome/eos_connect/control/overall_state/set" -m "0"
+  mosquitto_pub -t "myhome/eos_ha/control/overall_state/set" -m "0"
   ```
 
 - **Set override duration to 1 hour 30 minutes:**
   ```bash
-  mosquitto_pub -t "myhome/eos_connect/control/override_remain_time/set" -m "01:30"
+  mosquitto_pub -t "myhome/eos_ha/control/override_remain_time/set" -m "01:30"
   ```
 
 - **Set override grid charge power to 1500 W:**
   ```bash
-  mosquitto_pub -t "myhome/eos_connect/control/override_charge_power/set" -m "1500"
+  mosquitto_pub -t "myhome/eos_ha/control/override_charge_power/set" -m "1500"
   ```
 
 ---
@@ -1014,7 +1014,7 @@ With the first start of **EOS connect** a default `config.yaml` will be generate
 
 #### New: Optimization Time Frame
 
-EOS Connect now supports both hourly (legacy) and 15-minute (quarterly) optimization cycles for all forecasts and control flows.  
+EOS HA now supports both hourly (legacy) and 15-minute (quarterly) optimization cycles for all forecasts and control flows.  
 Set the new `time_frame` entry in your `config.yaml` to control the interval:
 
 ```yaml
@@ -1069,7 +1069,7 @@ To run this project, you need to have the following installed:
 
 ## Installation and Running
 
-You can run EOS Connect in three ways. Choose the method that best fits your environment:
+You can run EOS HA in three ways. Choose the method that best fits your environment:
 
 ---
 
@@ -1077,9 +1077,9 @@ You can run EOS Connect in three ways. Choose the method that best fits your env
 <summary><strong>1. Home Assistant Add-on (Recommended for Home Assistant users)</strong></summary>
 
 - Easiest way if you already use Home Assistant.
-- Install the [EOS Add-on](https://github.com/Duetting/ha_eos_addon) and **EOS connect** Add-on from the [ohAnd/ha_addons](https://github.com/ohAnd/ha_addons) repository.
+- Install the [EOS Add-on](https://github.com/Duetting/ha_eos_addon) and **EOS connect** Add-on from the [rockinglama/ha_addons](https://github.com/rockinglama/ha_addons) repository.
 - Configure both add-ons via the Home Assistant UI.
-- Both EOS and EOS Connect will run as managed add-ons.
+- Both EOS and EOS HA will run as managed add-ons.
 
 [![Open your Home Assistant instance and show the add add-on repository dialog with a specific repository URL pre-filled.](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Fohand%2Fha_addons)
 
@@ -1093,16 +1093,16 @@ You can run EOS Connect in three ways. Choose the method that best fits your env
 - Works on any system with Docker and Docker Compose.
 - Pull and run the latest image:
   ```bash
-  git clone https://github.com/ohAnd/EOS_connect.git
-  cd EOS_connect
+  git clone https://github.com/rockinglama/eos-ha.git
+  cd eos-ha
   docker-compose up --pull always -d
   ```
 - The web dashboard will be available at [http://localhost:8081](http://localhost:8081) by default.
 - Configure by editing `src/config.yaml`.
 
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/ohand/eos_connect/docker-image.yml)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/ohand/eos_ha/docker-image.yml)
 
-[get the latest version](https://github.com/ohAnd/EOS_connect/pkgs/container/eos_connect)
+[get the latest version](https://github.com/rockinglama/eos-ha/pkgs/container/eos_ha)
 
 </details>
 
@@ -1114,10 +1114,10 @@ You can run EOS Connect in three ways. Choose the method that best fits your env
 - Requires Python 3.11+ and pip.
 - Clone the repository and install dependencies:
   ```bash
-  git clone https://github.com/ohAnd/EOS_connect.git
-  cd EOS_connect
+  git clone https://github.com/rockinglama/eos-ha.git
+  cd eos-ha
   pip install -r requirements.txt
-  python src/eos_connect.py
+  python src/eos_ha.py
   ```
 - Configure by editing `src/config.yaml`.
 
@@ -1196,10 +1196,10 @@ Thanks for contributing!
 | **HA**              | [Home Assistant](https://www.home-assistant.io/) – popular open-source smart home platform.                           |
 | **OpenHAB**         | Another [open-source](https://www.openhab.org/) smart home platform.                                                  |
 | **MQTT**            | Lightweight messaging protocol for IoT and smart home integration.                                                    |
-| **API**             | Application Programming Interface – allows other software to interact with EOS Connect.                               |
+| **API**             | Application Programming Interface – allows other software to interact with EOS HA.                               |
 | **Add-on**          | A packaged extension for Home Assistant, installable via its UI.                                                      |
 | **Grid**            | The public electricity network.                                                                                       |
-| **Dashboard**       | The web interface provided by EOS Connect for monitoring and control.                                                 |
+| **Dashboard**       | The web interface provided by EOS HA for monitoring and control.                                                 |
 
 </details>
 

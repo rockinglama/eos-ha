@@ -18,7 +18,7 @@
 
 **Logic Error in Duration Validation:**
 - Issue: Validation uses AND instead of OR: `if duration <= 0 and duration <= 12 * 60` always false when duration is valid
-- Files: `src/eos_connect.py:1647`
+- Files: `src/eos_ha.py:1647`
 - Impact: Duration validation never rejects invalid values; incorrect durations could reach inverter control
 - Fix approach: Change to `if duration <= 0 or duration > 12 * 60` to properly validate range
 
@@ -56,7 +56,7 @@
 
 **Flask Template Injection Risk:**
 - Risk: Using `render_template_string` with file contents could enable SSTI if input is ever user-controlled
-- Files: `src/eos_connect.py:1361`, `src/eos_connect.py:1346`
+- Files: `src/eos_ha.py:1361`, `src/eos_ha.py:1346`
 - Current mitigation: Files are read from disk, not user input; proper path handling
 - Recommendations:
   - Use `send_file()` instead of `render_template_string()` for static HTML
@@ -64,7 +64,7 @@
 
 **File Serving Security:**
 - Risk: Dynamic file serving could be exploited with directory traversal
-- Files: `src/eos_connect.py:1365-1392` (JS file serving)
+- Files: `src/eos_ha.py:1365-1392` (JS file serving)
 - Current mitigation: File extension check (.js only); path existence validation
 - Recommendations:
   - Use `send_file()` with restricted directory instead of `send_from_directory()`
@@ -73,7 +73,7 @@
 
 **No HTTPS Enforcement:**
 - Risk: HTTP server communicates sensitive control data (battery charge rates, modes) unencrypted
-- Files: `src/eos_connect.py:1334` (Flask app), `src/interfaces/optimization_interface.py:37` (unencrypted server URL)
+- Files: `src/eos_ha.py:1334` (Flask app), `src/interfaces/optimization_interface.py:37` (unencrypted server URL)
 - Current mitigation: Likely used on local network only
 - Recommendations:
   - Document that HTTPS must be configured via reverse proxy in production
@@ -83,7 +83,7 @@
 
 **Monolithic Main Module (1925 lines):**
 - Problem: Main control logic, web server, scheduling, and data flow management all in one file
-- Files: `src/eos_connect.py`
+- Files: `src/eos_ha.py`
 - Cause: Incremental development without refactoring; mixed concerns
 - Impact: Difficult to test, maintain, and reason about control flow
 - Improvement path:
@@ -138,20 +138,20 @@
 - Test coverage: `tests/interfaces/test_inverter_fronius_v2.py` exists but should verify auth edge cases
 
 **Time Zone Handling Across Modules:**
-- Files: Spreads across `src/eos_connect.py` (main), `src/interfaces/pv_interface.py` (forecast), `src/interfaces/optimization_interface.py` (scheduling), `src/log_handler.py` (timestamps)
+- Files: Spreads across `src/eos_ha.py` (main), `src/interfaces/pv_interface.py` (forecast), `src/interfaces/optimization_interface.py` (scheduling), `src/log_handler.py` (timestamps)
 - Why fragile: Timezone conversions at module boundaries; multiple timezone types (pytz, zoneinfo, naive)
 - Fragility signals:
   - Mix of pytz and zoneinfo in different modules
   - Timezone passed as parameter to every interface
   - Multiple strftime/fromtimestamp calls per module
 - Safe modification:
-  - Define timezone once at startup in `src/eos_connect.py`
+  - Define timezone once at startup in `src/eos_ha.py`
   - Inject as singleton dependency to all modules needing it
   - Use consistent datetime handling (always timezone-aware, always UTC internally)
 - Test coverage: No dedicated timezone tests; edge cases like DST transitions likely untested
 
 **Mode Override Logic:**
-- Files: `src/eos_connect.py:1605-1690` (validation and application), `src/interfaces/base_control.py` (state tracking)
+- Files: `src/eos_ha.py:1605-1690` (validation and application), `src/interfaces/base_control.py` (state tracking)
 - Why fragile: Complex validation with multiple conditions; state management across threads
 - Fragility signals:
   - AND/OR logic error in validation (line 1647)
@@ -271,7 +271,7 @@
 
 **Mode Override Edge Cases:**
 - What's not tested: All combinations of mode values (-2 to 6) with valid/invalid durations
-- Files: `src/eos_connect.py:1605-1690`, `src/interfaces/base_control.py`
+- Files: `src/eos_ha.py:1605-1690`, `src/interfaces/base_control.py`
 - Risk: Validation logic error (line 1647) means invalid overrides accepted
 - Priority: **High** - User-facing control feature
 

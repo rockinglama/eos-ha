@@ -1,13 +1,13 @@
 # Project Research Summary
 
-**Project:** EOS Connect Home Assistant Integration
+**Project:** EOS HA Home Assistant Integration
 **Domain:** Home Assistant Custom Integration (Energy Optimization)
 **Researched:** 2026-02-14
 **Confidence:** HIGH
 
 ## Executive Summary
 
-EOS Connect is a Home Assistant custom integration that bridges the existing EOS optimization server (currently a Docker-based standalone service) with Home Assistant's ecosystem. The research reveals this is a classic migration from synchronous, threaded Flask/MQTT architecture to Home Assistant's async, event-driven model. Experts in this domain universally recommend the DataUpdateCoordinator pattern for polling external optimization APIs, ConfigFlow for modern UI-based setup, and strict adherence to async patterns to avoid blocking Home Assistant's event loop.
+EOS HA is a Home Assistant custom integration that bridges the existing EOS optimization server (currently a Docker-based standalone service) with Home Assistant's ecosystem. The research reveals this is a classic migration from synchronous, threaded Flask/MQTT architecture to Home Assistant's async, event-driven model. Experts in this domain universally recommend the DataUpdateCoordinator pattern for polling external optimization APIs, ConfigFlow for modern UI-based setup, and strict adherence to async patterns to avoid blocking Home Assistant's event loop.
 
 The recommended approach leverages Home Assistant's built-in patterns rather than reimplementing optimization logic. The integration should read inputs from existing HA entities (electricity prices from Tibber/Nordpool, battery SOC from inverter integrations), call the EOS server for optimization decisions, and expose results as sensor/number entities that users consume in automations. This separation keeps the integration lightweight and maintainable while leveraging the mature EOS optimization backend.
 
@@ -57,7 +57,7 @@ Research shows energy optimization integrations have clear table stakes vs diffe
 **Should have (competitive advantage):**
 - **48h schedule visualization** — expose optimization plan as calendar entity or enhanced attributes (users want to see full plan, not just current)
 - **Battery parameter number entities** — capacity, max charge/discharge power, efficiency; allows automation-driven changes (vacation mode, seasonal profiles)
-- **Manual override service** — eos_connect.set_override with mode (force charge/discharge/auto) + duration; users need temporary overrides
+- **Manual override service** — eos_ha.set_override with mode (force charge/discharge/auto) + duration; users need temporary overrides
 - **Cost savings sensor** — calculate saved € based on actual vs grid-only scenario; gamification/ROI visibility
 - **Live vs forecast comparison** — shows how actual diverges from predicted; builds trust in optimization
 
@@ -474,7 +474,7 @@ Research draws primarily from official Home Assistant developer documentation (a
 - [HA Community: DataUpdateCoordinator Issues](https://community.home-assistant.io/t/dataupdatecoordinator-based-integrations-become-unavailable-after-a-few-hours/986502) — pitfall validation
 - [HA Community: Energy Dashboard Timezones](https://community.home-assistant.io/t/energy-dashboard-and-timezones/348218) — timezone pitfall validation
 - [GitHub Issue: Energy state_class validation](https://github.com/home-assistant/core/issues/87376) — state_class pitfall
-- EOS Connect codebase analysis — migration requirements (requests/Flask/threading → aiohttp/asyncio)
+- EOS HA codebase analysis — migration requirements (requests/Flask/threading → aiohttp/asyncio)
 
 ---
 *Research completed: 2026-02-14*

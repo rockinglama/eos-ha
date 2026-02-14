@@ -31,7 +31,7 @@ Features that set the product apart. Not expected, but valued.
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
 | **48h Schedule Visualization** | Users want to see the full optimization plan, not just current recommendation | High | Expose as sensor attributes (JSON array) OR calendar entity (better UX). Predbat does this well. EMHASS exposes plan but less user-friendly. |
-| **Manual Override Service** | Users need to override optimization temporarily (guests coming, weather event) | Medium | Service: `eos_connect.set_override` with mode (force charge/discharge/auto) + duration. Nordpool + battery integrations don't offer this. |
+| **Manual Override Service** | Users need to override optimization temporarily (guests coming, weather event) | Medium | Service: `eos_ha.set_override` with mode (force charge/discharge/auto) + duration. Nordpool + battery integrations don't offer this. |
 | **Live vs Forecast Comparison** | Show how actual vs predicted diverges (builds trust) | Medium | Separate sensors: `actual_consumption_today`, `forecast_consumption_today`. Helps users understand optimization quality. |
 | **Battery Parameter Number Entities** | Allow automation-driven parameter changes (vacation mode, winter/summer profiles) | Medium | Capacity, max charge/discharge power, efficiency, min/max SOC. Most integrations hardcode these in config. |
 | **Multi-Inverter Support Pattern** | Users may have multiple batteries/inverters | High | Support multiple config entries? Or multiple battery blocks in single entry? Defer to v2 but architect for it. |
@@ -141,7 +141,7 @@ Features to add once core is working and users provide feedback.
 
 - [ ] **48h Schedule Visualization** — expose optimization plan as calendar entity or enhanced attributes (trigger: users request "I want to see the full plan")
 - [ ] **Battery Parameter Number Entities** — capacity, max charge/discharge power, efficiency (trigger: users want to change settings without going to Options Flow)
-- [ ] **Manual Override Service** — `eos_connect.set_override` with mode + duration (trigger: "I need to force charge before a storm")
+- [ ] **Manual Override Service** — `eos_ha.set_override` with mode + duration (trigger: "I need to force charge before a storm")
 - [ ] **Cost Savings Sensor** — daily/monthly € saved vs baseline (trigger: users want ROI visibility)
 - [ ] **Diagnostics Platform** — downloadable diagnostics file with sanitized config + last EOS response (trigger: GitHub issues need debug info)
 - [ ] **Optimization Quality Metrics** — forecast accuracy, last optimization status, server response time (trigger: "Is optimization working well?")
@@ -249,7 +249,7 @@ Based on official HA integrations and best practices:
 - **Schema**: Define with `vol.Schema` in `services.yaml`
 - **Target**: Entity-level (acts on specific integration instance)
 - **Response**: Optional (for get_forecasts pattern)
-- **Example**: `eos_connect.set_override` with `mode`, `duration_minutes`
+- **Example**: `eos_ha.set_override` with `mode`, `duration_minutes`
 
 ### Calendar Entity (Optional for Schedule)
 - **Events**: Charge/discharge blocks with start/end times
@@ -289,5 +289,5 @@ Based on official HA integrations and best practices:
 - [HA Community: Config Flow Best Practices](https://community.home-assistant.io/t/configflowhandler-and-optionsflowhandler-managing-the-same-parameter/365582)
 
 ---
-*Feature research for: EOS Connect HA Integration*
+*Feature research for: EOS HA HA Integration*
 *Researched: 2026-02-14*

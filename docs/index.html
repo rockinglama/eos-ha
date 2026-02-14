@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EOS Connect - Intelligent Energy Management</title>
+    <title>EOS HA - Intelligent Energy Management</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 </head>
@@ -18,8 +18,8 @@
     <nav class="nav-header">
         <div class="nav-container">
             <a href="index.html" class="nav-logo">
-                <img src="assets/images/icon.png" alt="EOS Connect" style="height: 48px; vertical-align: middle; margin-right: 8px;">
-                <span>EOS Connect</span>
+                <img src="assets/images/icon.png" alt="EOS HA" style="height: 48px; vertical-align: middle; margin-right: 8px;">
+                <span>EOS HA</span>
                 <span class="version-badge">v0.2.30</span>
             </a>
             <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle menu">
@@ -32,8 +32,8 @@
                 <li><a href="user-guide/configuration.html">Configuration</a></li>
                 <li><a href="advanced/index.html">Advanced</a></li>
                 <li><a href="developer/index.html">Developer</a></li>
-                <li><a href="https://github.com/ohAnd/EOS_connect" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
-                <li><a href="https://github.com/sponsors/ohAnd" target="_blank" title="Sponsor the project"><i class="fas fa-mug-hot"></i></a></li>
+                <li><a href="https://github.com/rockinglama/eos-ha" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
+                <li><a href="https://github.com/sponsors/rockinglama" target="_blank" title="Sponsor the project"><i class="fas fa-mug-hot"></i></a></li>
             </ul>
         </div>
     </nav>
@@ -59,22 +59,22 @@
             <!-- Main content -->
             <main class="main-content">
         <div class="hero" id="overview">
-            <h1>EOS Connect</h1>
+            <h1>EOS HA</h1>
             <p>Open-source integration and control platform for intelligent energy optimization</p>
             <p style="font-size: 1rem; color: #aaa; margin-top: 1rem;">Bridges your energy system with external optimization engines (EOS/EVopt)</p>
         </div>
 
         <!-- 4 Main Navigation Blocks -->
         <div class="main-blocks" id="main-nav">
-            <!-- Block 1: What is EOS Connect -->
+            <!-- Block 1: What is EOS HA -->
             <div class="block-card" id="overview">
                 <div class="card-header">
                     <div class="icon">
                         <i class="fas fa-info-circle"></i>
                     </div>
-                    <h2>What is EOS Connect?</h2>
+                    <h2>What is EOS HA?</h2>
                 </div>
-                <p>Learn about EOS Connect's features, capabilities, and how it optimizes your energy system for maximum efficiency and cost savings.</p>
+                <p>Learn about EOS HA's features, capabilities, and how it optimizes your energy system for maximum efficiency and cost savings.</p>
                 <a href="what-is/index.html" class="btn">Learn More →</a>
             </div>
 
@@ -86,7 +86,7 @@
                     </div>
                     <h2>Getting Started</h2>
                 </div>
-                <p>Quick installation guide, configuration setup, and everything you need to get EOS Connect running on your system.</p>
+                <p>Quick installation guide, configuration setup, and everything you need to get EOS HA running on your system.</p>
                 <a href="user-guide/index.html" class="btn">Get Started →</a>
             </div>
 
@@ -117,16 +117,16 @@
 
         <!-- Role Clarification -->
         <div class="content-section" id="role">
-            <h2><i class="fas fa-search"></i> What Does EOS Connect Do?</h2>
+            <h2><i class="fas fa-search"></i> What Does EOS HA Do?</h2>
             <div class="alert alert-info">
-                <strong><i class="fas fa-lightbulb"></i> Important:</strong> EOS Connect is an <strong>integration and control platform</strong> that bridges your energy system with external optimization engines. It collects data from your devices (battery, inverter, sensors), sends it to an optimization backend (EOS or EVopt), receives the optimization results, and controls your devices accordingly.
+                <strong><i class="fas fa-lightbulb"></i> Important:</strong> EOS HA is an <strong>integration and control platform</strong> that bridges your energy system with external optimization engines. It collects data from your devices (battery, inverter, sensors), sends it to an optimization backend (EOS or EVopt), receives the optimization results, and controls your devices accordingly.
             </div>
             <p><strong>The actual optimization calculations are performed by:</strong></p>
             <ul>
                 <li><strong>Akkudoktor EOS</strong> - Full-featured optimization engine (default) - <a href="https://github.com/Akkudoktor-EOS/EOS" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
                 <li><strong>EVopt</strong> - Lightweight, very fast alternative - <a href="https://github.com/thecem/hassio-evopt" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
             </ul>
-            <p><strong>EOS Connect handles:</strong></p>
+            <p><strong>EOS HA handles:</strong></p>
             <ul>
                 <li><i class="fas fa-check"></i> Data collection from your devices (battery SOC, PV production, load, etc.)</li>
                 <li><i class="fas fa-check"></i> Forecast integration (PV forecasts, electricity prices, weather)</li>
@@ -182,7 +182,7 @@
             <h2><i class="fas fa-star"></i> Key Features</h2>
             
             <h3>Automated Energy Optimization</h3>
-            <p>EOS Connect uses real-time and forecast data to maximize self-consumption and minimize grid costs. It supports two optimization backends:</p>
+            <p>EOS HA uses real-time and forecast data to maximize self-consumption and minimize grid costs. It supports two optimization backends:</p>
             <ul>
                 <li><strong>Akkudoktor EOS</strong> - Full-featured optimization engine (default)</li>
                 <li><strong>EVopt</strong> - Lightweight, very fast alternative</li>
@@ -205,7 +205,7 @@
             </ul>
 
             <div class="alert alert-info">
-                <strong><i class="fas fa-lightbulb"></i> Tip:</strong> EOS Connect acts as a client and requires a running EOS or EVopt server for optimization calculations.
+                <strong><i class="fas fa-lightbulb"></i> Tip:</strong> EOS HA acts as a client and requires a running EOS or EVopt server for optimization calculations.
             </div>
         </div>
 
@@ -219,8 +219,8 @@
                     <h4><i class="fas fa-home"></i> Home Assistant</h4>
                     <p><strong>Recommended for HA users</strong></p>
                     <ol style="font-size: 0.9em; text-align: left;">
-                        <li>Add ohAnd/ha_addons repository</li>
-                        <li>Install <strong>EOS</strong> (or <strong>EVopt</strong>) + EOS Connect add-ons</li>
+                        <li>Add rockinglama/ha_addons repository</li>
+                        <li>Install <strong>EOS</strong> (or <strong>EVopt</strong>) + EOS HA add-ons</li>
                         <li>Configure via HA UI</li>
                         <li>Start both add-ons</li>
                     </ol>
@@ -230,7 +230,7 @@
                     <h4><i class="fab fa-docker"></i> Docker</h4>
                     <p><strong>Works on any system</strong></p>
                     <pre style="font-size: 0.75em; text-align: left; padding: 0.5rem;"><code>git clone ...
-cd EOS_connect
+cd eos-ha
 docker-compose up -d</code></pre>
                     <p style="font-size: 0.9em;">Requires running EOS/EVopt server</p>
                     <a href="user-guide/index.html#docker-install" class="btn-primary" style="margin-top: 1rem;">Docker Guide →</a>
@@ -240,7 +240,7 @@ docker-compose up -d</code></pre>
                     <p><strong>For development/custom setups</strong></p>
                     <pre style="font-size: 0.75em; text-align: left; padding: 0.5rem;"><code>git clone ...
 pip install -r requirements.txt
-python src/eos_connect.py</code></pre>
+python src/eos_ha.py</code></pre>
                     <p style="font-size: 0.9em;">Requires Python 3.11+</p>
                     <a href="user-guide/index.html#local-install" class="btn-primary" style="margin-top: 1rem;">Local Guide →</a>
                 </div>
@@ -254,7 +254,7 @@ python src/eos_connect.py</code></pre>
         <!-- Current Status -->
         <div class="content-section" id="status">
             <h2><i class="fas fa-chart-line"></i> Project Status</h2>
-            <p>EOS Connect is actively developed and enhanced. Recent highlights:</p>
+            <p>EOS HA is actively developed and enhanced. Recent highlights:</p>
             
             <ul>
                 <li><i class="fas fa-check-circle"></i> Enhanced Fronius GEN24 interface with automatic firmware detection</li>
@@ -278,7 +278,7 @@ python src/eos_connect.py</code></pre>
             <div class="feature-grid">
                 <div class="feature-item">
                     <h4><i class="fab fa-github"></i> GitHub</h4>
-                    <p><a href="https://github.com/ohAnd/EOS_connect" target="_blank">Report issues, contribute, and follow development</a></p>
+                    <p><a href="https://github.com/rockinglama/eos-ha" target="_blank">Report issues, contribute, and follow development</a></p>
                 </div>
                 <div class="feature-item">
                     <h4><i class="fas fa-book"></i> Documentation</h4>
@@ -286,7 +286,7 @@ python src/eos_connect.py</code></pre>
                 </div>
                 <div class="feature-item">
                     <h4><i class="fas fa-comments"></i> Discussions</h4>
-                    <p><a href="https://github.com/ohAnd/EOS_connect/discussions" target="_blank">Ask questions and share experiences</a></p>
+                    <p><a href="https://github.com/rockinglama/eos-ha/discussions" target="_blank">Ask questions and share experiences</a></p>
                 </div>
                 <div class="feature-item">
                     <h4><i class="fas fa-heart"></i> Contributing</h4>
@@ -294,7 +294,7 @@ python src/eos_connect.py</code></pre>
                 </div>
                 <div class="feature-item">
                     <h4><i class="fas fa-coffee"></i> Sponsoring</h4>
-                    <p><a href="https://github.com/sponsors/ohAnd" target="_blank">Support the project on GitHub Sponsors</a></p>
+                    <p><a href="https://github.com/sponsors/rockinglama" target="_blank">Support the project on GitHub Sponsors</a></p>
                 </div>
             </div>
         </div>
@@ -304,7 +304,7 @@ python src/eos_connect.py</code></pre>
 
     <!-- Footer -->
     <footer class="footer">
-        <p>EOS Connect Documentation | <a href="index.html">Home</a> | <a href="https://github.com/ohAnd/EOS_connect">GitHub</a> | <a href="https://github.com/sponsors/ohAnd">Sponsor</a></p>
+        <p>EOS HA Documentation | <a href="index.html">Home</a> | <a href="https://github.com/rockinglama/eos-ha">GitHub</a> | <a href="https://github.com/sponsors/rockinglama">Sponsor</a></p>
     </footer>
 
     <script>

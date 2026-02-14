@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "EOS Connect",
+        "title": "EOS HA",
         "description": "Enter the URL of your EOS optimization server.",
         "data": {
           "eos_url": "EOS Server URL"
@@ -35,7 +35,7 @@
       "timeout": "Connection timed out. Check the URL and network."
     },
     "abort": {
-      "already_configured": "EOS Connect is already configured.",
+      "already_configured": "EOS HA is already configured.",
       "no_home_location": "Home location not configured in Home Assistant. Set your home location in Settings > System > General."
     }
   }

@@ -1,4 +1,4 @@
-# Requirements: EOS Connect HA Integration
+# Requirements: EOS HA HA Integration
 
 **Defined:** 2026-02-14
 **Core Value:** Reliably run the optimization cycle (collect data → optimize via EOS → expose results as entities) so users can make informed, automated energy decisions without running a separate container.
@@ -49,8 +49,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Services
 
-- [ ] **SVC-01**: Service eos_connect.set_override — set manual mode (force charge/discharge/auto) with duration
-- [ ] **SVC-02**: Service eos_connect.optimize_now — trigger immediate optimization cycle
+- [ ] **SVC-01**: Service eos_ha.set_override — set manual mode (force charge/discharge/auto) with duration
+- [ ] **SVC-02**: Service eos_ha.optimize_now — trigger immediate optimization cycle
 
 ### Diagnostics
 

@@ -1,6 +1,6 @@
-"""Constants for the EOS Connect integration."""
+"""Constants for the EOS HA integration."""
 
-DOMAIN = "eos_connect"
+DOMAIN = "eos_ha"
 
 # Polling interval
 DEFAULT_SCAN_INTERVAL = 300  # 5 minutes in seconds

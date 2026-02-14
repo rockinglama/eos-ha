@@ -5,7 +5,7 @@ subsystem: optimization_engine
 tags: [api-clients, coordinator, optimization-cycle, pv-forecast, sensor-entity, async]
 requires: [01-01]
 provides: [eos-api-client, akkudoktor-api-client, optimization-coordinator, status-sensor]
-affects: [custom_components/eos_connect]
+affects: [custom_components/eos_ha]
 tech_stack:
   added:
     - aiohttp async HTTP client
@@ -20,11 +20,11 @@ tech_stack:
     - Timezone-aware datetime operations
 key_files:
   created:
-    - custom_components/eos_connect/api.py
-    - custom_components/eos_connect/coordinator.py
-    - custom_components/eos_connect/sensor.py
+    - custom_components/eos_ha/api.py
+    - custom_components/eos_ha/coordinator.py
+    - custom_components/eos_ha/sensor.py
   modified:
-    - custom_components/eos_connect/__init__.py
+    - custom_components/eos_ha/__init__.py
 decisions:
   - title: PV forecast caching with 6-hour TTL
     rationale: Akkudoktor API can be unreliable; caching reduces API calls and provides fallback during outages
@@ -50,7 +50,7 @@ metrics:
 
 ## What Was Built
 
-Implemented the core optimization engine that powers the EOS Connect integration. The system collects data from Home Assistant entities and the Akkudoktor PV forecast API, builds EOS-format optimization requests, sends them to the EOS server, parses responses, and exposes optimization health via a sensor entity. This enables the integration to run continuous optimization cycles without user intervention.
+Implemented the core optimization engine that powers the EOS HA integration. The system collects data from Home Assistant entities and the Akkudoktor PV forecast API, builds EOS-format optimization requests, sends them to the EOS server, parses responses, and exposes optimization health via a sensor entity. This enables the integration to run continuous optimization cycles without user intervention.
 
 ### Task 1: Create async API clients for EOS server and Akkudoktor
 **Commit:** 5116c4b
@@ -109,7 +109,7 @@ Created `coordinator.py` with `EOSCoordinator(DataUpdateCoordinator)` orchestrat
    - Decision: Cache last successful forecast, use expired cache if API down (6-hour grace period)
 
 3. **Build EOS request (`_build_eos_request`):**
-   Constructs request matching existing EOS format (eos_connect.py lines 607-619):
+   Constructs request matching existing EOS format (eos_ha.py lines 607-619):
    ```python
    {
        "ems": {
@@ -255,12 +255,12 @@ Verifying all claims in this summary:
 
 ```bash
 # Check created files exist
-[ -f "custom_components/eos_connect/api.py" ] && echo "FOUND: api.py" || echo "MISSING: api.py"
-[ -f "custom_components/eos_connect/coordinator.py" ] && echo "FOUND: coordinator.py" || echo "MISSING: coordinator.py"
-[ -f "custom_components/eos_connect/sensor.py" ] && echo "FOUND: sensor.py" || echo "MISSING: sensor.py"
+[ -f "custom_components/eos_ha/api.py" ] && echo "FOUND: api.py" || echo "MISSING: api.py"
+[ -f "custom_components/eos_ha/coordinator.py" ] && echo "FOUND: coordinator.py" || echo "MISSING: coordinator.py"
+[ -f "custom_components/eos_ha/sensor.py" ] && echo "FOUND: sensor.py" || echo "MISSING: sensor.py"
 
 # Check modified files exist
-[ -f "custom_components/eos_connect/__init__.py" ] && echo "FOUND: __init__.py" || echo "MISSING: __init__.py"
+[ -f "custom_components/eos_ha/__init__.py" ] && echo "FOUND: __init__.py" || echo "MISSING: __init__.py"
 
 # Check commits exist
 git log --oneline --all | grep -q "5116c4b" && echo "FOUND: 5116c4b" || echo "MISSING: 5116c4b"
@@ -268,10 +268,10 @@ git log --oneline --all | grep -q "0d6ee42" && echo "FOUND: 0d6ee42" || echo "MI
 git log --oneline --all | grep -q "741e01f" && echo "FOUND: 741e01f" || echo "MISSING: 741e01f"
 
 # Verify key implementation details
-grep -q "capacity_wh.*\* 1000" custom_components/eos_connect/coordinator.py && echo "VERIFIED: kWh to Wh conversion" || echo "MISSING: kWh to Wh conversion"
-grep -q "PV_FORECAST_CACHE_HOURS" custom_components/eos_connect/coordinator.py && echo "VERIFIED: PV forecast caching" || echo "MISSING: PV forecast caching"
-grep -q "async_config_entry_first_refresh" custom_components/eos_connect/__init__.py && echo "VERIFIED: First refresh before platform setup" || echo "MISSING: First refresh"
-grep -q "dt_util.now()" custom_components/eos_connect/coordinator.py && echo "VERIFIED: Timezone-aware datetimes" || echo "MISSING: Timezone-aware datetimes"
+grep -q "capacity_wh.*\* 1000" custom_components/eos_ha/coordinator.py && echo "VERIFIED: kWh to Wh conversion" || echo "MISSING: kWh to Wh conversion"
+grep -q "PV_FORECAST_CACHE_HOURS" custom_components/eos_ha/coordinator.py && echo "VERIFIED: PV forecast caching" || echo "MISSING: PV forecast caching"
+grep -q "async_config_entry_first_refresh" custom_components/eos_ha/__init__.py && echo "VERIFIED: First refresh before platform setup" || echo "MISSING: First refresh"
+grep -q "dt_util.now()" custom_components/eos_ha/coordinator.py && echo "VERIFIED: Timezone-aware datetimes" || echo "MISSING: Timezone-aware datetimes"
 ```
 
 **Result:**

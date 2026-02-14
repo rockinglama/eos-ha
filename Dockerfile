@@ -16,4 +16,4 @@ COPY src/ .
 EXPOSE 8081
 
 # Command to run the application
-CMD ["python", "eos_connect.py"]
+CMD ["python", "eos_ha.py"]

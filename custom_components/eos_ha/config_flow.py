@@ -1,4 +1,4 @@
-"""Config flow for EOS Connect integration."""
+"""Config flow for EOS HA integration."""
 from __future__ import annotations
 
 import asyncio
@@ -34,8 +34,8 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-class EOSConnectConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for EOS Connect."""
+class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle a config flow for EOS HA."""
 
     VERSION = 1
 
@@ -146,7 +146,7 @@ class EOSConnectConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self.data[CONF_INVERTER_POWER] = user_input[CONF_INVERTER_POWER]
 
             # Create config entry with all accumulated data
-            return self.async_create_entry(title="EOS Connect", data=self.data)
+            return self.async_create_entry(title="EOS HA", data=self.data)
 
         # Show form with battery parameters
         return self.async_show_form(

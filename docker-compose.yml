@@ -1,9 +1,9 @@
 services:
-  eos_connect:
+  eos_ha:
     build:
       context: .
       dockerfile: Dockerfile
-    image: ghcr.io/ohand/eos_connect:snapshot
+    image: ghcr.io/rockinglama/eos-ha:snapshot
     ports:
       - "8081:8081"
     volumes:

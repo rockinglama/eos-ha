@@ -1,12 +1,12 @@
 /**
- * Bug Report Manager for EOS Connect
+ * Bug Report Manager for EOS HA
  * Handles automated bug report generation with system data collection
  */
 
 class BugReportManager {
     constructor() {
-        this.repoOwner = 'ohAnd';
-        this.repoName = 'EOS_connect'; // Using EOS_connect repo for bug reports
+        this.repoOwner = 'rockinglama';
+        this.repoName = 'eos-ha'; // Using eos-ha repo for bug reports
         this.maxBodySize = 65536; // GitHub API body size limit (~64KB)
     }
 
@@ -161,8 +161,8 @@ class BugReportManager {
             const response = await fetch('json/current_controls.json');
             if (response.ok) {
                 const status = await response.json();
-                if (status.eos_connect_version) {
-                    versionInfo = status.eos_connect_version;
+                if (status.eos_ha_version) {
+                    versionInfo = status.eos_ha_version;
                 }
             }
         } catch (error) {
@@ -220,7 +220,7 @@ class BugReportManager {
 
 ## 🌍 Environment
 
-**EOS Connect Version:** ${versionInfo}
+**EOS HA Version:** ${versionInfo}
 **When did this occur?** [Date/Time]
 **How often?** [Always / Sometimes / Once]
 **Impact:** [High / Medium / Low]
@@ -554,8 +554,8 @@ class BugReportManager {
                 dataManager.fetchCurrentControls()
                     .then(result => {
                         data.currentControls = result;
-                        if (result.eos_connect_version) {
-                            data.version = result.eos_connect_version;
+                        if (result.eos_ha_version) {
+                            data.version = result.eos_ha_version;
                         }
                     })
                     .catch(error => {
@@ -657,7 +657,7 @@ class BugReportManager {
         // Add system information
         body += '## System Information\\n\\n';
         if (systemData.version) {
-            body += `**EOS Connect Version:** ${systemData.version}\\n`;
+            body += `**EOS HA Version:** ${systemData.version}\\n`;
         }
         body += `**Report Generated:** ${systemData.timestamp}\\n`;
         if (systemData.errors.length > 0) {
@@ -696,7 +696,7 @@ class BugReportManager {
                     current_states: systemData.currentControls.current_states || {},
                     battery: systemData.currentControls.battery || {},
                     timestamp: systemData.currentControls.timestamp,
-                    eos_connect_version: systemData.currentControls.eos_connect_version
+                    eos_ha_version: systemData.currentControls.eos_ha_version
                 };
                 addSectionIfFits('Current Controls & States (Essential)', essentialControls, true);
             }
@@ -746,7 +746,7 @@ class BugReportManager {
 
         // Add footer
         body += '---\\n';
-        body += '*This bug report was generated automatically by EOS Connect\'s built-in reporting feature.*';
+        body += '*This bug report was generated automatically by EOS HA\'s built-in reporting feature.*';
 
         return body;
     }
@@ -764,7 +764,7 @@ class BugReportManager {
         // Add system information
         body += '## System Information\\n\\n';
         if (systemData.version) {
-            body += `**EOS Connect Version:** ${systemData.version}\\n`;
+            body += `**EOS HA Version:** ${systemData.version}\\n`;
         }
         body += `**Report Generated:** ${systemData.timestamp}\\n`;
         if (systemData.errors.length > 0) {
@@ -785,7 +785,7 @@ class BugReportManager {
                 current_states: systemData.currentControls.current_states || {},
                 battery: systemData.currentControls.battery || {},
                 timestamp: systemData.currentControls.timestamp,
-                eos_connect_version: systemData.currentControls.eos_connect_version
+                eos_ha_version: systemData.currentControls.eos_ha_version
             };
             body += '<details>\\n<summary>Basic System States</summary>\\n\\n';
             body += '```json\\n' + JSON.stringify(basicInfo, null, 2) + '\\n```\\n\\n';
@@ -831,7 +831,7 @@ class BugReportManager {
 
         // Add footer
         body += '---\\n';
-        body += '*This bug report was generated automatically by EOS Connect\'s built-in reporting feature.*\\n';
+        body += '*This bug report was generated automatically by EOS HA\'s built-in reporting feature.*\\n';
         body += '*Full system data was truncated due to GitHub URL length limitations.*';
 
         return body;
@@ -954,7 +954,7 @@ class BugReportManager {
                             GitHub Authentication Required
                         </h2>
                         <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 8px; margin: 20px 0;">
-                            <p style="font-size: 1.1em; margin-bottom: 15px;">To create a bug report, please authorize EOS Connect:</p>
+                            <p style="font-size: 1.1em; margin-bottom: 15px;">To create a bug report, please authorize EOS HA:</p>
                             <div style="margin: 15px 0;">
                                 <strong style="font-size: 1.2em; color: #17a2b8;">Verification Code:</strong>
                                 <div style="font-family: monospace; font-size: 1.5em; color: #ffc107; margin: 10px 0; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 4px;">
@@ -972,7 +972,7 @@ class BugReportManager {
                             <p>1. Click "Open GitHub Authorization"</p>
                             <p>2. Sign in to GitHub if needed</p>
                             <p>3. Enter the verification code: <strong>${deviceData.user_code}</strong></p>
-                            <p>4. Authorize EOS Connect</p>
+                            <p>4. Authorize EOS HA</p>
                             <p><em>This window will close automatically once authorized</em></p>
                         </div>
                         <div style="margin-top: 20px;">
@@ -1098,7 +1098,7 @@ class BugReportManager {
         alert('There was a technical issue creating the pre-filled bug report.\n\n' +
             'You will be redirected to the GitHub issues page where you can:\n' +
             '1. Click "New issue" to create a manual report\n' +
-            '2. Include the system data from your EOS Connect web interface\n' +
+            '2. Include the system data from your EOS HA web interface\n' +
             '3. Check the Logs section and JSON endpoints for debugging data');
 
         window.open(issuesUrl, '_blank');
@@ -1162,18 +1162,18 @@ class BugReportManager {
         // Add system info
         safebody += '## System Information\\n\\n';
         safebody += '_System data was truncated due to URL length limitations._\\n';
-        safebody += '_Full system data is available in EOS Connect logs and web interface._\\n\\n';
+        safebody += '_Full system data is available in EOS HA logs and web interface._\\n\\n';
 
         // Add instructions for full data
         safebody += '## Full System Data\\n\\n';
         safebody += 'To provide complete system data for debugging:\\n';
-        safebody += '1. Access your EOS Connect web interface\\n';
+        safebody += '1. Access your EOS HA web interface\\n';
         safebody += '2. Go to Logs section and export recent logs\\n';
         safebody += '3. Check JSON endpoints: `/json/current_controls.json`, `/json/optimize_request.json`, `/json/optimize_response.json`\\n';
         safebody += '4. Attach the relevant files to this issue\\n\\n';
 
         safebody += '---\\n';
-        safebody += '_This bug report was generated automatically by EOS Connect. Full data truncated due to URL limitations._';
+        safebody += '_This bug report was generated automatically by EOS HA. Full data truncated due to URL limitations._';
 
         return safebody;
     }
@@ -1410,7 +1410,7 @@ class BugReportManager {
 
         // Add footer
         markdown += '---\n';
-        markdown += '*This system data was generated automatically by EOS Connect bug reporting feature.*';
+        markdown += '*This system data was generated automatically by EOS HA bug reporting feature.*';
 
         return markdown;
     }

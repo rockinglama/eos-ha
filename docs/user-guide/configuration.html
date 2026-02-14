@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Configuration Reference - EOS Connect</title>
+    <title>Configuration Reference - EOS HA</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 </head>
@@ -18,8 +18,8 @@
     <nav class="nav-header">
         <div class="nav-container">
             <a href="../index.html" class="nav-logo">
-                <img src="../assets/images/icon.png" alt="EOS Connect" style="height: 48px; vertical-align: middle; margin-right: 8px;">
-                <span>EOS Connect</span>
+                <img src="../assets/images/icon.png" alt="EOS HA" style="height: 48px; vertical-align: middle; margin-right: 8px;">
+                <span>EOS HA</span>
                 <span class="version-badge">v0.2.30</span>
             </a>
             <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle menu">
@@ -32,8 +32,8 @@
                 <li><a href="configuration.html" class="active">Configuration</a></li>
                 <li><a href="../advanced/index.html">Advanced</a></li>
                 <li><a href="../developer/index.html">Developer</a></li>
-                <li><a href="https://github.com/ohAnd/EOS_connect" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
-                <li><a href="https://github.com/sponsors/ohAnd" target="_blank" title="Sponsor the project"><i class="fas fa-mug-hot"></i></a></li>
+                <li><a href="https://github.com/rockinglama/eos-ha" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
+                <li><a href="https://github.com/sponsors/rockinglama" target="_blank" title="Sponsor the project"><i class="fas fa-mug-hot"></i></a></li>
             </ul>
         </div>
     </nav>
@@ -106,7 +106,7 @@
         <!-- Load Configuration -->
         <div class="content-section" id="load">
             <h2><i class="fas fa-plug"></i> Load Configuration</h2>
-            <p>Configure how EOS Connect reads your household power consumption data.</p>
+            <p>Configure how EOS HA reads your household power consumption data.</p>
 
             <h3>load.source</h3>
             <table>
@@ -659,7 +659,7 @@
             <p>Configure your battery system for state-of-charge monitoring and optimization.</p>
 
             <div class="alert alert-info">
-                <strong><i class="fas fa-wand-magic-sparkles"></i> Automatic Sensor Conventions:</strong> EOS Connect <strong>auto-detects</strong> both battery and grid sensor polarity (charging/discharging and import/export). No manual overrides required.
+                <strong><i class="fas fa-wand-magic-sparkles"></i> Automatic Sensor Conventions:</strong> EOS HA <strong>auto-detects</strong> both battery and grid sensor polarity (charging/discharging and import/export). No manual overrides required.
             </div>
 
             <h3>battery.source</h3>
@@ -1022,7 +1022,7 @@
             </table>
 
             <div class="alert alert-success">
-                <strong><i class="fas fa-check-circle"></i> Tip:</strong> EOS Connect automatically <em>normalizes</em> battery and grid signs so charging attribution to PV vs Grid is correct — even if your grid sensor reports import as negative.
+                <strong><i class="fas fa-check-circle"></i> Tip:</strong> EOS HA automatically <em>normalizes</em> battery and grid signs so charging attribution to PV vs Grid is correct — even if your grid sensor reports import as negative.
             </div>
 
             <div class="alert alert-warning">
@@ -1057,7 +1057,7 @@
 
             <div class="alert alert-info">
                 <h4><i class="fas fa-calculator"></i> Dynamic Battery Price Calculation</h4>
-                <p>EOS Connect can automatically calculate the real cost of energy in your battery by analyzing historical charging events using a Last-In, First-Out (LIFO) inventory model.</p>
+                <p>EOS HA can automatically calculate the real cost of energy in your battery by analyzing historical charging events using a Last-In, First-Out (LIFO) inventory model.</p>
                 
                 <h5>How it Works:</h5>
                 <ol>
@@ -1316,7 +1316,7 @@
             </table>
 
             <div class="alert alert-warning">
-                <strong><i class="fas fa-exclamation-triangle"></i> Solcast Rate Limits:</strong> Free accounts are limited to 10 API calls per day. EOS Connect automatically extends update intervals to 2.5 hours when using Solcast (9.6 calls/day).
+                <strong><i class="fas fa-exclamation-triangle"></i> Solcast Rate Limits:</strong> Free accounts are limited to 10 API calls per day. EOS HA automatically extends update intervals to 2.5 hours when using Solcast (9.6 calls/day).
             </div>
 
             <h4>PV Installation Parameters</h4>
@@ -1690,7 +1690,7 @@
                 </tr>
                 <tr>
                     <th>Notes</th>
-                    <td>Limitation for calculating target grid charge power and for EOS inverter model. Currently not supported by EVCC external battery control, but shown and calculated (reachable per EOS Connect API)</td>
+                    <td>Limitation for calculating target grid charge power and for EOS inverter model. Currently not supported by EVCC external battery control, but shown and calculated (reachable per EOS HA API)</td>
                 </tr>
             </table>
 
@@ -1714,7 +1714,7 @@
                 </tr>
                 <tr>
                     <th>Notes</th>
-                    <td>Limitation for calculating target PV charge power and for EOS inverter model. Currently not supported by EVCC external battery control, but shown and calculated (reachable per EOS Connect API)</td>
+                    <td>Limitation for calculating target PV charge power and for EOS inverter model. Currently not supported by EVCC external battery control, but shown and calculated (reachable per EOS HA API)</td>
                 </tr>
             </table>
         </div>
@@ -1741,13 +1741,13 @@
                     <th>Notes</th>
                     <td>
                         Leave empty if not used: <code>url:</code> or <code>url: ""</code><br><br>
-                        <strong>Important:</strong> When using <code>evcc</code> as the <code>pv_forecast_source</code>, this EVCC configuration must be properly configured. EOS Connect will retrieve PV forecasts directly from the EVCC API instead of using individual PV installation configurations. In this case, the <code>pv_forecast</code> section requires at least one entry with valid <code>lat</code> and <code>lon</code> coordinates for temperature forecasts.
+                        <strong>Important:</strong> When using <code>evcc</code> as the <code>pv_forecast_source</code>, this EVCC configuration must be properly configured. EOS HA will retrieve PV forecasts directly from the EVCC API instead of using individual PV installation configurations. In this case, the <code>pv_forecast</code> section requires at least one entry with valid <code>lat</code> and <code>lon</code> coordinates for temperature forecasts.
                     </td>
                 </tr>
             </table>
 
             <div class="alert alert-info">
-                <strong><i class="fas fa-info-circle"></i> EVCC as Inverter Controller:</strong> When <code>inverter.type</code> is set to <code>evcc</code>, EOS Connect uses EVCC's external battery control feature to manage battery charging. This provides a universal interface that works with many inverter types supported by EVCC.
+                <strong><i class="fas fa-info-circle"></i> EVCC as Inverter Controller:</strong> When <code>inverter.type</code> is set to <code>evcc</code>, EOS HA uses EVCC's external battery control feature to manage battery charging. This provides a universal interface that works with many inverter types supported by EVCC.
             </div>
         </div>
 
@@ -1892,7 +1892,7 @@
                 </tr>
                 <tr>
                     <th>Notes</th>
-                    <td>When enabled, EOS Connect automatically publishes device and entity configurations to Home Assistant</td>
+                    <td>When enabled, EOS HA automatically publishes device and entity configurations to Home Assistant</td>
                 </tr>
             </table>
 
@@ -1929,7 +1929,7 @@
                 </tr>
                 <tr>
                     <th>Description</th>
-                    <td>How often EOS Connect sends optimization requests to EOS server</td>
+                    <td>How often EOS HA sends optimization requests to EOS server</td>
                 </tr>
                 <tr>
                     <th>Unit</th>
@@ -1969,15 +1969,15 @@
                 </tr>
             </table>
 
-            <h3>eos_connect_web_port</h3>
+            <h3>eos_ha_web_port</h3>
             <table>
                 <tr>
                     <th>Parameter</th>
-                    <td><code>eos_connect_web_port</code></td>
+                    <td><code>eos_ha_web_port</code></td>
                 </tr>
                 <tr>
                     <th>Description</th>
-                    <td>Port for EOS Connect web server and API</td>
+                    <td>Port for EOS HA web server and API</td>
                 </tr>
                 <tr>
                     <th>Default</th>
@@ -2043,7 +2043,7 @@
             </table>
 
             <div class="alert alert-info">
-                <strong><i class="fas fa-file-alt"></i> Configuration File:</strong> The <code>config.yaml</code> file must be located in the <code>src</code> directory. If it doesn't exist, EOS Connect will create one with default values on first startup and prompt you to configure it before restarting.
+                <strong><i class="fas fa-file-alt"></i> Configuration File:</strong> The <code>config.yaml</code> file must be located in the <code>src</code> directory. If it doesn't exist, EOS HA will create one with default values on first startup and prompt you to configure it before restarting.
             </div>
 
             <h3>Understanding refresh_time and time_frame</h3>
@@ -2051,7 +2051,7 @@
                 <h4><i class="fas fa-clock"></i> Two Different Timing Controls</h4>
                 <p>These two parameters control different aspects of optimization:</p>
                 <ul>
-                    <li><strong>refresh_time</strong>: Sets how often EOS Connect sends a new optimization request to the EOS server (e.g., every 3 minutes)</li>
+                    <li><strong>refresh_time</strong>: Sets how often EOS HA sends a new optimization request to the EOS server (e.g., every 3 minutes)</li>
                     <li><strong>time_frame</strong> (in EOS section): Sets the granularity of the optimization and forecast arrays inside each request (e.g., 900 for 15-minute steps, 3600 for hourly steps)</li>
                 </ul>
                 <p><strong>Backend Capabilities:</strong></p>
@@ -2163,7 +2163,7 @@ mqtt:
 # General application settings
 refresh_time: 3 # Default refresh time of EOS connect in minutes - default: 3
 time_zone: Europe/Berlin # Default time zone - default: Europe/Berlin
-eos_connect_web_port: 8081 # Default port for EOS connect server - default: 8081
+eos_ha_web_port: 8081 # Default port for EOS connect server - default: 8081
 log_level: info # Log level for the application : debug, info, warning, error - default: info
 request_timeout: 10 # Request timeout for Home Assistant and OpenHAB API calls in seconds (5-120) - default: 10</code></pre>
 
@@ -2229,7 +2229,7 @@ mqtt:
 # General application settings
 refresh_time: 3 # Default refresh time of EOS connect in minutes - default: 3
 time_zone: Europe/Berlin # Default time zone - default: Europe/Berlin
-eos_connect_web_port: 8081 # Default port for EOS connect server - default: 8081
+eos_ha_web_port: 8081 # Default port for EOS connect server - default: 8081
 log_level: info # Log level for the application : debug, info, warning, error - default: info
 request_timeout: 10 # Request timeout for Home Assistant and OpenHAB API calls in seconds (5-120) - default: 10</code></pre>
 
@@ -2287,14 +2287,14 @@ pv_forecast:
                 <h4><i class="fas fa-exclamation-triangle"></i> Solcast Rate Limiting</h4>
                 <ul>
                     <li>Each PV installation requires a separate rooftop site configured in your Solcast account</li>
-                    <li>Physical PV parameters (tilt, azimuth) are configured in the Solcast dashboard, not in EOS Connect</li>
+                    <li>Physical PV parameters (tilt, azimuth) are configured in the Solcast dashboard, not in EOS HA</li>
                     <li><strong>Location coordinates (lat, lon) are still required</strong> for temperature forecasts that EOS uses for optimization calculations</li>
                     <li>The <code>resource_id</code> is obtained from your Solcast rooftop site configuration</li>
                     <li><code>power</code>, <code>powerInverter</code>, and <code>inverterEfficiency</code> are still required for proper system scaling</li>
                     <li><strong>Free Solcast accounts are limited to 10 API calls per day</strong></li>
-                    <li><strong>EOS Connect automatically extends update intervals to 2.5 hours when using Solcast</strong> to stay within the 10 calls/day limit (9.6 calls/day actual usage)</li>
+                    <li><strong>EOS HA automatically extends update intervals to 2.5 hours when using Solcast</strong> to stay within the 10 calls/day limit (9.6 calls/day actual usage)</li>
                     <li>Multiple PV installations result in multiple API calls per update cycle - consider this when planning your configuration</li>
-                    <li>If you exceed rate limits, EOS Connect will use the previous forecast data until the next successful API call</li>
+                    <li>If you exceed rate limits, EOS HA will use the previous forecast data until the next successful API call</li>
                 </ul>
                 <p><strong>Setting up Solcast:</strong></p>
                 <ol>
@@ -2302,7 +2302,7 @@ pv_forecast:
                     <li>Configure a "Rooftop Site" with your PV system details (location, tilt, azimuth, capacity)</li>
                     <li>Copy the Resource ID from your rooftop site</li>
                     <li>Get your API key from the account settings</li>
-                    <li>Use these values in your EOS Connect configuration (including lat/lon for temperature forecasts)</li>
+                    <li>Use these values in your EOS HA configuration (including lat/lon for temperature forecasts)</li>
                 </ol>
             </div>
         </div>
@@ -2312,7 +2312,7 @@ pv_forecast:
 
     <!-- Footer -->
     <footer class="footer">
-        <p>EOS Connect Documentation | <a href="../index.html">Home</a> | <a href="https://github.com/ohAnd/EOS_connect">GitHub</a> | <a href="https://github.com/sponsors/ohAnd">Sponsor</a></p>
+        <p>EOS HA Documentation | <a href="../index.html">Home</a> | <a href="https://github.com/rockinglama/eos-ha">GitHub</a> | <a href="https://github.com/sponsors/rockinglama">Sponsor</a></p>
     </footer>
 
     <!-- Scroll spy for TOC -->

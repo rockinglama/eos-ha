@@ -627,10 +627,10 @@ class FroniusWRV2:
             logger.error(f"[InverterV2] Error setting time of use: {e}")
             return False
 
-    # EOS Connect compatibility layer
+    # EOS HA compatibility layer
 
     def set_mode_force_charge(self, charge_power_w):
-        """EOS Connect compatibility: Force charge mode with specific power."""
+        """EOS HA compatibility: Force charge mode with specific power."""
         logger.info(f"[InverterV2] Setting force charge mode with {charge_power_w}W")
 
         # Validate power limit
@@ -665,11 +665,11 @@ class FroniusWRV2:
         return self._set_time_of_use(timeofuse_list)
 
     def set_mode_avoid_discharge(self):
-        """EOS Connect compatibility: Avoid discharge mode."""
+        """EOS HA compatibility: Avoid discharge mode."""
         return self.set_battery_mode("hold")
 
     def set_mode_allow_discharge(self):
-        """EOS Connect compatibility: Allow discharge mode."""
+        """EOS HA compatibility: Allow discharge mode."""
         return self.set_battery_mode("normal")
 
     def get_battery_info(self):

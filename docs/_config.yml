@@ -1,8 +1,8 @@
-# GitHub Pages Configuration for EOS Connect
-title: EOS Connect Documentation
+# GitHub Pages Configuration for EOS HA
+title: EOS HA Documentation
 description: Intelligent Energy Management & Optimization
-url: "https://ohAnd.github.io"
-baseurl: "/EOS_connect"
+url: "https://rockinglama.github.io"
+baseurl: "/eos-ha"
 
 # Theme (we'll use custom HTML/CSS instead of default Jekyll themes)
 theme: null

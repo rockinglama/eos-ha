@@ -169,7 +169,7 @@
 **Hosting:**
 - Containerized (Docker)
 - Docker image: `python:3.13-slim`
-- Registry: `ghcr.io/ohand/eos_connect:snapshot`
+- Registry: `ghcr.io/ohand/eos_ha:snapshot`
 
 **CI Pipeline:**
 - GitHub Actions (present in `.github/` directory)
@@ -199,14 +199,14 @@ None in Docker (all via config.yaml). For API integrations, required in config.y
 - None detected (read-only integrations, one-way control)
 
 **State-based Callbacks:**
-- MQTT publish (outgoing): eos_connect publishes state to MQTT broker
+- MQTT publish (outgoing): eos_ha publishes state to MQTT broker
   - Via `src/interfaces/mqtt_interface.py` (MqttInterface.publish_message())
   - Topics: Home Assistant auto-discovery topics, state topics
   - Used for: Home Assistant integration, dashboard updates
 
 - EVCC mode/state change callbacks:
   - EvccInterface detects charging state/mode changes and triggers callback
-  - Used in: `src/eos_connect.py` main loop to react to EV charging events
+  - Used in: `src/eos_ha.py` main loop to react to EV charging events
 
 - Optimization result callbacks:
   - Optimization backends return scheduling data for control commands

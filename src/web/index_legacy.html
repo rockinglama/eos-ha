@@ -895,19 +895,19 @@
             document.getElementById('timestamp_next_run').innerText = minutes.toString().padStart(2, '0') + ":" + seconds.toString().padStart(2, '0') + " min";
 
             // display current eos connect version
-            document.getElementById('version_overlay').innerText = "EOS connect version: " + data_controls["eos_connect_version"];
+            document.getElementById('version_overlay').innerText = "EOS connect version: " + data_controls["eos_ha_version"];
 
-            document.getElementById('current_header_left').innerHTML = '<i class="fa-solid fa-circle-info"></i>'; // + " " + data_controls["eos_connect_version"];
-            document.getElementById('current_header_left').title = "EOS connect version: " + data_controls["eos_connect_version"];
+            document.getElementById('current_header_left').innerHTML = '<i class="fa-solid fa-circle-info"></i>'; // + " " + data_controls["eos_ha_version"];
+            document.getElementById('current_header_left').title = "EOS connect version: " + data_controls["eos_ha_version"];
             document.getElementById('current_header_left').addEventListener('click', function () {
                 overlayMenu(
                     "version",
-                    '<i style="font-size: smaller;">currently installed:</i><br><br>' + data_controls["eos_connect_version"] + "<br><br>" +
+                    '<i style="font-size: smaller;">currently installed:</i><br><br>' + data_controls["eos_ha_version"] + "<br><br>" +
                     "<hr style='border-color: rgba(44, 44, 44, 0.596);'>" +
                     '<div style="font-size: 2em;">' +
-                    '<a href="https://github.com/ohAnd/EOS_connect" target="_blank" style="padding-right: 20px; color: inherit; onmousedown="this.style.color=\'#551A8B\'" onmouseup="this.style.color=\'inherit\'""><i class="fa-brands fa-square-github"></i></a>' +
-                    '<a href="https://github.com/ohAnd/ha_addons/blob/master/eos_connect/CHANGELOG.md" target="_blank"  style="padding-right: 20px; color: inherit; onmousedown="this.style.color=\'#551A8B\'" onmouseup="this.style.color=\'inherit\'""><i class="fa-solid fa-file-invoice"></i></a>' +
-                    '<a href="https://github.com/ohAnd/EOS_connect/issues" target="_blank"  style="color: inherit; onmousedown="this.style.color=\'#551A8B\'" onmouseup="this.style.color=\'inherit\'""><i class="fa-solid fa-bug"></i></a>' +
+                    '<a href="https://github.com/rockinglama/eos-ha" target="_blank" style="padding-right: 20px; color: inherit; onmousedown="this.style.color=\'#551A8B\'" onmouseup="this.style.color=\'inherit\'""><i class="fa-brands fa-square-github"></i></a>' +
+                    '<a href="https://github.com/rockinglama/ha_addons/blob/master/eos_ha/CHANGELOG.md" target="_blank"  style="padding-right: 20px; color: inherit; onmousedown="this.style.color=\'#551A8B\'" onmouseup="this.style.color=\'inherit\'""><i class="fa-solid fa-file-invoice"></i></a>' +
+                    '<a href="https://github.com/rockinglama/eos-ha/issues" target="_blank"  style="color: inherit; onmousedown="this.style.color=\'#551A8B\'" onmouseup="this.style.color=\'inherit\'""><i class="fa-solid fa-bug"></i></a>' +
                     "</div>"
                 );
             });

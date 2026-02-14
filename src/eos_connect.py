@@ -69,7 +69,7 @@ streamhandler = logging.StreamHandler(sys.stdout)
 streamhandler.setFormatter(basic_formatter)
 logger.addHandler(streamhandler)
 logger.setLevel(LOGLEVEL)
-logger.info("[Main] Starting eos_connect - version: %s", __version__)
+logger.info("[Main] Starting eos_ha - version: %s", __version__)
 
 ###################################################################################################
 base_path = os.path.dirname(os.path.abspath(__file__))
@@ -595,7 +595,7 @@ def create_optimize_request():
     if dst_change_detected != 0:
         logger.info(
             "[Main] DST change detected: in %s hours there will be a shift with %s - please check"
-            + " https://github.com/ohAnd/EOS_connect/issues/130#issuecomment-3444749335"
+            + " https://github.com/rockinglama/eos-ha/issues/130#issuecomment-3444749335"
             + " for details.",
             abs(dst_change_detected),
             "1 hour plus" if dst_change_detected > 0 else "1 hour minus",
@@ -1538,7 +1538,7 @@ def get_controls():
             "source", "eos_server"
         ),
         "used_time_frame_base": time_frame_base,
-        "eos_connect_version": __version__,
+        "eos_ha_version": __version__,
         "timestamp": datetime.now(time_zone).isoformat(),
         "api_version": "0.0.4",
     }
@@ -1866,15 +1866,15 @@ if __name__ == "__main__":
         HOST = "0.0.0.0"
         # In HA addon mode, port is always 8081 (mapped via ports: config)
         # In local/Docker mode, use the configured port
-        desired_port = config_manager.config.get("eos_connect_web_port", 8081)
+        desired_port = config_manager.config.get("eos_ha_web_port", 8081)
 
-        logger.info("[Main] Initializing EOS Connect web server...")
+        logger.info("[Main] Initializing EOS HA web server...")
         http_server, actual_port = PortInterface.create_web_server_with_port_check(
             HOST, desired_port, app, logger
         )
 
         logger.info(
-            "[Main] EOS Connect web server successfully created on %s:%s",
+            "[Main] EOS HA web server successfully created on %s:%s",
             HOST,
             actual_port,
         )
@@ -1883,23 +1883,23 @@ if __name__ == "__main__":
         )
 
         # Start serving
-        logger.info("[Main] Starting EOS Connect web server...")
+        logger.info("[Main] Starting EOS HA web server...")
         http_server.serve_forever()
 
     except RuntimeError as e:
         # PortInterface already provides detailed error messages and solutions
         logger.error("[Main] %s", str(e))
-        logger.error("[Main] EOS Connect cannot start without its web interface.")
+        logger.error("[Main] EOS HA cannot start without its web interface.")
         sys.exit(1)
 
     except (OSError, ImportError) as e:
         # Only handle truly unexpected errors (not port-related)
         logger.error("[Main] Unexpected error: %s", str(e))
-        logger.error("[Main] EOS Connect cannot start. Please check the logs.")
+        logger.error("[Main] EOS HA cannot start. Please check the logs.")
         sys.exit(1)
 
     except KeyboardInterrupt:
-        logger.info("[Main] Shutting down EOS Connect (user requested)")
+        logger.info("[Main] Shutting down EOS HA (user requested)")
         optimization_scheduler.shutdown()
         base_control.shutdown()
         if http_server:

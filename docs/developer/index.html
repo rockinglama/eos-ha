@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Developer Guide - EOS Connect Documentation</title>
+    <title>Developer Guide - EOS HA Documentation</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 </head>
@@ -17,8 +17,8 @@
     <nav class="nav-header">
         <div class="nav-container">
             <a href="../index.html" class="nav-logo">
-                <img src="../assets/images/icon.png" alt="EOS Connect" style="height: 48px; vertical-align: middle; margin-right: 8px;">
-                <span>EOS Connect</span>
+                <img src="../assets/images/icon.png" alt="EOS HA" style="height: 48px; vertical-align: middle; margin-right: 8px;">
+                <span>EOS HA</span>
                 <span class="version-badge">v0.2.30</span>
             </a>
             <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle menu">
@@ -31,8 +31,8 @@
                 <li><a href="../user-guide/configuration.html">Configuration</a></li>
                 <li><a href="../advanced/index.html">Advanced</a></li>
                 <li><a href="index.html" class="active">Developer</a></li>
-                <li><a href="https://github.com/ohAnd/EOS_connect" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
-                <li><a href="https://github.com/sponsors/ohAnd" target="_blank" title="Sponsor the project"><i class="fas fa-mug-hot"></i></a></li>
+                <li><a href="https://github.com/rockinglama/eos-ha" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
+                <li><a href="https://github.com/sponsors/rockinglama" target="_blank" title="Sponsor the project"><i class="fas fa-mug-hot"></i></a></li>
             </ul>
         </div>
     </nav>
@@ -70,7 +70,7 @@
                     <div class="icon"><i class="fas fa-code-branch"></i></div>
                     <h3>Contributing</h3>
                 </div>
-                <p>How to contribute to EOS Connect</p>
+                <p>How to contribute to EOS HA</p>
                 <a href="#contributing" class="btn">Contribute →</a>
             </div>
             <div class="block-card">
@@ -98,7 +98,7 @@
             <h3>System Components</h3>
             <div class="feature-grid">
                 <div class="feature-item">
-                    <h4>eos_connect.py</h4>
+                    <h4>eos_ha.py</h4>
                     <p>Main application entry point and orchestration</p>
                 </div>
                 <div class="feature-item">
@@ -379,8 +379,8 @@ python_functions = test_*</code></pre>
 
             <h3>Setup Steps</h3>
             <pre><code># 1. Clone repository
-git clone https://github.com/ohAnd/EOS_connect.git
-cd EOS_connect
+git clone https://github.com/rockinglama/eos-ha.git
+cd eos-ha
 
 # 2. Create virtual environment
 python -m venv venv
@@ -396,8 +396,8 @@ pip install black pylint pytest pytest-cov
 cp src/config.yaml.example src/config.yaml
 # Edit src/config.yaml with your settings
 
-# 6. Run EOS Connect
-python src/eos_connect.py</code></pre>
+# 6. Run EOS HA
+python src/eos_ha.py</code></pre>
 
             <h3>VS Code Configuration</h3>
             <p>Recommended <code>.vscode/settings.json</code>:</p>
@@ -431,9 +431,9 @@ set EOS_CONNECT_PORT=8081</code></pre>
         <!-- Project Structure -->
         <div class="content-section">
             <h2><i class="fas fa-folder"></i> Project Structure</h2>
-            <pre><code>EOS_connect/
+            <pre><code>eos-ha/
 ├── src/
-│   ├── eos_connect.py         # Main application
+│   ├── eos_ha.py         # Main application
 │   ├── config.py              # Configuration management
 │   ├── config.yaml            # User configuration
 │   ├── constants.py           # Constants and enums
@@ -471,10 +471,10 @@ set EOS_CONNECT_PORT=8081</code></pre>
 
             <h3>Documentation</h3>
             <ul>
-                <li><a href="https://github.com/ohAnd/EOS_connect" target="_blank">GitHub Repository</a></li>
-                <li><a href="https://github.com/ohAnd/EOS_connect/blob/main/README.md" target="_blank">README</a></li>
+                <li><a href="https://github.com/rockinglama/eos-ha" target="_blank">GitHub Repository</a></li>
+                <li><a href="https://github.com/rockinglama/eos-ha/blob/main/README.md" target="_blank">README</a></li>
                 <li><a href="../user-guide/configuration.html" target="_blank">Configuration Reference</a></li>
-                <li><a href="https://github.com/ohAnd/EOS_connect/blob/main/CONTRIBUTING.md" target="_blank">Contributing Guidelines</a></li>
+                <li><a href="https://github.com/rockinglama/eos-ha/blob/main/CONTRIBUTING.md" target="_blank">Contributing Guidelines</a></li>
             </ul>
 
             <h3>Related Projects</h3>
@@ -500,11 +500,11 @@ set EOS_CONNECT_PORT=8081</code></pre>
             <div class="feature-grid">
                 <div class="feature-item">
                     <h4><i class="fas fa-bug"></i> Report Bugs</h4>
-                    <p><a href="https://github.com/ohAnd/EOS_connect/issues" target="_blank">Open an issue</a> with detailed reproduction steps</p>
+                    <p><a href="https://github.com/rockinglama/eos-ha/issues" target="_blank">Open an issue</a> with detailed reproduction steps</p>
                 </div>
                 <div class="feature-item">
                     <h4><i class="fas fa-lightbulb"></i> Suggest Features</h4>
-                    <p>Share your ideas in <a href="https://github.com/ohAnd/EOS_connect/discussions" target="_blank">GitHub Discussions</a></p>
+                    <p>Share your ideas in <a href="https://github.com/rockinglama/eos-ha/discussions" target="_blank">GitHub Discussions</a></p>
                 </div>
                 <div class="feature-item">
                     <h4><i class="fas fa-edit"></i> Improve Docs</h4>
@@ -521,7 +521,7 @@ set EOS_CONNECT_PORT=8081</code></pre>
     </div>
 
     <footer class="footer">
-        <p>EOS Connect Documentation | <a href="../index.html">Home</a> | <a href="https://github.com/ohAnd/EOS_connect">GitHub</a> | <a href="https://github.com/sponsors/ohAnd">Sponsor</a></p>
+        <p>EOS HA Documentation | <a href="../index.html">Home</a> | <a href="https://github.com/rockinglama/eos-ha">GitHub</a> | <a href="https://github.com/sponsors/rockinglama">Sponsor</a></p>
     </footer>
 
     <!-- Scroll spy for TOC -->

@@ -6,7 +6,7 @@
 
 ## Summary
 
-Phase 1 requires building a HACS-compatible Home Assistant custom integration that implements Config Flow, DataUpdateCoordinator-based polling, entity selection, and async API communication with EOS server and Akkudoktor API. The existing EOS_connect codebase provides proven optimization logic and API patterns (EOS request/response format, Akkudoktor PV forecast API), but requires conversion from synchronous requests+threading to Home Assistant's async/await model using aiohttp.
+Phase 1 requires building a HACS-compatible Home Assistant custom integration that implements Config Flow, DataUpdateCoordinator-based polling, entity selection, and async API communication with EOS server and Akkudoktor API. The existing eos-ha codebase provides proven optimization logic and API patterns (EOS request/response format, Akkudoktor PV forecast API), but requires conversion from synchronous requests+threading to Home Assistant's async/await model using aiohttp.
 
 The standard stack is well-established: Config Flow for setup, voluptuous for schema validation, DataUpdateCoordinator for polling, aiohttp for HTTP requests, and CoordinatorEntity for entity platforms. The architecture follows Home Assistant's modern config-entry-based pattern with async_setup_entry in __init__.py forwarding to platform files.
 
@@ -87,7 +87,7 @@ pip install aiohttp pytz packaging
 
 ### Recommended Project Structure
 ```
-custom_components/eos_connect/
+custom_components/eos_ha/
 ├── __init__.py           # Integration setup, async_setup_entry, coordinator initialization
 ├── manifest.json         # Integration metadata, dependencies, version
 ├── config_flow.py        # 3-step Config Flow (EOS URL → entity selection → battery params)
@@ -165,7 +165,7 @@ class EOSConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Step 3: Battery parameters."""
         if user_input is not None:
             self.data.update(user_input)
-            return self.async_create_entry(title="EOS Connect", data=self.data)
+            return self.async_create_entry(title="EOS HA", data=self.data)
 
         return self.async_show_form(
             step_id="battery",
@@ -370,7 +370,7 @@ data_schema = vol.Schema({
 
 ### Pitfall 1: Synchronous Code in Async Context
 **What goes wrong:** Using requests library or synchronous file I/O blocks Home Assistant's event loop, causing UI freezes and delayed automations
-**Why it happens:** Existing EOS_connect codebase uses requests + threading; pattern looks correct but is incompatible with HA async model
+**Why it happens:** Existing eos-ha codebase uses requests + threading; pattern looks correct but is incompatible with HA async model
 **How to avoid:**
 - Replace `requests.get/post` with `async with session.get/post`
 - Replace `time.sleep()` with `await asyncio.sleep()`
@@ -447,7 +447,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 PLATFORMS = ["sensor"]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up EOS Connect from a config entry."""
+    """Set up EOS HA from a config entry."""
     # Create coordinator
     coordinator = EOSCoordinator(hass, entry)
 
@@ -616,8 +616,8 @@ async def async_step_user(self, user_input=None):
 - [HACS Integration Publishing](https://www.hacs.xyz/docs/publish/integration/) - HACS requirements and structure
 - [Home Assistant Manifest Docs](https://developers.home-assistant.io/docs/creating_integration_manifest/) - manifest.json specification
 - [aiohttp Client Quickstart](https://docs.aiohttp.org/en/stable/client_quickstart.html) - Async HTTP patterns
-- Local codebase: `/Users/idueck/repos/EOS_connect/src/interfaces/optimization_backends/optimization_backend_eos.py` - EOS API endpoints and request format
-- Local codebase: `/Users/idueck/repos/EOS_connect/src/interfaces/pv_interface.py` - Akkudoktor API usage pattern
+- Local codebase: `/Users/idueck/repos/eos-ha/src/interfaces/optimization_backends/optimization_backend_eos.py` - EOS API endpoints and request format
+- Local codebase: `/Users/idueck/repos/eos-ha/src/interfaces/pv_interface.py` - Akkudoktor API usage pattern
 
 ### Secondary (MEDIUM confidence)
 - [Jon Seager: Writing a Home Assistant Integration](https://jnsgr.uk/2024/10/writing-a-home-assistant-integration/) - Modern integration practices
@@ -642,13 +642,13 @@ async def async_step_user(self, user_input=None):
 ## Key Implementation Notes
 
 ### Async Conversion Strategy
-The existing EOS_connect codebase provides proven logic but uses synchronous patterns:
+The existing eos-ha codebase provides proven logic but uses synchronous patterns:
 - **requests → aiohttp**: All HTTP calls need async conversion with proper session management
 - **threading → asyncio**: Background PV forecast updates via coordinator, not threads
 - **time.sleep → asyncio.sleep**: Retry delays must be non-blocking
 
 ### Reusable Code from Existing Codebase
-- EOS request building logic: Adapt `eos_connect.py` request creation
+- EOS request building logic: Adapt `eos_ha.py` request creation
 - EOS response parsing: Adapt response processing from existing code
 - Akkudoktor API endpoint: URL and request format from `pv_interface.py` line 43
 - EOS health check: `/v1/health` endpoint pattern from existing code

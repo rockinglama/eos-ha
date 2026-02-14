@@ -67,7 +67,7 @@
 
 ```
 custom_components/
-└── eos_connect/                # Integration domain name
+└── eos_ha/                # Integration domain name
     ├── manifest.json            # Integration metadata
     ├── __init__.py              # Integration setup/teardown
     ├── config_flow.py           # Config UI + Options UI
@@ -119,7 +119,7 @@ class EOSCoordinator(DataUpdateCoordinator):
         super().__init__(
             hass,
             _LOGGER,
-            name="EOS Connect",
+            name="EOS HA",
             update_interval=timedelta(minutes=15),
         )
         self.api_client = api_client
@@ -207,7 +207,7 @@ from homeassistant.core import callback
 import voluptuous as vol
 
 class EOSConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle config flow for EOS Connect."""
+    """Handle config flow for EOS HA."""
 
     VERSION = 1
 
@@ -220,7 +220,7 @@ class EOSConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 await validate_api(user_input[CONF_API_URL])
                 return self.async_create_entry(
-                    title="EOS Connect",
+                    title="EOS HA",
                     data=user_input
                 )
             except CannotConnect:
@@ -280,7 +280,7 @@ from homeassistant.core import HomeAssistant
 PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.NUMBER]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up EOS Connect from config entry."""
+    """Set up EOS HA from config entry."""
     # 1. Create coordinator
     coordinator = EOSCoordinator(hass, entry.data)
 
@@ -342,7 +342,7 @@ async def async_setup_entry(
 **Example:**
 ```python
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    """Set up the EOS Connect component (registers services)."""
+    """Set up the EOS HA component (registers services)."""
 
     async def handle_force_update(call):
         """Handle force update service call."""
@@ -504,7 +504,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 ### Service Call Flow
 
 ```
-[Automation/Script calls eos_connect.force_update]
+[Automation/Script calls eos_ha.force_update]
     ↓
 [Service handler receives call]
     ↓
@@ -734,5 +734,5 @@ strings.json (no code dependencies)
 - [Modern HA Integration Blueprint | GitHub](https://github.com/jpawlowski/hacs.integration_blueprint)
 
 ---
-*Architecture research for: EOS Connect Home Assistant Integration*
+*Architecture research for: EOS HA Home Assistant Integration*
 *Researched: 2026-02-14*

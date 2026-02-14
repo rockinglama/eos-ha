@@ -106,7 +106,7 @@ A default config file will be created with the first start, if there is no `conf
   If you set `time_frame: 900` with `eos_server`, it will be automatically corrected to 3600 at startup with a warning.  
   
   **Note:**  
-  - `refresh_time` (see "Other Configuration Settings") controls how often EOS Connect sends a request to the optimization server.  
+  - `refresh_time` (see "Other Configuration Settings") controls how often EOS HA sends a request to the optimization server.  
   - `time_frame` sets the time step granularity inside each optimization request.
 
   Example (EVopt with 15-minute precision):
@@ -397,7 +397,7 @@ pv_forecast:
 Refer to this table and details when editing your `config.yaml` and for troubleshooting configuration errors.
 - **`api_key`** (in `pv_forecast_source`): Required. Your Solcast API key obtained from your Solcast account.
 - **`resource_id`** (in each `pv_forecast` entry): Required. The resource ID from your Solcast rooftop site configuration.
-- **Location parameters for temperature forecasts**: For all PV forecast sources, EOS Connect requires temperature data for optimization. The temperature forecast is always retrieved from Akkudoktor, and therefore, the `lat` and `lon` parameters are mandatory for every PV installation entry, regardless of the selected forecast source.
+- **Location parameters for temperature forecasts**: For all PV forecast sources, EOS HA requires temperature data for optimization. The temperature forecast is always retrieved from Akkudoktor, and therefore, the `lat` and `lon` parameters are mandatory for every PV installation entry, regardless of the selected forecast source.
 - **`power`, `powerInverter`, `inverterEfficiency`**: Still required for system scaling and efficiency calculations.
 
 **Setting up Solcast:**
@@ -405,7 +405,7 @@ Refer to this table and details when editing your `config.yaml` and for troubles
 2. Configure a "Rooftop Site" with your PV system details (location, tilt, azimuth, capacity)
 3. Copy the Resource ID from your rooftop site
 4. Get your API key from the account settings
-5. Use these values in your EOS Connect configuration (including lat/lon for temperature forecasts)
+5. Use these values in your EOS HA configuration (including lat/lon for temperature forecasts)
 
 ---
 
@@ -442,7 +442,7 @@ Refer to this table and details when editing your `config.yaml` and for troubles
 - **`evcc.url`**:  
   The URL for the EVCC instance (e.g., `http://<ip>:7070`). If not used set to `url: ""` or leave as `url: http://yourEVCCserver:7070`
 
-**Note**: When using `evcc` as the `pv_forecast_source`, this EVCC configuration must be properly configured. EOS Connect will retrieve PV forecasts directly from the EVCC API instead of using individual PV installation configurations. In this case, the `pv_forecast` section can be left empty or minimal, as EVCC provides the aggregated forecast data.
+**Note**: When using `evcc` as the `pv_forecast_source`, this EVCC configuration must be properly configured. EOS HA will retrieve PV forecasts directly from the EVCC API instead of using individual PV installation configurations. In this case, the `pv_forecast` section can be left empty or minimal, as EVCC provides the aggregated forecast data.
 
 ---
 
@@ -488,13 +488,13 @@ The `mqtt` section allows you to configure the MQTT broker and Home Assistant MQ
 
 - **`refresh_time`**:  
   Default refresh time for the application, in minutes.  
-  This sets how often EOS Connect sends an optimization request to the EOS server.
+  This sets how often EOS HA sends an optimization request to the EOS server.
 
 - **`time_zone`**:  
   Default time zone for the application.
 
-- **`eos_connect_web_port`**:  
-  Default port for the EOS Connect server.
+- **`eos_ha_web_port`**:  
+  Default port for the EOS HA server.
 
 - **`log_level`**:  
   Log level for the application. Possible values: `debug`, `info`, `warning`, `error`.
@@ -509,7 +509,7 @@ The `mqtt` section allows you to configure the MQTT broker and Home Assistant MQ
 
 ### `refresh_time` and `time_frame`
 
-- `refresh_time` sets how often EOS Connect sends a new optimization request to the EOS server (e.g., every 3 minutes).
+- `refresh_time` sets how often EOS HA sends a new optimization request to the EOS server (e.g., every 3 minutes).
 - `time_frame` sets the granularity of the optimization and forecast arrays inside each request (e.g., 900 for 15-minute steps, 3600 for hourly steps).
 - For more precise optimization and control, set `time_frame: 900`. For legacy hourly operation, use `3600`.
 - The combination of `refresh_time` and `time_frame` allows you to control both how frequently the system updates and how detailed the optimization is.
@@ -601,7 +601,7 @@ mqtt:
   ha_mqtt_auto_discovery_prefix: homeassistant # Prefix for Home Assistant MQTT auto discovery - default: homeassistant
 refresh_time: 3 # Default refresh time of EOS connect in minutes - default: 3
 time_zone: Europe/Berlin # Default time zone - default: Europe/Berlin
-eos_connect_web_port: 8081 # Default port for EOS connect server - default: 8081
+eos_ha_web_port: 8081 # Default port for EOS connect server - default: 8081
 log_level: info # Log level for the application : debug, info, warning, error - default: info
 ```
 
@@ -668,7 +668,7 @@ mqtt:
   enabled: false # Enable MQTT - default: false
 refresh_time: 3 # Default refresh time of EOS connect in minutes - default: 3
 time_zone: Europe/Berlin # Default time zone - default: Europe/Berlin
-eos_connect_web_port: 8081 # Default port for EOS connect server - default: 8081
+eos_ha_web_port: 8081 # Default port for EOS connect server - default: 8081
 log_level: info # Log level for the application : debug, info, warning, error - default: info
 ```
 
@@ -725,11 +725,11 @@ pv_forecast:
 **Important Solcast Rate Limiting Information:**
 
 - Each PV installation requires a separate rooftop site configured in your Solcast account
-- Physical PV parameters (tilt, azimuth) are configured in the Solcast dashboard, not in EOS Connect
+- Physical PV parameters (tilt, azimuth) are configured in the Solcast dashboard, not in EOS HA
 - **Location coordinates (lat, lon) are still required** for temperature forecasts that EOS uses for optimization calculations
 - The `resource_id` is obtained from your Solcast rooftop site configuration
 - `power`, `powerInverter`, and `inverterEfficiency` are still required for proper system scaling
 - **Free Solcast accounts are limited to 10 API calls per day**
-- **EOS Connect automatically extends update intervals to 2.5 hours when using Solcast** to stay within the 10 calls/day limit (9.6 calls/day actual usage)
+- **EOS HA automatically extends update intervals to 2.5 hours when using Solcast** to stay within the 10 calls/day limit (9.6 calls/day actual usage)
 - Multiple PV installations will result in multiple API calls per update cycle - consider this when planning your configuration
-- If you exceed rate limits, EOS Connect will use the previous forecast data until the next successful API call
+- If you exceed rate limits, EOS HA will use the previous forecast data until the next successful API call

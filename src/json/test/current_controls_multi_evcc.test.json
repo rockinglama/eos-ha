@@ -86,7 +86,7 @@
         "last_response_timestamp": "2024-10-03T14:30:00.456Z",
         "next_run": "2024-10-03T14:35:00.000Z"
     },
-    "eos_connect_version": "0.2.1",
+    "eos_ha_version": "0.2.1",
     "timestamp": "2024-10-03T14:30:15.789Z",
     "api_version": "0.0.1"
 }

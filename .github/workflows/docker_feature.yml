@@ -72,5 +72,5 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/${{ env.owner }}/eos_connect:feature_dev_${{ env.clean_ref }}
+            ghcr.io/${{ env.owner }}/eos_ha:feature_dev_${{ env.clean_ref }}
           push: true

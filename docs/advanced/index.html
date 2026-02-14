@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Features - EOS Connect Documentation</title>
+    <title>Advanced Features - EOS HA Documentation</title>
     <link rel="stylesheet" href="../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
 </head>
@@ -17,8 +17,8 @@
     <nav class="nav-header">
         <div class="nav-container">
             <a href="../index.html" class="nav-logo">
-                <img src="../assets/images/icon.png" alt="EOS Connect" style="height: 48px; vertical-align: middle; margin-right: 8px;">
-                <span>EOS Connect</span>
+                <img src="../assets/images/icon.png" alt="EOS HA" style="height: 48px; vertical-align: middle; margin-right: 8px;">
+                <span>EOS HA</span>
                 <span class="version-badge">v0.2.30</span>
             </a>
             <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle menu">
@@ -31,8 +31,8 @@
                 <li><a href="../user-guide/configuration.html">Configuration</a></li>
                 <li><a href="index.html" class="active">Advanced</a></li>
                 <li><a href="../developer/index.html">Developer</a></li>
-                <li><a href="https://github.com/ohAnd/EOS_connect" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
-                <li><a href="https://github.com/sponsors/ohAnd" target="_blank" title="Sponsor the project"><i class="fas fa-mug-hot"></i></a></li>
+                <li><a href="https://github.com/rockinglama/eos-ha" target="_blank"><i class="fab fa-github"></i> GitHub</a></li>
+                <li><a href="https://github.com/sponsors/rockinglama" target="_blank" title="Sponsor the project"><i class="fas fa-mug-hot"></i></a></li>
             </ul>
         </div>
     </nav>
@@ -75,7 +75,7 @@
                     <div class="icon"><i class="fas fa-exchange-alt"></i></div>
                     <h3>REST API</h3>
                 </div>
-                <p>HTTP endpoints for reading system state and controlling EOS Connect</p>
+                <p>HTTP endpoints for reading system state and controlling EOS HA</p>
                 <a href="#rest-api" class="btn">Learn More →</a>
             </div>
             <div class="block-card">
@@ -99,7 +99,7 @@
                     <div class="icon"><i class="fas fa-robot"></i></div>
                     <h3>Automation</h3>
                 </div>
-                <p>Examples for automating EOS Connect with your smart home</p>
+                <p>Examples for automating EOS HA with your smart home</p>
                 <a href="#automation" class="btn">Learn More →</a>
             </div>
         </div>
@@ -107,7 +107,7 @@
         <!-- REST API Section -->
         <div class="content-section" id="rest-api">
             <h2><i class="fas fa-globe"></i> REST API</h2>
-            <p>EOS Connect provides a comprehensive RESTful web API for real-time data access and remote control on port 8081 (configurable). All endpoints return JSON and can be accessed via HTTP requests.</p>
+            <p>EOS HA provides a comprehensive RESTful web API for real-time data access and remote control on port 8081 (configurable). All endpoints return JSON and can be accessed via HTTP requests.</p>
 
             <div class="alert alert-info">
                 <strong><i class="fas fa-info-circle"></i> Base URL:</strong> All endpoints use <code>http://&lt;host&gt;:&lt;port&gt;/</code> (Default port: 8081)
@@ -235,7 +235,7 @@
   },
   "used_optimization_source": "eos_server",
   "used_time_frame_base": 3600,
-  "eos_connect_version": "0.2.01.138-develop",
+  "eos_ha_version": "0.2.01.138-develop",
   "timestamp": "2024-06-01T12:00:00+02:00",
   "api_version": "0.0.3"
 }</code></pre>
@@ -517,7 +517,7 @@
 
             <div class="alert alert-info">
                 <strong><i class="fas fa-plug"></i> EVCC unreachable at startup:</strong>
-                If the EVCC API is down when EOS Connect starts, the service now keeps safe default charger data and keeps retrying instead of stopping the update loop. Once EVCC responds again, loadpoint and vehicle details resume automatically on the next poll.
+                If the EVCC API is down when EOS HA starts, the service now keeps safe default charger data and keeps retrying instead of stopping the update loop. Once EVCC responds again, loadpoint and vehicle details resume automatically on the next poll.
             </div>
 
             <h5>inverter</h5>
@@ -592,9 +592,9 @@
                         <td>Optimization cycle time frame (3600 = 1 hour, 900 = 15 min)</td>
                     </tr>
                     <tr>
-                        <td><code>eos_connect_version</code></td>
+                        <td><code>eos_ha_version</code></td>
                         <td>String</td>
-                        <td>EOS Connect software version</td>
+                        <td>EOS HA software version</td>
                     </tr>
                     <tr>
                         <td><code>timestamp</code></td>
@@ -762,7 +762,7 @@ curl "http://localhost:8081/logs?since=2024-06-01T11:00:00Z"</code></pre>
         <!-- Sensor Auto-Detection Section -->
         <div class="content-section" id="sensor-detection">
             <h2><i class="fas fa-wand-magic-sparkles"></i> Sensor Auto-Detection</h2>
-            <p>EOS Connect automatically detects battery and grid sensor polarity using a lightweight energy balance validation. This ensures correct attribution of battery charging between PV and Grid — even if your sensors report inverted signs.</p>
+            <p>EOS HA automatically detects battery and grid sensor polarity using a lightweight energy balance validation. This ensures correct attribution of battery charging between PV and Grid — even if your sensors report inverted signs.</p>
             <ul>
                 <li><strong>What it solves:</strong> Prevents PV attribution at night when PV≈0 by recognizing inverted grid import sensors</li>
                 <li><strong>How it works:</strong> Tests 4 sign combinations and selects the one that balances <em>PV + Grid + Battery = Load</em> across recent samples</li>
@@ -778,7 +778,7 @@ curl "http://localhost:8081/logs?since=2024-06-01T11:00:00Z"</code></pre>
         <!-- MQTT Section -->
         <div class="content-section" id="mqtt">
             <h2><i class="fas fa-satellite-dish"></i> MQTT Integration</h2>
-            <p>EOS Connect publishes real-time system data and control states to MQTT topics, and subscribes to control commands for remote system management.</p>
+            <p>EOS HA publishes real-time system data and control states to MQTT topics, and subscribes to control commands for remote system management.</p>
 
             <h3>Configuration</h3>
             <pre><code>mqtt:
@@ -792,11 +792,11 @@ curl "http://localhost:8081/logs?since=2024-06-01T11:00:00Z"</code></pre>
   ha_mqtt_auto_discovery_prefix: homeassistant</code></pre>
 
             <div class="alert alert-info">
-                <strong><i class="fas fa-info-circle"></i> Base Topic:</strong> All topics use <code>&lt;mqtt_configured_prefix&gt;/eos_connect/</code> (e.g., <code>myhome/eos_connect/</code>)
+                <strong><i class="fas fa-info-circle"></i> Base Topic:</strong> All topics use <code>&lt;mqtt_configured_prefix&gt;/eos_ha/</code> (e.g., <code>myhome/eos_ha/</code>)
             </div>
 
             <h3 id="mqtt-published">Published Topics (Read System State)</h3>
-            <p>EOS Connect publishes comprehensive real-time data to these topics:</p>
+            <p>EOS HA publishes comprehensive real-time data to these topics:</p>
 
             <table>
                 <thead>
@@ -956,7 +956,7 @@ curl "http://localhost:8081/logs?since=2024-06-01T11:00:00Z"</code></pre>
             </div>
 
             <h3 id="mqtt-subscribed">Subscribed Topics (Send Control Commands)</h3>
-            <p>Control EOS Connect by publishing messages to these topics:</p>
+            <p>Control EOS HA by publishing messages to these topics:</p>
 
             <table>
                 <thead>
@@ -1028,39 +1028,39 @@ curl "http://localhost:8081/logs?since=2024-06-01T11:00:00Z"</code></pre>
             <h3 id="mqtt-examples">MQTT Command Examples</h3>
 
             <h4>Set System to Automatic Mode</h4>
-            <pre><code>mosquitto_pub -t "myhome/eos_connect/control/overall_state/set" -m "Auto"
+            <pre><code>mosquitto_pub -t "myhome/eos_ha/control/overall_state/set" -m "Auto"
 # or
-mosquitto_pub -t "myhome/eos_connect/control/overall_state/set" -m "-2"</code></pre>
+mosquitto_pub -t "myhome/eos_ha/control/overall_state/set" -m "-2"</code></pre>
 
             <h4>Force Grid Charging</h4>
-            <pre><code>mosquitto_pub -t "myhome/eos_connect/control/overall_state/set" -m "Charge from Grid"
+            <pre><code>mosquitto_pub -t "myhome/eos_ha/control/overall_state/set" -m "Charge from Grid"
 # or
-mosquitto_pub -t "myhome/eos_connect/control/overall_state/set" -m "0"</code></pre>
+mosquitto_pub -t "myhome/eos_ha/control/overall_state/set" -m "0"</code></pre>
 
             <h4>Set Override Duration to 1.5 Hours</h4>
-            <pre><code>mosquitto_pub -t "myhome/eos_connect/control/override_remain_time/set" -m "01:30"</code></pre>
+            <pre><code>mosquitto_pub -t "myhome/eos_ha/control/override_remain_time/set" -m "01:30"</code></pre>
 
             <h4>Set Grid Charge Power to 1500W</h4>
-            <pre><code>mosquitto_pub -t "myhome/eos_connect/control/override_charge_power/set" -m "1500"</code></pre>
+            <pre><code>mosquitto_pub -t "myhome/eos_ha/control/override_charge_power/set" -m "1500"</code></pre>
 
             <h4>Monitor Battery SOC</h4>
-            <pre><code>mosquitto_sub -t "myhome/eos_connect/battery/soc"</code></pre>
+            <pre><code>mosquitto_sub -t "myhome/eos_ha/battery/soc"</code></pre>
 
             <h3>Home Assistant MQTT Auto Discovery</h3>
-            <p>When enabled (<code>ha_mqtt_auto_discovery: true</code>), EOS Connect automatically creates Home Assistant entities for all sensors and controls.</p>
+            <p>When enabled (<code>ha_mqtt_auto_discovery: true</code>), EOS HA automatically creates Home Assistant entities for all sensors and controls.</p>
             
             <div class="alert alert-info">
                 <strong><i class="fas fa-home"></i> Auto-Created Entities:</strong>
                 <ul>
-                    <li><code>sensor.eos_connect_battery_soc</code></li>
-                    <li><code>sensor.eos_connect_battery_remaining_energy</code></li>
-                    <li><code>sensor.eos_connect_optimization_state</code></li>
-                    <li><code>switch.eos_connect_discharge_allowed</code></li>
+                    <li><code>sensor.eos_ha_battery_soc</code></li>
+                    <li><code>sensor.eos_ha_battery_remaining_energy</code></li>
+                    <li><code>sensor.eos_ha_optimization_state</code></li>
+                    <li><code>switch.eos_ha_discharge_allowed</code></li>
                     <li>And many more...</li>
                 </ul>
             </div>
 
-            <p>All entities are automatically organized under the <code>EOS Connect</code> device in Home Assistant.</p>
+            <p>All entities are automatically organized under the <code>EOS HA</code> device in Home Assistant.</p>
         </div>
 
         <!-- Integrations Section -->
@@ -1070,8 +1070,8 @@ mosquitto_pub -t "myhome/eos_connect/control/overall_state/set" -m "0"</code></p
             <h3>Home Assistant Integration</h3>
             <h4>Add-on Installation</h4>
             <ol>
-                <li>Add repository: <a href="https://github.com/ohAnd/ha_addons" target="_blank">ohAnd/ha_addons</a></li>
-                <li>Install EOS Connect add-on</li>
+                <li>Add repository: <a href="https://github.com/rockinglama/ha_addons" target="_blank">rockinglama/ha_addons</a></li>
+                <li>Install EOS HA add-on</li>
                 <li>Configure via add-on UI</li>
                 <li>Enable MQTT in config for auto-discovery</li>
             </ol>
@@ -1104,7 +1104,7 @@ pv_forecast_source:
   source: evcc  # Use EVCC's PV forecasts</code></pre>
 
             <h4>As Control Target</h4>
-            <p>EOS Connect can monitor and control EVCC charging modes:</p>
+            <p>EOS HA can monitor and control EVCC charging modes:</p>
             <ul>
                 <li>PV-only charging</li>
                 <li>Min+PV mode</li>
@@ -1151,16 +1151,16 @@ pv_forecast_source:
         below: 0.15  # €0.15/kWh
     condition:
       - condition: numeric_state
-        entity_id: sensor.eos_connect_battery_soc
+        entity_id: sensor.eos_ha_battery_soc
         below: 80
     action:
       - service: mqtt.publish
         data:
-          topic: "myhome/eos_connect/control/overall_state/set"
+          topic: "myhome/eos_ha/control/overall_state/set"
           payload: "Charge from Grid"
       - service: mqtt.publish
         data:
-          topic: "myhome/eos_connect/control/override_remain_time/set"
+          topic: "myhome/eos_ha/control/override_remain_time/set"
           payload: "02:00"</code></pre>
 
             <h4>Stop Discharge During High Load</h4>
@@ -1173,13 +1173,13 @@ pv_forecast_source:
     action:
       - service: mqtt.publish
         data:
-          topic: "myhome/eos_connect/control/overall_state/set"
+          topic: "myhome/eos_ha/control/overall_state/set"
           payload: "Avoid Discharge"</code></pre>
 
             <h3>Node-RED Flows</h3>
             <p>Use MQTT nodes to:</p>
             <ul>
-                <li>Monitor EOS Connect status</li>
+                <li>Monitor EOS HA status</li>
                 <li>Trigger controls based on external events</li>
                 <li>Create custom dashboards</li>
                 <li>Log data to databases</li>
@@ -1234,7 +1234,7 @@ if battery['soc'] < 0.20:
   source: solcast
   api_key: "your_api_key"
 
-# EOS Connect auto-extends to 2.5h intervals for Solcast
+# EOS HA auto-extends to 2.5h intervals for Solcast
 # to stay within 10 API calls/day limit</code></pre>
 
             <h3>Temperature-Based Battery Protection</h3>
@@ -1257,7 +1257,7 @@ if battery['soc'] < 0.20:
                     <p>Architecture and contribution info</p>
                 </div>
                 <div class="feature-item">
-                    <a href="https://github.com/ohAnd/EOS_connect/discussions" class="btn-primary" target="_blank">Community →</a>
+                    <a href="https://github.com/rockinglama/eos-ha/discussions" class="btn-primary" target="_blank">Community →</a>
                     <p>Ask questions and share ideas</p>
                 </div>
             </div>
@@ -1268,7 +1268,7 @@ if battery['soc'] < 0.20:
 
     <!-- Footer -->
     <footer class="footer">
-        <p>EOS Connect Documentation | <a href="../index.html">Home</a> | <a href="https://github.com/ohAnd/EOS_connect">GitHub</a> | <a href="https://github.com/sponsors/ohAnd">Sponsor</a></p>
+        <p>EOS HA Documentation | <a href="../index.html">Home</a> | <a href="https://github.com/rockinglama/eos-ha">GitHub</a> | <a href="https://github.com/sponsors/rockinglama">Sponsor</a></p>
     </footer>
 
     <!-- Scroll spy for TOC -->

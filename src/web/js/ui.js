@@ -208,7 +208,7 @@ function showMainMenu(version, backend, granularity) {
         
         <hr style="border: none; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 5px 0;">
 
-        <div onclick="window.open('https://ohand.github.io/EOS_connect/', '_blank'); closeDropdownMenu();" style="cursor: pointer; padding: 10px 15px; transition: background-color 0.2s; display: flex; align-items: center; justify-content: space-between;" 
+        <div onclick="window.open('https://ohand.github.io/eos-ha/', '_blank'); closeDropdownMenu();" style="cursor: pointer; padding: 10px 15px; transition: background-color 0.2s; display: flex; align-items: center; justify-content: space-between;" 
             onmouseover="this.style.backgroundColor='rgba(100, 100, 100, 0.5)'" 
             onmouseout="this.style.backgroundColor='transparent'">
             <div style="display: flex; align-items: center;">
@@ -218,7 +218,7 @@ function showMainMenu(version, backend, granularity) {
             <i class="fa-solid fa-external-link-alt" style="font-size: 0.7em; color: #888888;"></i>
         </div>
 
-        <div onclick="window.open('https://github.com/ohAnd/ha_addons/blob/master/eos_connect/CHANGELOG.md', '_blank'); closeDropdownMenu();" style="cursor: pointer; padding: 10px 15px; transition: background-color 0.2s; display: flex; align-items: center; justify-content: space-between;" 
+        <div onclick="window.open('https://github.com/rockinglama/ha_addons/blob/master/eos_ha/CHANGELOG.md', '_blank'); closeDropdownMenu();" style="cursor: pointer; padding: 10px 15px; transition: background-color 0.2s; display: flex; align-items: center; justify-content: space-between;" 
             onmouseover="this.style.backgroundColor='rgba(100, 100, 100, 0.5)'" 
             onmouseout="this.style.backgroundColor='transparent'">
             <div style="display: flex; align-items: center;">
@@ -565,7 +565,7 @@ function showInfoMenu(version, backend, granularity) {
                 
                 <div style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap;">
                     <!-- GitHub Repository -->
-                    <a href="https://github.com/ohAnd/EOS_connect" target="_blank" 
+                    <a href="https://github.com/rockinglama/eos-ha" target="_blank" 
                        style="color: inherit; text-decoration: none; display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: rgba(255,255,255,0.05); border-radius: 8px; transition: all 0.3s ease; min-width: 120px;"
                        onmouseover="this.style.backgroundColor='rgba(255,255,255,0.1)'; this.style.transform='translateY(-2px)'"
                        onmouseout="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.transform='translateY(0)'">
@@ -575,7 +575,7 @@ function showInfoMenu(version, backend, granularity) {
                     </a>
                     
                     <!-- Changelog -->
-                    <a href="https://github.com/ohAnd/ha_addons/blob/master/eos_connect/CHANGELOG.md" target="_blank" 
+                    <a href="https://github.com/rockinglama/ha_addons/blob/master/eos_ha/CHANGELOG.md" target="_blank" 
                        style="color: inherit; text-decoration: none; display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: rgba(255,255,255,0.05); border-radius: 8px; transition: all 0.3s ease; min-width: 120px;"
                        onmouseover="this.style.backgroundColor='rgba(255,255,255,0.1)'; this.style.transform='translateY(-2px)'"
                        onmouseout="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.transform='translateY(0)'">
@@ -585,7 +585,7 @@ function showInfoMenu(version, backend, granularity) {
                     </a>
                     
                     <!-- Bug Reports -->
-                    <a href="https://github.com/ohAnd/EOS_connect/issues" target="_blank" 
+                    <a href="https://github.com/rockinglama/eos-ha/issues" target="_blank" 
                        style="color: inherit; text-decoration: none; display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: rgba(255,255,255,0.05); border-radius: 8px; transition: all 0.3s ease; min-width: 120px;"
                        onmouseover="this.style.backgroundColor='rgba(255,255,255,0.1)'; this.style.transform='translateY(-2px)'"
                        onmouseout="this.style.backgroundColor='rgba(255,255,255,0.05)'; this.style.transform='translateY(0)'">

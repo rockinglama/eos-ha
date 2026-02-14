@@ -4,7 +4,7 @@
 
 ## Pattern Overview
 
-**Overall:** Multi-layer orchestration system with plugin-based interfaces and centralized control. EOS Connect acts as an integration and control hub that coordinates between hardware (inverters, batteries, EVs), data sources (pricing, PV forecasts, consumption), and optimization backends (EOS or EVopt).
+**Overall:** Multi-layer orchestration system with plugin-based interfaces and centralized control. EOS HA acts as an integration and control hub that coordinates between hardware (inverters, batteries, EVs), data sources (pricing, PV forecasts, consumption), and optimization backends (EOS or EVopt).
 
 **Key Characteristics:**
 - **Orchestration-driven**: Periodic optimization loop (configurable interval) fetches data → sends to optimizer → applies control decisions
@@ -16,7 +16,7 @@
 ## Layers
 
 **Application Layer (Entry Point):**
-- **Location**: `src/eos_connect.py`
+- **Location**: `src/eos_ha.py`
 - **Purpose**: Main orchestration engine; manages initialization, threading, web server, and lifecycle
 - **Contains**: Flask app, route handlers, optimization scheduler, callbacks, logging
 - **Depends on**: All interfaces, ConfigManager, OptimizationInterface
@@ -34,7 +34,7 @@
 - **Purpose**: Abstraction layer for optimization backends (EOS vs EVopt)
 - **Contains**: OptimizationInterface class that delegates to backend implementations
 - **Depends on**: Backend implementations (EOSBackend, EVOptBackend)
-- **Used by**: Main optimization loop in eos_connect.py
+- **Used by**: Main optimization loop in eos_ha.py
 
 **Backend Implementation Layer:**
 - **Location**: `src/interfaces/optimization_backends/`
@@ -84,7 +84,7 @@
   - `js/evcc.js`: EV charging status display
   - `js/logging.js`: Log viewer and alert filtering
   - `js/ui.js`: UI state management
-- **API endpoints** (all in eos_connect.py):
+- **API endpoints** (all in eos_ha.py):
   - `GET /`: Main page
   - `GET /json/current_controls.json`: Current system state
   - `GET /json/optimize_request.json`: Last optimization input
@@ -103,7 +103,7 @@
    - PvInterface fetches 48-hour PV forecasts
    - All data is time-aligned to 48-hour window
 
-2. **Request Creation** (create_optimize_request() in eos_connect.py)
+2. **Request Creation** (create_optimize_request() in eos_ha.py)
    - Aggregates all forecast data into EOS format:
      - `pv_prognose_wh`: PV generation forecast array
      - `strompreis_euro_pro_wh`: Grid import prices
@@ -161,7 +161,7 @@
   - PriceInterface: Multiple price APIs (tibber, akkudoktor, stromligning, fixed_24h)
   - PvInterface: Multiple forecast sources (open-meteo, akkudoktor)
   - Device interfaces: Fronius V1/V2, EVCC, etc.
-- **Pattern**: Abstract parent + config-driven instantiation in eos_connect.py
+- **Pattern**: Abstract parent + config-driven instantiation in eos_ha.py
 - **Benefit**: Add new data source by writing new adapter, no core logic changes
 
 **Optimization Backend Abstraction:**
@@ -183,8 +183,8 @@
 ## Entry Points
 
 **Application Entry:**
-- **Location**: `src/eos_connect.py` (lines 1862-1926)
-- **Triggers**: `python src/eos_connect.py [config_dir]`
+- **Location**: `src/eos_ha.py` (lines 1862-1926)
+- **Triggers**: `python src/eos_ha.py [config_dir]`
 - **Responsibilities**:
   - Load config and validate Python version
   - Initialize all interfaces (load, battery, price, pv, inverter, mqtt, evcc)
@@ -194,7 +194,7 @@
   - Graceful shutdown on Ctrl+C
 
 **Web API Entry:**
-- **Location**: `src/eos_connect.py` (routes starting line 1338)
+- **Location**: `src/eos_ha.py` (routes starting line 1338)
 - **Endpoints**:
   - `GET /`: Main dashboard (renders index.html)
   - `GET /json/current_controls.json`: System state (all current values)
@@ -203,7 +203,7 @@
 - **Authentication**: None (designed for trusted network or behind proxy)
 
 **Background Scheduler Entry:**
-- **Location**: OptimizationScheduler in eos_connect.py (lines 693-1144)
+- **Location**: OptimizationScheduler in eos_ha.py (lines 693-1144)
 - **Triggers**: Auto-started on app init
 - **Responsibilities**:
   - Runs optimization every N minutes (smart sleep based on runtime)

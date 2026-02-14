@@ -96,9 +96,9 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/${{ env.owner }}/eos_connect:release
-            ghcr.io/${{ env.owner }}/eos_connect:${{ env.VERSION }}
-            ghcr.io/${{ env.owner }}/eos_connect:latest
+            ghcr.io/${{ env.owner }}/eos_ha:release
+            ghcr.io/${{ env.owner }}/eos_ha:${{ env.VERSION }}
+            ghcr.io/${{ env.owner }}/eos_ha:latest
           push: ${{ github.event_name == 'push' }}
 
       # Only upload the image artifact for pull_request events
@@ -106,5 +106,5 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          name: eos_connect_image-${{ env.VERSION }}
-          path: eos_connect_${{ env.VERSION }}.tar.gz
+          name: eos_ha_image-${{ env.VERSION }}
+          path: eos_ha_${{ env.VERSION }}.tar.gz

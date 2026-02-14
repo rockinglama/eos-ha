@@ -1,8 +1,8 @@
-# Roadmap: EOS Connect HA Integration
+# Roadmap: EOS HA HA Integration
 
 ## Overview
 
-Transform EOS_connect from a standalone Docker container into a native Home Assistant custom integration. The journey starts with establishing the HA integration foundation and async architecture, exposes optimization results as HA entities, adds runtime configuration and manual control capabilities, and finishes with HACS-ready packaging for community distribution.
+Transform eos-ha from a standalone Docker container into a native Home Assistant custom integration. The journey starts with establishing the HA integration foundation and async architecture, exposes optimization results as HA entities, adds runtime configuration and manual control capabilities, and finishes with HACS-ready packaging for community distribution.
 
 ## Phases
 
@@ -65,8 +65,8 @@ Plans:
   2. User can change battery capacity via number entity and see it reflected in next optimization
   3. User can change max charge power via number entity and see it reflected in next optimization
   4. User can change min/max SOC limits via number entities and see them reflected in next optimization
-  5. User can call eos_connect.set_override service to force specific mode (charge/discharge/auto) with duration
-  6. User can call eos_connect.optimize_now service to trigger immediate optimization cycle
+  5. User can call eos_ha.set_override service to force specific mode (charge/discharge/auto) with duration
+  6. User can call eos_ha.optimize_now service to trigger immediate optimization cycle
   7. Options Flow changes trigger coordinator update without requiring integration reload
 **Plans**: TBD
 

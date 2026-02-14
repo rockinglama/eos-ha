@@ -1,8 +1,8 @@
-# EOS Connect HA Integration
+# EOS HA HA Integration
 
 ## What This Is
 
-A HACS-compatible Home Assistant custom integration that replaces the standalone EOS_connect Docker container. It takes energy data from existing HA entities (electricity prices, battery SOC, consumption) and the Akkudoktor PV forecast API, sends it to an EOS optimization server, and exposes the optimization results as HA entities — enabling users to build their own automations for inverter control.
+A HACS-compatible Home Assistant custom integration that replaces the standalone eos-ha Docker container. It takes energy data from existing HA entities (electricity prices, battery SOC, consumption) and the Akkudoktor PV forecast API, sends it to an EOS optimization server, and exposes the optimization results as HA entities — enabling users to build their own automations for inverter control.
 
 ## Core Value
 
@@ -12,7 +12,7 @@ The integration must reliably run the optimization cycle (collect data → optim
 
 ### Validated
 
-- ✓ Optimization logic against EOS Server — existing, proven in EOS_connect
+- ✓ Optimization logic against EOS Server — existing, proven in eos-ha
 - ✓ Akkudoktor PV forecast API integration — existing
 - ✓ EOS request/response format handling — existing
 - ✓ Periodic optimization scheduling — existing pattern
@@ -35,7 +35,7 @@ The integration must reliably run the optimization cycle (collect data → optim
 - [ ] Output: PV forecast sensor with forecast attributes
 - [ ] Output: Price forecast sensor with forecast attributes
 - [ ] Output: Consumption forecast sensor with forecast attributes
-- [ ] Service: eos_connect.set_override (mode + duration)
+- [ ] Service: eos_ha.set_override (mode + duration)
 - [ ] HACS-compatible repository structure (manifest.json, hacs.json)
 
 ### Out of Scope
@@ -52,7 +52,7 @@ The integration must reliably run the optimization cycle (collect data → optim
 
 ## Context
 
-**Existing codebase:** EOS_connect is a mature Python application (v0.2.30) that runs as a Docker container. It has a well-structured interface pattern with pluggable adapters for data sources, optimization backends, and device control. The optimization logic, EOS request format handling, and Akkudoktor API integration can be adapted for the HA integration.
+**Existing codebase:** eos-ha is a mature Python application (v0.2.30) that runs as a Docker container. It has a well-structured interface pattern with pluggable adapters for data sources, optimization backends, and device control. The optimization logic, EOS request format handling, and Akkudoktor API integration can be adapted for the HA integration.
 
 **Architecture shift:** The current system is a standalone orchestrator with its own web server, MQTT publisher, and direct hardware control. The HA integration strips this down to: data collection (from HA entities + Akkudoktor API) → EOS optimization → entity exposure. No web server, no MQTT, no direct hardware control.
 
@@ -61,7 +61,7 @@ The integration must reliably run the optimization cycle (collect data → optim
 - `src/interfaces/pv_interface.py` — Akkudoktor PV forecast fetching
 - `src/interfaces/optimization_interface.py` — Request building logic
 - `src/interfaces/base_control.py` — Control state interpretation logic
-- `src/eos_connect.py` — Request creation and response parsing (extract, don't copy wholesale)
+- `src/eos_ha.py` — Request creation and response parsing (extract, don't copy wholesale)
 
 **HA Integration patterns:** Config Flow for initial setup (EOS server URL, location for PV), Options Flow for entity selection and parameter tuning. Entity platform pattern for sensors, binary sensors, number entities. DataUpdateCoordinator for periodic optimization cycle.
 

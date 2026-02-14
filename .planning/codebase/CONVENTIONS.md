@@ -5,7 +5,7 @@
 ## Naming Patterns
 
 **Files:**
-- Lowercase with underscores: `base_control.py`, `battery_interface.py`, `eos_connect.py`
+- Lowercase with underscores: `base_control.py`, `battery_interface.py`, `eos_ha.py`
 - Test files: `test_*.py` pattern (e.g., `test_control_states.py`, `test_base_control.py`)
 - Interface modules: `*_interface.py` suffix (e.g., `battery_interface.py`, `mqtt_interface.py`, `price_interface.py`)
 
@@ -61,7 +61,7 @@
 
 **Path Aliases:**
 - No aliases detected; relative imports used within packages
-- Example from `src/eos_connect.py`:
+- Example from `src/eos_ha.py`:
   ```python
   from version import __version__
   from config import ConfigManager
@@ -109,8 +109,8 @@
 - Prefixed log messages with module identifier: `[BASE-CTRL]`, `[BATTERY-IF]`, `[MAIN]`, `[Config]`
 - Example: `logger.info("[BASE-CTRL] loading module ")`
 - Log levels: DEBUG, INFO, WARNING, ERROR based on severity
-- Configurable via `log_level` in config.yaml (line 86 of `src/eos_connect.py`)
-- Custom timezone formatter: `TimezoneFormatter` in `src/eos_connect.py` (lines 45-57)
+- Configurable via `log_level` in config.yaml (line 86 of `src/eos_ha.py`)
+- Custom timezone formatter: `TimezoneFormatter` in `src/eos_ha.py` (lines 45-57)
 
 **When to Log:**
 - Module load: `logger.info("[...] loading module")`
@@ -175,7 +175,7 @@
 - One main class per module (sometimes with helper classes)
 - Constants defined at module level before class
 - Module-level logger initialized early
-- Initialization code at module level for critical setup (`src/eos_connect.py` lines 83-99)
+- Initialization code at module level for critical setup (`src/eos_ha.py` lines 83-99)
 
 **Patterns:**
 - Background threads managed via `_update_thread` and `_stop_event`

@@ -1,4 +1,4 @@
-# GitHub Copilot Instructions for EOS Connect
+# GitHub Copilot Instructions for EOS HA
 
 ## Project Guidelines
 
@@ -44,12 +44,12 @@
 
 - **what-is/**, **user-guide/**, **advanced/**: Write for end users (clear, accessible language)
 - **developer/**: Write for contributors (technical details, architecture)
-- All documentation should help users quickly understand and use EOS Connect
+- All documentation should help users quickly understand and use EOS HA
 - Avoid jargon unless necessary; explain technical concepts simply
 
 ### Project Role Clarity
 
-- **EOS Connect is an integration and control platform**, NOT an optimizer
+- **EOS HA is an integration and control platform**, NOT an optimizer
 - The optimization calculations are performed by external servers:
   - Akkudoktor EOS Server (https://github.com/Akkudoktor-EOS/EOS)
   - EVopt (https://github.com/thecem/hassio-evopt)

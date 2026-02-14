@@ -19,7 +19,7 @@
 ## Frameworks
 
 **Core:**
-- Flask 2.2.5+ - Web framework for REST API and web interface (`src/eos_connect.py`)
+- Flask 2.2.5+ - Web framework for REST API and web interface (`src/eos_ha.py`)
 
 **Async/Networking:**
 - gevent 24.2.1+ - Lightweight concurrency via WSGI server (`src/interfaces/port_interface.py`)
@@ -66,7 +66,7 @@
 **Build:**
 - Dockerfile: Multi-stage build using `python:3.13-slim`
 - docker-compose.yml: Container orchestration with volume mount for config
-- Entry point: `CMD ["python", "eos_connect.py"]`
+- Entry point: `CMD ["python", "eos_ha.py"]`
 
 ## Web Server
 
@@ -77,7 +77,7 @@
 - Automatic port fallback if 8081 unavailable
 
 **Endpoints:**
-- `GET /` - Main UI (Flask routes: `src/eos_connect.py`)
+- `GET /` - Main UI (Flask routes: `src/eos_ha.py`)
 - `GET /index_legacy.html` - Legacy interface
 - `GET /logs` - Application logs
 - `GET /logs/alerts` - Alert logs

@@ -6,7 +6,7 @@ score: 13/13 must-haves verified
 re_verification: false
 human_verification:
   - test: "Install via HACS and see in Add Integration UI"
-    expected: "EOS Connect appears in HA Settings > Devices & Services > Add Integration"
+    expected: "EOS HA appears in HA Settings > Devices & Services > Add Integration"
     why_human: "Requires actual HACS installation and HA UI verification"
   - test: "Complete 3-step Config Flow end-to-end"
     expected: "User can enter EOS URL, select entities, configure battery params, and create integration"
@@ -45,7 +45,7 @@ Phase 1 combines two plans (01-01 and 01-02) with distinct but complementary mus
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | User can see EOS Connect in Add Integration UI | ✓ VERIFIED | manifest.json has `config_flow: true` and `domain: eos_connect`, integration skeleton complete |
+| 1 | User can see EOS HA in Add Integration UI | ✓ VERIFIED | manifest.json has `config_flow: true` and `domain: eos_ha`, integration skeleton complete |
 | 2 | User can complete 3-step Config Flow | ✓ VERIFIED | config_flow.py has `async_step_user`, `async_step_entities`, `async_step_battery` with full implementations |
 | 3 | Config Flow rejects unreachable EOS server | ✓ VERIFIED | `async_step_user` validates via `/v1/health`, shows errors: `cannot_connect`, `timeout`, `invalid_response` |
 | 4 | Config Flow pulls lat/lon from HA config | ✓ VERIFIED | Lines 59-62 in config_flow.py: `hass.config.latitude/longitude`, aborts with `no_home_location` if missing |
@@ -72,8 +72,8 @@ All artifacts from both plans exist, are substantive (not stubs), and are proper
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `manifest.json` | Integration metadata | ✓ VERIFIED | 11 lines, valid JSON, `config_flow: true`, `domain: eos_connect` |
-| `hacs.json` | HACS compatibility | ✓ VERIFIED | 4 lines, valid JSON, `name: EOS Connect` |
+| `manifest.json` | Integration metadata | ✓ VERIFIED | 11 lines, valid JSON, `config_flow: true`, `domain: eos_ha` |
+| `hacs.json` | HACS compatibility | ✓ VERIFIED | 4 lines, valid JSON, `name: EOS HA` |
 | `const.py` | Shared constants | ✓ VERIFIED | 28 lines, DOMAIN and all CONF_*/DEFAULT_* constants defined |
 | `config_flow.py` | 3-step Config Flow | ✓ VERIFIED | 173 lines, EOSConnectConfigFlow with all 3 steps, EOS validation via /v1/health |
 | `strings.json` | UI strings | ✓ VERIFIED | 42 lines, all 3 steps with titles/descriptions/errors/aborts |
@@ -155,17 +155,17 @@ All automated checks pass. The following items require human testing in a runnin
 
 #### 1. HACS Installation and Discovery
 
-**Test:** Install custom_components/eos_connect via HACS or manual copy, restart HA, navigate to Settings > Devices & Services > Add Integration
+**Test:** Install custom_components/eos_ha via HACS or manual copy, restart HA, navigate to Settings > Devices & Services > Add Integration
 
 **Expected:** 
-- "EOS Connect" appears in the list of available integrations
+- "EOS HA" appears in the list of available integrations
 - Integration icon and name display correctly
 
 **Why human:** Requires actual HA installation with HACS and UI navigation to verify discovery mechanism
 
 #### 2. Config Flow End-to-End Journey
 
-**Test:** Click "Add Integration" for EOS Connect, complete all 3 steps:
+**Test:** Click "Add Integration" for EOS HA, complete all 3 steps:
 1. Enter EOS server URL (e.g., http://localhost:8503)
 2. Select price, SOC, and consumption entities
 3. Configure battery parameters (accept defaults or modify)
@@ -208,7 +208,7 @@ All automated checks pass. The following items require human testing in a runnin
 #### 5. Optimization Data Flow End-to-End
 
 **Test:** With HA running and valid entities:
-1. Enable debug logging for eos_connect
+1. Enable debug logging for eos_ha
 2. Observe optimization cycle
 3. Check HA logs for debug messages
 

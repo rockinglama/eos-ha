@@ -1,5 +1,5 @@
 """
-Port management interface for EOS Connect web server.
+Port management interface for EOS HA web server.
 Provides functionality to check port availability and handle port conflicts.
 """
 
@@ -186,10 +186,10 @@ class PortInterface:
                 f"   • Option 3: Review Home Assistant logs for port conflicts{alternatives_msg}\n"
                 f"   • Option 4: Restart the add-on after changing the port\n"
                 f"\n   📖 Add-on Configuration:\n"
-                f"   • Go to Settings → Add-ons → EOS Connect → Configuration\n"
-                f"   • Change 'eos_connect_web_port' to an available port\n"
+                f"   • Go to Settings → Add-ons → EOS HA → Configuration\n"
+                f"   • Change 'eos_ha_web_port' to an available port\n"
                 f"   • Save and restart the add-on\n"
-                f"\n   ⚠️  The web interface is required for EOS Connect to function."
+                f"\n   ⚠️  The web interface is required for EOS HA to function."
             )
         else:
             # Regular installation guidance
@@ -209,12 +209,12 @@ class PortInterface:
             solutions = (
                 f"\n   🔧 How to fix this:\n"
                 f"   • Option 1: Stop the application using port {port}\n"
-                f"   • Option 2: Change 'eos_connect_web_port' in your config.json"
+                f"   • Option 2: Change 'eos_ha_web_port' in your config.json"
                 f"{alternatives_msg}\n"
                 f"   • Option 3: Find what's using the port with:\n"
                 f"     Windows: netstat -ano | findstr :{port}\n"
                 f"     Linux/Mac: lsof -i :{port}\n"
-                f"\n   ⚠️  EOS Connect requires its web interface to function properly."
+                f"\n   ⚠️  EOS HA requires its web interface to function properly."
             )
 
         return error_explanation + solutions

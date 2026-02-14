@@ -55,7 +55,7 @@ class MqttInterface:
         username = config_mqtt.get("user", "")
         password = config_mqtt.get("password", "")
         self.tls = config_mqtt.get("tls", False)
-        self.base_topic = "eos_connect"
+        self.base_topic = "eos_ha"
         self.ha_auto_discovery = config_mqtt.get("ha_mqtt_auto_discovery", True)
         self.auto_discover_topic = config_mqtt.get(
             "ha_mqtt_auto_discovery_prefix", "homeassistant"
@@ -678,7 +678,7 @@ class MqttInterface:
         for topic, value in self.topics_publish.items():
             self.__publish_mqtt_discovery_message(
                 value["name"],
-                "eos_connect_" + topic.replace("/", "_"),
+                "eos_ha_" + topic.replace("/", "_"),
                 value["type"],
                 value["device_class"],
                 value["unit"],
@@ -756,12 +756,12 @@ class MqttInterface:
             if options:
                 payload["options"] = options
             device = {
-                "identifiers": "EOS_connect",
-                "name": "EOS Connect",
-                "manufacturer": "ohAnd",
-                "model": "EOS_connect",
+                "identifiers": "eos-ha",
+                "name": "EOS HA",
+                "manufacturer": "rockinglama",
+                "model": "eos-ha",
                 "sw_version": __version__,
-                "configuration_url": "https://github.com/ohAnd/EOS_connect",
+                "configuration_url": "https://github.com/rockinglama/eos-ha",
             }
             payload["device"] = device
             logger.debug(
@@ -777,7 +777,7 @@ class MqttInterface:
                 self.auto_discover_topic
                 + "/"
                 + item_type
-                + "/eos_connect/"
+                + "/eos_ha/"
                 + unique_id
                 + "/config",
                 json.dumps(payload),

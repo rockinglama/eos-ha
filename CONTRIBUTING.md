@@ -50,6 +50,6 @@ Guidelines
 
 ## Supporting the Project
 
-If you find EOS Connect useful but don't have the time to contribute code, you can also support the project by [becoming a sponsor](https://github.com/sponsors/ohAnd). Your support helps keep the project active and maintained.
+If you find EOS HA useful but don't have the time to contribute code, you can also support the project by [becoming a sponsor](https://github.com/sponsors/rockinglama). Your support helps keep the project active and maintained.
 
 Thanks for contributing!

@@ -1,5 +1,5 @@
 /**
- * Statistics Manager for EOS Connect
+ * Statistics Manager for EOS HA
  * Handles statistics display and calculations
  * Extracted from legacy index.html
  */

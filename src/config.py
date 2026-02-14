@@ -161,7 +161,7 @@ class ConfigManager:
                 ),
                 "refresh_time": 3,  # Default refresh time in minutes
                 "time_zone": "Europe/Berlin",  # Add default time zone
-                "eos_connect_web_port": 8081,  # Default port for EOS connect server
+                "eos_ha_web_port": 8081,  # Default port for EOS connect server
                 "log_level": "info",  # Default log level
                 "request_timeout": 10,  # Request timeout for Home Assistant and OpenHAB API calls in seconds (5-60)
             }
@@ -476,7 +476,7 @@ class ConfigManager:
         # eos connect web port configuration
         config.yaml_add_eol_comment(
             "Default port for EOS connect server - default: 8081",
-            "eos_connect_web_port",
+            "eos_ha_web_port",
         )
         # loglevel configuration
         config.yaml_add_eol_comment(

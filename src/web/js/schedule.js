@@ -1,5 +1,5 @@
 /**
- * Schedule Manager for EOS Connect
+ * Schedule Manager for EOS HA
  * Handles schedule display and management functionality
  * Extracted from legacy index.html
  */

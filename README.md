@@ -1,23 +1,23 @@
 <table style="border:none;">
   <tr>
-    <td width="130"><img src="docs/assets/images/logo.png" alt="EOS Connect Logo" width="120"/></td>
-    <td style="vertical-align: middle;"><h1 style="margin:0; padding-left:10px;">EOS Connect</h1></td>
+    <td width="130"><img src="docs/assets/images/logo.png" alt="EOS HA Logo" width="120"/></td>
+    <td style="vertical-align: middle;"><h1 style="margin:0; padding-left:10px;">EOS HA</h1></td>
   </tr>
 </table>
 
 [![Add to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=rockinglama&repository=eos-ha&category=integration)
 
 **For full documentation, guides, and configuration details, visit:**
-[https://ohAnd.github.io/EOS_connect/](https://ohAnd.github.io/EOS_connect/)
+[https://github.com/rockinglama/eos-ha/](https://github.com/rockinglama/eos-ha/)
 
 ---
 
 ## Overview
-EOS Connect is an open-source tool for intelligent energy management and optimization. It acts as the orchestration layer between your energy hardware (inverters, batteries, PV forecasts) and external optimization engines. EOS Connect is an integration and control platform—not an optimizer. Optimization calculations are performed by external servers:
+EOS HA is an open-source tool for intelligent energy management and optimization. It acts as the orchestration layer between your energy hardware (inverters, batteries, PV forecasts) and external optimization engines. EOS HA is an integration and control platform—not an optimizer. Optimization calculations are performed by external servers:
 - [Akkudoktor EOS](https://github.com/Akkudoktor-EOS/EOS)
 - [EVopt](https://github.com/thecem/hassio-evopt)
 
-EOS Connect fetches real-time and forecast data, processes it via your chosen optimizer, and controls devices to optimize your energy usage and costs.
+EOS HA fetches real-time and forecast data, processes it via your chosen optimizer, and controls devices to optimize your energy usage and costs.
 
 ---
 
@@ -33,17 +33,17 @@ EOS Connect fetches real-time and forecast data, processes it via your chosen op
 
 
 ## How It Works
-EOS Connect periodically collects:
+EOS HA periodically collects:
 - Local energy consumption data
 - PV solar forecasts for the next 48 hours
 - Upcoming energy prices
 
-It sends this data to the optimizer (EOS or EVopt), which returns a prediction and recommended control strategy. EOS Connect then applies these controls to your devices (inverter, battery, EVCC, etc.). All scheduling and timing is managed by EOS Connect.
+It sends this data to the optimizer (EOS or EVopt), which returns a prediction and recommended control strategy. EOS HA then applies these controls to your devices (inverter, battery, EVCC, etc.). All scheduling and timing is managed by EOS HA.
 
 <div align="center">
-  <img src="docs\assets\images\eos_connect_flow.png" alt="EOS Connect process flow" width="450"/>
+  <img src="docs\assets\images\eos_ha_flow.png" alt="EOS HA process flow" width="450"/>
   <br>
-  <sub><i>Figure: EOS Connect process flow</i></sub>
+  <sub><i>Figure: EOS HA process flow</i></sub>
 </div>
 
 Supported data sources and integrations:
@@ -61,26 +61,26 @@ Supported data sources and integrations:
    - Home Assistant (latest version recommended)
    - EOS or EVopt server (can be installed as part of the setup; see below)
 
-2. **Option A: Install EOS Connect Add-on:**
-   - Add the [ohAnd/ha_addons](https://github.com/ohAnd/ha_addons) repository to your Home Assistant add-on store.
-   - Install the **EOS Connect** add-on from the store.
+2. **Option A: Install EOS HA Add-on:**
+   - Add the [rockinglama/ha_addons](https://github.com/rockinglama/ha_addons) repository to your Home Assistant add-on store.
+   - Install the **EOS HA** add-on from the store.
   
-3. **Option B: Install EOS Connect Add-on:**
+3. **Option B: Install EOS HA Add-on:**
    - If you want to use EOS as your optimization backend, add the [Duetting/ha_eos_addon](https://github.com/Duetting/ha_eos_addon) or [thecem/ha_eos_addon](https://github.com/thecem/ha_eos_addon) repository to your Home Assistant add-on store and install the EOS add-on, or ensure your EOS server is running and reachable.
    - If you prefer the lightweight EVopt backend, install [thecem/hassio-evopt](https://github.com/thecem/hassio-evopt) and make sure it is running.
 
 4. **Configure:**
-    - Configuration is managed directly via the Home Assistant add-on UI. No manual editing of the config file is required—the add-on processes your settings in the background and applies them to EOS Connect automatically.
-    - See the [user-guide/configuration](https://ohAnd.github.io/EOS_connect/user-guide/configuration.html) for full details.
+    - Configuration is managed directly via the Home Assistant add-on UI. No manual editing of the config file is required—the add-on processes your settings in the background and applies them to EOS HA automatically.
+    - See the [user-guide/configuration](https://github.com/rockinglama/eos-ha/user-guide/configuration.html) for full details.
 
 5. **Start & Access:**
-    - Start the EOS Connect add-on from the Home Assistant UI.
+    - Start the EOS HA add-on from the Home Assistant UI.
     - Open `http://homeassistant.local:8081` (or your HA IP) to view the dashboard.
 
 <div align="center">
-  <img src="docs/assets/images/screenshot_0_1_20.png" alt="EOS Connect dashboard screenshot" width="600"/>
+  <img src="docs/assets/images/screenshot_0_1_20.png" alt="EOS HA dashboard screenshot" width="600"/>
   <br>
-  <sub><i>Figure: EOS Connect dashboard</i></sub>
+  <sub><i>Figure: EOS HA dashboard</i></sub>
 </div>
 
 **Note for Proxmox / VM Users:**
@@ -94,7 +94,7 @@ This allows the add-on to correctly see and use your physical CPU's instructions
 ---
 
 **Other Installation Options:**
-- Docker, manual, and advanced setups are supported. See the [docs](https://ohAnd.github.io/EOS_connect/user-guide/index.html) for details.
+- Docker, manual, and advanced setups are supported. See the [docs](https://github.com/rockinglama/eos-ha/user-guide/index.html) for details.
 
 ---
 
@@ -155,7 +155,7 @@ mqtt:
 # General settings
 refresh_time: 3  # Optimization refresh interval in minutes
 time_zone: Europe/Berlin
-eos_connect_web_port: 8081
+eos_ha_web_port: 8081
 log_level: info
 request_timeout: 10
 ```
@@ -164,19 +164,19 @@ request_timeout: 10
 <i class="fas fa-info-circle" style="color: #4a9eff;"></i>
  <strong>Note:</strong> This minimal configuration is sufficient for basic operation with static profiles and default APIs.<br>
 For advanced integrations (Home Assistant, OpenHAB, Solcast, Fronius, Tibber, etc.), <strong>additional fields are required</strong> (e.g., <code>url</code>, <code>access_token</code>, <code>soc_sensor</code>, <code>api_key</code>, <code>resource_id</code>, etc.).<br>
-See the <a href="https://ohAnd.github.io/EOS_connect/user-guide/configuration.html" style="color: #4a9eff;">full configuration documentation</a> for details on all options and required fields for your setup.
+See the <a href="https://github.com/rockinglama/eos-ha/user-guide/configuration.html" style="color: #4a9eff;">full configuration documentation</a> for details on all options and required fields for your setup.
 </div>
 ```
 ---
 
 ## Troubleshooting & Advanced Configuration
-For troubleshooting and advanced configuration, see the [docs](https://ohAnd.github.io/EOS_connect/).
+For troubleshooting and advanced configuration, see the [docs](https://github.com/rockinglama/eos-ha/).
 
 ---
 
 ## Support & Sponsoring
 If you find this project useful and would like to support its development, please consider sponsoring:
-[https://github.com/sponsors/ohAnd](https://github.com/sponsors/ohAnd)
+[https://github.com/sponsors/rockinglama](https://github.com/sponsors/rockinglama)
 
 ## Contributing
 Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.

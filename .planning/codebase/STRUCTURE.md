@@ -5,9 +5,9 @@
 ## Directory Layout
 
 ```
-EOS_connect/
+eos-ha/
 ├── src/                           # Core application
-│   ├── eos_connect.py             # Main orchestration engine + Flask web server
+│   ├── eos_ha.py             # Main orchestration engine + Flask web server
 │   ├── config.py                  # Configuration management
 │   ├── log_handler.py             # In-memory logging for web dashboard
 │   ├── version.py                 # Version string
@@ -76,7 +76,7 @@ EOS_connect/
 - Purpose: Pluggable adapters for external systems
 - Contains: Data source drivers (load, price, PV), hardware drivers (inverter, battery, EVCC), coordination logic (base_control)
 - Naming pattern: `{system}_interface.py` or `{system}_{variant}.py`
-- Entry point: All instantiated in `eos_connect.py` lines 336-368 after config loads
+- Entry point: All instantiated in `eos_ha.py` lines 336-368 after config loads
 
 **`src/interfaces/optimization_backends/`**
 - Purpose: Implementation of different optimization engines
@@ -105,7 +105,7 @@ EOS_connect/
 ## Key File Locations
 
 **Entry Points:**
-- `src/eos_connect.py` (lines 1862-1926): Application startup; initializes all interfaces, starts scheduler, web server
+- `src/eos_ha.py` (lines 1862-1926): Application startup; initializes all interfaces, starts scheduler, web server
 - `src/web/js/main.js`: Frontend initialization; sets up data polling and UI rendering
 
 **Configuration:**
@@ -113,8 +113,8 @@ EOS_connect/
 - `config.yaml`: User-editable YAML; defines all system parameters (created on first run)
 
 **Core Logic:**
-- `src/eos_connect.py` (lines 384-619): create_optimize_request() - aggregates 48h forecast data
-- `src/eos_connect.py` (lines 849-940): OptimizationScheduler.__run_optimization_loop() - main cycle
+- `src/eos_ha.py` (lines 384-619): create_optimize_request() - aggregates 48h forecast data
+- `src/eos_ha.py` (lines 849-940): OptimizationScheduler.__run_optimization_loop() - main cycle
 - `src/interfaces/base_control.py`: BaseControl class - state machine and control logic
 - `src/interfaces/optimization_interface.py`: Backend abstraction and response parsing
 
@@ -167,25 +167,25 @@ EOS_connect/
 - File: `src/interfaces/{source}_interface.py`
 - Template: Follow LoadInterface or PriceInterface pattern
 - Config: Add to config.yaml defaults (src/config.py around line 36+)
-- Instantiation: Add initialization in eos_connect.py after line 368
+- Instantiation: Add initialization in eos_ha.py after line 368
 - Integration: Connect via callback or getter method in main loop
 
 **New Device/Inverter Support:**
 - File: `src/interfaces/inverter_{brand}.py` or `src/interfaces/{device}_interface.py`
 - Methods: implement set_mode_force_charge(), set_mode_avoid_discharge(), set_mode_allow_discharge()
-- Selection: Add case in eos_connect.py lines 143-194 (inverter type checking)
+- Selection: Add case in eos_ha.py lines 143-194 (inverter type checking)
 - Config: Extend inverter config section in config.py (line ~125)
 
 **New Control Mode (beyond 7 existing):**
 - Edit: `src/interfaces/base_control.py` lines 15-33 (MODE constants and state_mapping)
-- Implementation: Add case in change_control_state() (eos_connect.py lines 1240-1315)
+- Implementation: Add case in change_control_state() (eos_ha.py lines 1240-1315)
 - Testing: Add test case in tests/test_control_states.py
 
 **New Web Dashboard Feature:**
 - Frontend module: `src/web/js/{feature}.js`
 - Main coordination: Add to src/web/js/main.js initialization
 - Styling: Add to `src/web/css/` (create new file if needed)
-- API endpoint: Add Flask route in eos_connect.py (after line 1860)
+- API endpoint: Add Flask route in eos_ha.py (after line 1860)
 - HTML: Add DOM elements/section to src/web/index.html
 
 **Tests:**

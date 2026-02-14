@@ -1,4 +1,4 @@
-"""Sensor platform for EOS Connect integration."""
+"""Sensor platform for EOS HA integration."""
 from __future__ import annotations
 
 from homeassistant.components.sensor import SensorEntity
@@ -16,7 +16,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up EOS Connect sensor from a config entry."""
+    """Set up EOS HA sensor from a config entry."""
     coordinator: EOSCoordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     # Create optimization status sensor

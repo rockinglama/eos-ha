@@ -440,7 +440,7 @@ How roadmap phases should address these pitfalls.
 - [HACS Integration Requirements](https://www.hacs.xyz/docs/publish/integration/)
 
 ### Observed Issues from Codebase Analysis (LOW-MEDIUM Confidence)
-- EOS Connect codebase: Uses `requests` (sync), Flask (sync), threading, `pytz`, paho-mqtt (sync callbacks)
+- EOS HA codebase: Uses `requests` (sync), Flask (sync), threading, `pytz`, paho-mqtt (sync callbacks)
 - Migration complexity: Flask → HA service layer, Threading → async tasks, MQTT sync → HA async MQTT
 - Energy-specific: Time alignment for 15-min vs 1-hour optimization intervals, timezone handling across forecast APIs
 
