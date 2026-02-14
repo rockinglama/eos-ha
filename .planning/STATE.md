@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-14)
 
 **Core value:** Reliably run the optimization cycle (collect data → optimize via EOS → expose results as entities) so users can make informed, automated energy decisions without running a separate container.
-**Current focus:** Phase 1 - Foundation & Data Flow
+**Current focus:** Phase 2 - Output Entities
 
 ## Current Position
 
@@ -76,7 +76,7 @@ None yet.
 Last session: 2026-02-14 (plan execution)
 Stopped at: Completed 01-foundation-data-flow/01-02-PLAN.md (Phase 1 complete)
 Resume file: None
-Next step: Phase 1 complete. Ready for Phase 2 planning (Control Entities).
+Next step: Run `/gsd:plan-phase 2` to create execution plans for Output Entities phase
 
 ---
 *State initialized: 2026-02-14*

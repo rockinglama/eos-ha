@@ -12,7 +12,7 @@ Transform EOS_connect from a standalone Docker container into a native Home Assi
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation & Data Flow** - HACS structure, Config Flow, DataUpdateCoordinator, EOS optimization cycle
+- [x] **Phase 1: Foundation & Data Flow** - HACS structure, Config Flow, DataUpdateCoordinator, EOS optimization cycle
 - [ ] **Phase 2: Output Entities** - Sensors and binary sensors exposing optimization results
 - [ ] **Phase 3: Configuration & Control** - Options Flow, number entities, manual override services
 - [ ] **Phase 4: Diagnostics & HACS Publishing** - Diagnostics platform, HACS packaging, documentation
@@ -34,8 +34,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Integration skeleton + 3-step Config Flow (HACS structure, EOS validation, entity selection, battery params)
-- [ ] 01-02-PLAN.md — API clients, DataUpdateCoordinator, integration wiring, optimization status sensor
+- [x] 01-01-PLAN.md — Integration skeleton + 3-step Config Flow (HACS structure, EOS validation, entity selection, battery params)
+- [x] 01-02-PLAN.md — API clients, DataUpdateCoordinator, integration wiring, optimization status sensor
 
 ### Phase 2: Output Entities
 **Goal**: Optimization results are visible as HA entities that users can consume in automations and dashboards
@@ -95,11 +95,11 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Data Flow | 0/2 | Planned | - |
+| 1. Foundation & Data Flow | 2/2 | ✓ Complete | 2026-02-14 |
 | 2. Output Entities | 0/TBD | Not started | - |
 | 3. Configuration & Control | 0/TBD | Not started | - |
 | 4. Diagnostics & HACS Publishing | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-02-14*
-*Last updated: 2026-02-14*
+*Last updated: 2026-02-14 (Phase 1 complete)*
