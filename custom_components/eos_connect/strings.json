@@ -1,0 +1,42 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "EOS Connect",
+        "description": "Enter the URL of your EOS optimization server.",
+        "data": {
+          "eos_url": "EOS Server URL"
+        }
+      },
+      "entities": {
+        "title": "Entity Selection",
+        "description": "Select the Home Assistant entities that provide energy data.",
+        "data": {
+          "price_entity": "Electricity Price Entity",
+          "soc_entity": "Battery State of Charge Entity",
+          "consumption_entity": "Consumption/Load Entity"
+        }
+      },
+      "battery": {
+        "title": "Battery Parameters",
+        "description": "Configure your battery system parameters.",
+        "data": {
+          "battery_capacity": "Battery Capacity (kWh)",
+          "max_charge_power": "Max Charge Power (W)",
+          "min_soc": "Minimum SOC (%)",
+          "max_soc": "Maximum SOC (%)",
+          "inverter_power": "Inverter Power (W)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to EOS server. Check the URL and ensure the server is running.",
+      "invalid_response": "Connected but received unexpected response. Ensure this is an EOS server.",
+      "timeout": "Connection timed out. Check the URL and network."
+    },
+    "abort": {
+      "already_configured": "EOS Connect is already configured.",
+      "no_home_location": "Home location not configured in Home Assistant. Set your home location in Settings > System > General."
+    }
+  }
+}
