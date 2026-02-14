@@ -471,7 +471,7 @@ class EOSCoordinator(DataUpdateCoordinator):
                 "battery_id": "battery1",
             },
             "eauto": self._build_ev_params(soc_state),
-            "home_appliances": self._build_appliances_params(),
+            "dishwasher": self._build_appliances_params(),
             "temperature_forecast": self._get_temperature_forecast(),
         }
 
