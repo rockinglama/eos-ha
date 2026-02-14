@@ -75,6 +75,12 @@ def _pv_array_schema(
                     mode=selector.NumberSelectorMode.BOX,
                 )
             ),
+            vol.Required("inverter_efficiency", default=0.9): selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=0.5, max=1.0, step=0.01,
+                    mode=selector.NumberSelectorMode.BOX,
+                )
+            ),
         }
     )
 
@@ -222,6 +228,7 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
                 "tilt": int(user_input["tilt"]),
                 "power": int(user_input["power"]),
                 "inverter_power": int(user_input["inverter_power"]),
+                "inverter_efficiency": float(user_input.get("inverter_efficiency", 0.9)),
             })
             return await self.async_step_pv_arrays()
 
@@ -410,6 +417,7 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 "tilt": int(user_input["tilt"]),
                 "power": int(user_input["power"]),
                 "inverter_power": int(user_input["inverter_power"]),
+                "inverter_efficiency": float(user_input.get("inverter_efficiency", 0.9)),
             })
             return await self.async_step_pv_overview()
 

@@ -164,7 +164,7 @@ class AkkudoktorApiClient:
                 f"&tilt={arr['tilt']}"
                 f"&power={arr['power']}"
                 f"&powerInverter={arr.get('inverter_power', arr['power'])}"
-                f"&inverterEfficiency=1.0"
+                f"&inverterEfficiency={arr.get('inverter_efficiency', 0.9)}"
             )
         url = f"{AKKUDOKTOR_API_URL}{params}"
 
