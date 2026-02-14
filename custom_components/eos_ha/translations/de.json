@@ -57,6 +57,16 @@
           "battery_energy_entity": "Batterie-Energie-Entität (kWh)"
         }
       },
+      "energy_meters": {
+        "title": "Energiezähler (optional)",
+        "description": "Konfigurieren Sie Energiezähler-Entitäten für den EOS HA-Adapter. So kann EOS Energiedaten direkt aus Home Assistant lesen für bessere Prognosen.",
+        "data": {
+          "load_emr_entity": "Verbrauchszähler",
+          "grid_import_emr_entity": "Netzbezugszähler",
+          "grid_export_emr_entity": "Einspeisezähler",
+          "pv_production_emr_entity": "PV-Erzeugungszähler"
+        }
+      },
       "ev": {
         "title": "Elektrofahrzeug (optional)",
         "description": "Konfigurieren Sie Ihr Elektrofahrzeug für optimiertes Laden. Deaktiviert lassen, wenn Sie kein E-Auto haben.",
@@ -103,6 +113,7 @@
         "description": "Wählen Sie, was Sie konfigurieren möchten.",
         "menu_options": {
           "entities": "Eingangs-Entitäten",
+          "energy_meters": "Energiezähler (EOS-Adapter)",
           "battery": "Batterieparameter",
           "battery_sensors": "Batteriesensoren (Speicherpreis)",
           "pv_arrays": "PV-Anlagen",
@@ -131,6 +142,16 @@
           "soc_entity": "Batterie-Ladezustand-Entität",
           "consumption_entity": "Verbrauchs-Entität",
           "temperature_entity": "Temperatur-Entität (optional)"
+        }
+      },
+      "energy_meters": {
+        "title": "Energiezähler (EOS-Adapter)",
+        "description": "Konfigurieren Sie Energiezähler-Entitäten, die EOS direkt aus Home Assistant liest für eine verbesserte Optimierung.",
+        "data": {
+          "load_emr_entity": "Verbrauchszähler",
+          "grid_import_emr_entity": "Netzbezugszähler",
+          "grid_export_emr_entity": "Einspeisezähler",
+          "pv_production_emr_entity": "PV-Erzeugungszähler"
         }
       },
       "battery": {

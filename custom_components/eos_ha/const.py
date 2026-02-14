@@ -71,8 +71,28 @@ CONF_SG_READY_ENABLED = "sg_ready_enabled"
 CONF_SG_READY_SWITCH_1 = "sg_ready_switch_1"
 CONF_SG_READY_SWITCH_2 = "sg_ready_switch_2"
 
+# Energy meter entities (for EOS HA Adapter)
+CONF_LOAD_EMR_ENTITY = "load_emr_entity"
+CONF_GRID_IMPORT_EMR_ENTITY = "grid_import_emr_entity"
+CONF_GRID_EXPORT_EMR_ENTITY = "grid_export_emr_entity"
+CONF_PV_PRODUCTION_EMR_ENTITY = "pv_production_emr_entity"
+
 # Temperature entity
 CONF_TEMPERATURE_ENTITY = "temperature_entity"
+
+# EOS solution entity IDs (written by EOS HA Adapter, read by our wrapper sensors)
+EOS_ENTITY_AC_CHARGE = "sensor.eos_genetic_ac_charge_factor"
+EOS_ENTITY_DC_CHARGE = "sensor.eos_genetic_dc_charge_factor"
+EOS_ENTITY_DISCHARGE_ALLOWED = "sensor.eos_genetic_discharge_allowed_factor"
+EOS_ENTITY_BATTERY_SOC = "sensor.eos_battery1_soc_factor"
+EOS_ENTITY_COSTS = "sensor.eos_costs_amt"
+EOS_ENTITY_REVENUE = "sensor.eos_revenue_amt"
+EOS_ENTITY_GRID_CONSUMPTION = "sensor.eos_grid_consumption_energy_wh"
+EOS_ENTITY_GRID_FEEDIN = "sensor.eos_grid_feedin_energy_wh"
+EOS_ENTITY_LOAD = "sensor.eos_load_energy_wh"
+EOS_ENTITY_LOSSES = "sensor.eos_losses_energy_wh"
+EOS_ENTITY_BATTERY1 = "sensor.eos_battery1"
+EOS_ENTITY_DATETIME = "sensor.eos_date_time"
 
 SG_READY_MODES = {
     1: "Lock",

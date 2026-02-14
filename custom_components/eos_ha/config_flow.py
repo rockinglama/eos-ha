@@ -30,13 +30,17 @@ from .const import (
     CONF_EV_ENABLED,
     CONF_EV_SOC_ENTITY,
     CONF_FEED_IN_TARIFF,
+    CONF_GRID_EXPORT_EMR_ENTITY,
+    CONF_GRID_IMPORT_EMR_ENTITY,
     CONF_INVERTER_POWER,
+    CONF_LOAD_EMR_ENTITY,
     CONF_MAX_CHARGE_POWER,
     CONF_MAX_SOC,
     CONF_MIN_SOC,
     CONF_PRICE_ENTITY,
     CONF_PRICE_SOURCE,
     CONF_PV_ARRAYS,
+    CONF_PV_PRODUCTION_EMR_ENTITY,
     CONF_SOC_ENTITY,
     CONF_TEMPERATURE_ENTITY,
     DEFAULT_BATTERY_CAPACITY,
@@ -134,7 +138,7 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
 
         return self.async_show_menu(
             step_id="init",
-            menu_options=["eos_server", "entities", "battery", "battery_sensors", "pv_arrays", "price_source", "ev", "appliances", "feed_in_tariff", "sg_ready"],
+            menu_options=["eos_server", "entities", "energy_meters", "battery", "battery_sensors", "pv_arrays", "price_source", "ev", "appliances", "feed_in_tariff", "sg_ready"],
         )
 
     # -- EOS Server sub-step -----------------------------------------------
@@ -244,6 +248,37 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="entities",
             data_schema=vol.Schema(schema_dict),
+        )
+
+    # -- Energy Meters sub-step ---------------------------------------------
+
+    async def async_step_energy_meters(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Configure energy meter entities for EOS HA Adapter."""
+        if user_input is not None:
+            new_options = {**self.config_entry.options, **user_input}
+            return self.async_create_entry(title="", data=new_options)
+
+        current = {**self.config_entry.data, **self.config_entry.options}
+        return self.async_show_form(
+            step_id="energy_meters",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(CONF_LOAD_EMR_ENTITY, default=current.get(CONF_LOAD_EMR_ENTITY) or vol.UNDEFINED): selector.EntitySelector(
+                        selector.EntitySelectorConfig(domain="sensor")
+                    ),
+                    vol.Optional(CONF_GRID_IMPORT_EMR_ENTITY, default=current.get(CONF_GRID_IMPORT_EMR_ENTITY) or vol.UNDEFINED): selector.EntitySelector(
+                        selector.EntitySelectorConfig(domain="sensor")
+                    ),
+                    vol.Optional(CONF_GRID_EXPORT_EMR_ENTITY, default=current.get(CONF_GRID_EXPORT_EMR_ENTITY) or vol.UNDEFINED): selector.EntitySelector(
+                        selector.EntitySelectorConfig(domain="sensor")
+                    ),
+                    vol.Optional(CONF_PV_PRODUCTION_EMR_ENTITY, default=current.get(CONF_PV_PRODUCTION_EMR_ENTITY) or vol.UNDEFINED): selector.EntitySelector(
+                        selector.EntitySelectorConfig(domain="sensor")
+                    ),
+                }
+            ),
         )
 
     # -- Battery sub-step ---------------------------------------------------
@@ -785,7 +820,7 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Configure battery sensor entities for storage price tracking (optional)."""
         if user_input is not None:
             self.data.update(user_input)
-            return await self.async_step_ev()
+            return await self.async_step_energy_meters()
 
         return self.async_show_form(
             step_id="battery_sensors",
@@ -798,6 +833,34 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         selector.EntitySelectorConfig(domain="sensor")
                     ),
                     vol.Optional(CONF_BATTERY_ENERGY): selector.EntitySelector(
+                        selector.EntitySelectorConfig(domain="sensor")
+                    ),
+                }
+            ),
+        )
+
+    async def async_step_energy_meters(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Configure energy meter entities for EOS HA Adapter (optional)."""
+        if user_input is not None:
+            self.data.update(user_input)
+            return await self.async_step_ev()
+
+        return self.async_show_form(
+            step_id="energy_meters",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(CONF_LOAD_EMR_ENTITY): selector.EntitySelector(
+                        selector.EntitySelectorConfig(domain="sensor")
+                    ),
+                    vol.Optional(CONF_GRID_IMPORT_EMR_ENTITY): selector.EntitySelector(
+                        selector.EntitySelectorConfig(domain="sensor")
+                    ),
+                    vol.Optional(CONF_GRID_EXPORT_EMR_ENTITY): selector.EntitySelector(
+                        selector.EntitySelectorConfig(domain="sensor")
+                    ),
+                    vol.Optional(CONF_PV_PRODUCTION_EMR_ENTITY): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="sensor")
                     ),
                 }

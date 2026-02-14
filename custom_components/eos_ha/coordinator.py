@@ -1,4 +1,4 @@
-"""DataUpdateCoordinator for EOS HA integration — auto-optimization mode."""
+"""DataUpdateCoordinator for EOS HA integration — HA Adapter mode."""
 from __future__ import annotations
 
 from datetime import timedelta
@@ -25,13 +25,17 @@ from .const import (
     CONF_EV_ENABLED,
     CONF_EV_SOC_ENTITY,
     CONF_FEED_IN_TARIFF,
+    CONF_GRID_EXPORT_EMR_ENTITY,
+    CONF_GRID_IMPORT_EMR_ENTITY,
     CONF_INVERTER_POWER,
+    CONF_LOAD_EMR_ENTITY,
     CONF_MAX_CHARGE_POWER,
     CONF_MAX_SOC,
     CONF_MIN_SOC,
     CONF_PRICE_ENTITY,
     CONF_PRICE_SOURCE,
     CONF_PV_ARRAYS,
+    CONF_PV_PRODUCTION_EMR_ENTITY,
     CONF_SOC_ENTITY,
     DEFAULT_BIDDING_ZONE,
     DEFAULT_EV_CAPACITY,
@@ -39,6 +43,18 @@ from .const import (
     DEFAULT_EV_EFFICIENCY,
     DEFAULT_FEED_IN_TARIFF,
     DEFAULT_SCAN_INTERVAL,
+    EOS_ENTITY_AC_CHARGE,
+    EOS_ENTITY_BATTERY_SOC,
+    EOS_ENTITY_BATTERY1,
+    EOS_ENTITY_COSTS,
+    EOS_ENTITY_DATETIME,
+    EOS_ENTITY_DC_CHARGE,
+    EOS_ENTITY_DISCHARGE_ALLOWED,
+    EOS_ENTITY_GRID_CONSUMPTION,
+    EOS_ENTITY_GRID_FEEDIN,
+    EOS_ENTITY_LOAD,
+    EOS_ENTITY_LOSSES,
+    EOS_ENTITY_REVENUE,
     PRICE_SOURCE_AKKUDOKTOR,
     PRICE_SOURCE_ENERGYCHARTS,
     PRICE_SOURCE_EXTERNAL,
@@ -47,8 +63,19 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
+def _read_eos_entity(hass, entity_id: str) -> float | None:
+    """Read a numeric value from an EOS-created HA entity."""
+    state = hass.states.get(entity_id)
+    if state is None or state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+        return None
+    try:
+        return float(state.state)
+    except (ValueError, TypeError):
+        return None
+
+
 class EOSCoordinator(DataUpdateCoordinator):
-    """DataUpdateCoordinator to manage EOS auto-optimization cycle."""
+    """DataUpdateCoordinator — configures EOS adapter, reads EOS entities + solution."""
 
     def __init__(self, hass: HomeAssistant, config_entry) -> None:
         super().__init__(
@@ -74,10 +101,6 @@ class EOSCoordinator(DataUpdateCoordinator):
         # Availability tracking
         self._last_available: bool | None = None
 
-        # EOS native data
-        self._energy_plan: dict[str, Any] = {}
-        self._resource_status: dict[str, Any] = {}
-
     def _get_config(self, key: str, default=None):
         """Get config value from options (runtime) with data (setup) as fallback."""
         return self.config_entry.options.get(
@@ -90,7 +113,7 @@ class EOSCoordinator(DataUpdateCoordinator):
         return self._eos_client
 
     async def _push_eos_config(self) -> None:
-        """Push full HA configuration to EOS server: location, providers, devices, EMS mode."""
+        """Push full HA configuration to EOS server: location, providers, devices, adapter, EMS mode."""
         if self._eos_configured:
             return
 
@@ -119,7 +142,6 @@ class EOSCoordinator(DataUpdateCoordinator):
                 "provider": "ElecPriceEnergyCharts",
                 "energycharts": {"bidding_zone": bidding_zone},
             })
-        # external: we'll push prices via import_prediction
 
         # 3. Configure PV forecast
         pv_arrays = self._get_config(CONF_PV_ARRAYS) or []
@@ -154,14 +176,17 @@ class EOSCoordinator(DataUpdateCoordinator):
         # 6. Configure devices (battery, inverter, EV, appliances)
         await self._push_device_config()
 
-        # 7. Enable auto-optimization
+        # 7. Configure HA Adapter — tell EOS which entities to read/write
+        await self._push_adapter_config()
+
+        # 8. Enable auto-optimization
         await self._eos_client.put_config("ems", {
             "mode": "OPTIMIZATION",
             "interval": 3600,
         })
 
         self._eos_configured = True
-        _LOGGER.info("EOS server configured with auto-optimization enabled")
+        _LOGGER.info("EOS server configured with HA adapter and auto-optimization enabled")
 
     async def _push_device_config(self) -> None:
         """Configure EOS devices: battery, inverter, EV, appliances."""
@@ -229,90 +254,46 @@ class EOSCoordinator(DataUpdateCoordinator):
 
         await self._eos_client.put_config("devices", devices)
 
-    async def _push_measurements(self) -> None:
-        """Push current SOC and consumption to EOS measurement store."""
-        soc_entity = self._get_config(CONF_SOC_ENTITY)
-        consumption_entity = self._get_config(CONF_CONSUMPTION_ENTITY)
-        now_str = dt_util.now().isoformat()
+    async def _push_adapter_config(self) -> None:
+        """Configure EOS HA Adapter with entity mappings so EOS reads from / writes to HA."""
+        # Build homeassistant config with entity mappings
+        ha_config: dict[str, Any] = {
+            "config_entity_ids": None,
+            "load_emr_entity_ids": None,
+            "grid_export_emr_entity_ids": None,
+            "grid_import_emr_entity_ids": None,
+            "pv_production_emr_entity_ids": None,
+            "device_measurement_entity_ids": None,
+            "device_instruction_entity_ids": None,
+            "solution_entity_ids": None,
+        }
 
-        if soc_entity:
-            soc_state = self.hass.states.get(soc_entity)
-            if soc_state and soc_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN):
-                try:
-                    soc_val = float(soc_state.state)
-                    await self._eos_client.put_measurement_value(now_str, "soc_percentage", soc_val)
-                except (ValueError, TypeError):
-                    pass
+        # Energy meter entities (optional)
+        load_emr = self._get_config(CONF_LOAD_EMR_ENTITY)
+        if load_emr:
+            ha_config["load_emr_entity_ids"] = [load_emr]
 
-        if consumption_entity:
-            cons_state = self.hass.states.get(consumption_entity)
-            if cons_state and cons_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN):
-                try:
-                    cons_val = float(cons_state.state)
-                    await self._eos_client.put_measurement_value(now_str, "load_wh", cons_val)
-                except (ValueError, TypeError):
-                    pass
+        grid_import = self._get_config(CONF_GRID_IMPORT_EMR_ENTITY)
+        if grid_import:
+            ha_config["grid_import_emr_entity_ids"] = [grid_import]
 
-    async def _push_load_history(self) -> None:
-        """Push 7-day consumption history from HA recorder to EOS as measurement series."""
-        consumption_entity = self._get_config(CONF_CONSUMPTION_ENTITY)
-        if not consumption_entity:
-            return
+        grid_export = self._get_config(CONF_GRID_EXPORT_EMR_ENTITY)
+        if grid_export:
+            ha_config["grid_export_emr_entity_ids"] = [grid_export]
 
-        try:
-            from homeassistant.components.recorder import get_instance
-            from homeassistant.components.recorder.statistics import (
-                statistics_during_period,
-            )
+        pv_production = self._get_config(CONF_PV_PRODUCTION_EMR_ENTITY)
+        if pv_production:
+            ha_config["pv_production_emr_entity_ids"] = [pv_production]
 
-            now = dt_util.now()
-            start = now - timedelta(days=7)
+        adapter_config = {
+            "provider": "HomeAssistant",
+            "homeassistant": ha_config,
+        }
 
-            stats = await get_instance(self.hass).async_add_executor_job(
-                statistics_during_period,
-                self.hass,
-                start,
-                now,
-                {consumption_entity},
-                "hour",
-                None,
-                {"mean", "sum"},
-            )
-
-            entity_stats = stats.get(consumption_entity, [])
-            if not entity_stats:
-                _LOGGER.debug("No history stats for %s, skipping load history push", consumption_entity)
-                return
-
-            series = []
-            for stat in entity_stats:
-                val = stat.get("mean") or stat.get("sum")
-                if val is not None:
-                    series.append({
-                        "datetime": stat["start"].isoformat() if hasattr(stat["start"], "isoformat") else stat["start"],
-                        "load_wh": float(val),
-                    })
-
-            if series:
-                url = f"{self._eos_client.base_url}/v1/measurement/series"
-                try:
-                    timeout = aiohttp.ClientTimeout(total=15)
-                    async with self.session.put(
-                        url, json=series, timeout=timeout,
-                        headers={"Content-Type": "application/json"},
-                    ) as resp:
-                        if resp.status == 200:
-                            _LOGGER.debug("Pushed %d load history points to EOS", len(series))
-                        else:
-                            body = await resp.text()
-                            _LOGGER.debug("Load history push returned %s: %s", resp.status, body[:200])
-                except Exception as err:
-                    _LOGGER.debug("Failed to push load history: %s", err)
-
-        except ImportError:
-            _LOGGER.debug("Recorder not available, skipping load history")
-        except Exception as err:
-            _LOGGER.debug("Error fetching load history: %s", err)
+        await self._eos_client.put_adapter_config(adapter_config)
+        # Also explicitly enable the adapter provider
+        await self._eos_client.set_adapter_provider("HomeAssistant")
+        _LOGGER.info("EOS HA adapter configured with entity mappings")
 
     async def _push_external_prices(self) -> None:
         """Push Tibber/external prices to EOS via prediction import if configured."""
@@ -337,7 +318,6 @@ class EOSCoordinator(DataUpdateCoordinator):
                     start = entry.get("start")
                     total = entry.get("total")
                     if start and total is not None:
-                        # Tibber prices are EUR/kWh — EOS ElecPriceImport expects EUR/kWh
                         price_data[str(start)] = float(total)
 
                 if price_data:
@@ -351,7 +331,7 @@ class EOSCoordinator(DataUpdateCoordinator):
             except Exception as err:
                 _LOGGER.debug("Error pushing Tibber prices: %s", err)
 
-        # Fallback: single current price — not very useful but push anyway
+        # Fallback: single current price
         try:
             current_price = float(price_state.state)
             now = dt_util.now().replace(minute=0, second=0, microsecond=0)
@@ -366,12 +346,12 @@ class EOSCoordinator(DataUpdateCoordinator):
             pass
 
     async def _async_update_data(self) -> dict[str, Any]:
-        """Fetch optimization solution and predictions from EOS."""
+        """Read EOS entities from HA + fetch full solution for forecast arrays."""
 
         # First refresh: push config and return empty structure
         if self._first_refresh:
             self._first_refresh = False
-            _LOGGER.info("First refresh: configuring EOS, scheduling full update")
+            _LOGGER.info("First refresh: configuring EOS with HA adapter")
             try:
                 await self._push_eos_config()
             except Exception as err:
@@ -385,49 +365,45 @@ class EOSCoordinator(DataUpdateCoordinator):
             except Exception as err:
                 _LOGGER.warning("Failed to push EOS config: %s", err)
 
-        # Push measurements (best effort)
-        try:
-            await self._push_measurements()
-        except Exception as err:
-            _LOGGER.debug("Failed to push measurements: %s", err)
-
-        # Push load history (best effort)
-        try:
-            await self._push_load_history()
-        except Exception as err:
-            _LOGGER.debug("Failed to push load history: %s", err)
-
         # Push external prices if applicable (best effort)
         try:
             await self._push_external_prices()
         except Exception as err:
             _LOGGER.debug("Failed to push external prices: %s", err)
 
-        # Fetch EOS native data (best effort)
-        try:
-            self._energy_plan = await self._eos_client.get_energy_plan()
-        except Exception:
-            pass
+        # Read current values from EOS-created HA entities
+        current_ac_charge = _read_eos_entity(self.hass, EOS_ENTITY_AC_CHARGE)
+        current_dc_charge = _read_eos_entity(self.hass, EOS_ENTITY_DC_CHARGE)
+        current_discharge = _read_eos_entity(self.hass, EOS_ENTITY_DISCHARGE_ALLOWED)
+        current_soc = _read_eos_entity(self.hass, EOS_ENTITY_BATTERY_SOC)
+        current_cost = _read_eos_entity(self.hass, EOS_ENTITY_COSTS)
+        current_revenue = _read_eos_entity(self.hass, EOS_ENTITY_REVENUE)
+        current_grid_consumption = _read_eos_entity(self.hass, EOS_ENTITY_GRID_CONSUMPTION)
+        current_grid_feedin = _read_eos_entity(self.hass, EOS_ENTITY_GRID_FEEDIN)
+        current_load = _read_eos_entity(self.hass, EOS_ENTITY_LOAD)
+        current_losses = _read_eos_entity(self.hass, EOS_ENTITY_LOSSES)
 
-        try:
-            self._resource_status = await self._eos_client.get_resource_status("battery1")
-        except Exception:
-            pass
+        # Check if EOS entities exist (adapter is working)
+        eos_entities_available = current_ac_charge is not None or current_soc is not None
 
-        # Fetch optimization solution
+        # Fetch full solution from API for forecast arrays (48h timeseries)
+        solution = {}
         try:
             solution = await self._eos_client.get_optimization_solution()
         except EOSConnectionError as err:
             if self._last_available is not False:
                 _LOGGER.error("EOS server is unavailable: %s", err)
                 self._last_available = False
-            if self.data:
-                return self.data
-            raise UpdateFailed(str(err)) from err
+            if not eos_entities_available:
+                if self.data:
+                    return self.data
+                raise UpdateFailed(str(err)) from err
+        except Exception as err:
+            _LOGGER.debug("Error fetching solution: %s", err)
 
-        if not solution:
+        if not solution and not eos_entities_available:
             if self._last_available is not False:
-                _LOGGER.warning("No optimization solution available from EOS")
+                _LOGGER.warning("No optimization solution and no EOS entities available")
                 self._last_available = False
             if self.data:
                 return self.data
@@ -435,110 +411,105 @@ class EOSCoordinator(DataUpdateCoordinator):
 
         if self._last_available is not True:
             if self._last_available is False:
-                _LOGGER.info("EOS server connection restored")
+                _LOGGER.info("EOS data available again")
             self._last_available = True
 
-        # Fetch prediction series for forecasts
-        pv_forecast = await self._fetch_prediction_list("pvforecast_ac_power")
-        price_forecast = await self._fetch_prediction_list("elecprice_marketprice_kwh")
-        consumption_forecast = await self._fetch_prediction_list("loadakkudoktor_mean_power_w")
+        # Parse full solution for forecast arrays
+        ac_charge_arr = []
+        dc_charge_arr = []
+        discharge_arr = []
+        soc_arr = []
+        cost_arr = []
+        revenue_arr = []
+        grid_consumption_arr = []
+        grid_feedin_arr = []
+        load_arr = []
+        losses_arr = []
+        pv_forecast = []
+        price_forecast = []
+        consumption_forecast = []
 
-        return self._parse_optimization_solution(
-            solution, pv_forecast, price_forecast, consumption_forecast
-        )
+        total_cost = None
+        total_revenue = None
+        total_losses = None
+        valid_from = None
 
-    async def _fetch_prediction_list(self, key: str) -> list[float]:
-        """Fetch a prediction series and return as ordered list of values."""
-        try:
-            result = await self._eos_client.get_prediction_series(key)
-            data = result.get("data", {})
-            if not data:
-                return []
-            # Data is {datetime_str: value} — sort by key and return values
-            sorted_items = sorted(data.items())
-            return [float(v) for _, v in sorted_items]
-        except Exception as err:
-            _LOGGER.debug("Error fetching prediction series %s: %s", key, err)
-            return []
+        if solution:
+            sol_data = solution.get("solution", {}).get("data", {})
+            pred_data = solution.get("prediction", {}).get("data", {})
+            sorted_sol = sorted(sol_data.items()) if sol_data else []
 
-    def _parse_optimization_solution(
-        self,
-        solution: dict[str, Any],
-        pv_forecast: list[float],
-        price_forecast: list[float],
-        consumption_forecast: list[float],
-    ) -> dict[str, Any]:
-        """Parse the EOS optimization solution into the data format sensors expect."""
-        sol_data = solution.get("solution", {}).get("data", {})
-        pred_data = solution.get("prediction", {}).get("data", {})
+            for _, entry in sorted_sol:
+                ac_charge_arr.append(entry.get("genetic_ac_charge_factor", 0.0))
+                dc_charge_arr.append(entry.get("genetic_dc_charge_factor", 0.0))
+                discharge_arr.append(entry.get("genetic_discharge_allowed_factor", True))
+                soc_arr.append(round(entry.get("battery1_soc_factor", 0.0) * 100, 2))
+                cost_arr.append(entry.get("costs_amt", 0.0))
+                revenue_arr.append(entry.get("revenue_amt", 0.0))
+                grid_consumption_arr.append(entry.get("grid_consumption_energy_wh", 0.0))
+                grid_feedin_arr.append(entry.get("grid_feedin_energy_wh", 0.0))
+                load_arr.append(entry.get("load_energy_wh", 0.0))
+                losses_arr.append(entry.get("losses_energy_wh", 0.0))
 
-        # Sort solution entries by datetime
-        sorted_sol = sorted(sol_data.items())
+            if pred_data:
+                sorted_pred = sorted(pred_data.items())
+                pv_forecast = [e.get("pvforecast_ac_energy_wh", 0.0) for _, e in sorted_pred]
+                price_forecast = [e.get("elec_price_amt_kwh", 0.0) / 1000.0 for _, e in sorted_pred]
+                consumption_forecast = [e.get("load_mean_power_w", 0.0) for _, e in sorted_pred]
 
-        # Extract arrays from solution
-        ac_charge = []
-        dc_charge = []
-        discharge_allowed = []
-        battery_soc_forecast = []
-        cost_per_hour = []
-        revenue_per_hour = []
-        grid_consumption_per_hour = []
-        grid_feedin_per_hour = []
-        load_per_hour = []
-        losses_per_hour = []
+            total_cost = solution.get("total_costs_amt")
+            total_revenue = solution.get("total_revenues_amt")
+            total_losses = solution.get("total_losses_energy_wh")
+            valid_from = solution.get("valid_from")
 
-        for _, entry in sorted_sol:
-            ac_charge.append(entry.get("genetic_ac_charge_factor", 0.0))
-            dc_charge.append(entry.get("genetic_dc_charge_factor", 0.0))
-            discharge_allowed.append(entry.get("genetic_discharge_allowed_factor", True))
-            # SOC is a factor 0-1, convert to percentage
-            battery_soc_forecast.append(
-                round(entry.get("battery1_soc_factor", 0.0) * 100, 2)
-            )
-            cost_per_hour.append(entry.get("costs_amt", 0.0))
-            revenue_per_hour.append(entry.get("revenue_amt", 0.0))
-            grid_consumption_per_hour.append(entry.get("grid_consumption_energy_wh", 0.0))
-            grid_feedin_per_hour.append(entry.get("grid_feedin_energy_wh", 0.0))
-            load_per_hour.append(entry.get("load_energy_wh", 0.0))
-            losses_per_hour.append(entry.get("losses_energy_wh", 0.0))
+        # If no solution arrays but we have prediction series, try those
+        if not pv_forecast:
+            pv_forecast = await self._fetch_prediction_list("pvforecast_ac_power")
+        if not price_forecast:
+            raw_prices = await self._fetch_prediction_list("elecprice_marketprice_kwh")
+            price_forecast = [p / 1000.0 for p in raw_prices] if raw_prices else []
+        if not consumption_forecast:
+            consumption_forecast = await self._fetch_prediction_list("loadakkudoktor_mean_power_w")
 
-        # Extract PV forecast from prediction data if not from series
-        if not pv_forecast and pred_data:
-            sorted_pred = sorted(pred_data.items())
-            pv_forecast = [
-                e.get("pvforecast_ac_energy_wh", 0.0) for _, e in sorted_pred
-            ]
-
-        # Extract price forecast from prediction data (EUR/kWh → EUR/Wh)
-        if not price_forecast and pred_data:
-            sorted_pred = sorted(pred_data.items())
-            price_forecast = [
-                e.get("elec_price_amt_kwh", 0.0) / 1000.0 for _, e in sorted_pred
-            ]
-        elif price_forecast:
-            # Series returns EUR/kWh, convert to EUR/Wh for backward compat
-            price_forecast = [p / 1000.0 for p in price_forecast]
-
-        # Totals from solution metadata
-        total_cost = solution.get("total_costs_amt")
-        total_revenue = solution.get("total_revenues_amt")
-        total_losses = solution.get("total_losses_energy_wh")
         total_balance = None
         if total_cost is not None and total_revenue is not None:
             total_balance = total_revenue - total_cost
 
+        # Build data dict — use current EOS entity values for index 0 if arrays are empty
+        # This ensures sensors show current state even before a full solution is available
+        if not ac_charge_arr and current_ac_charge is not None:
+            ac_charge_arr = [current_ac_charge]
+        if not dc_charge_arr and current_dc_charge is not None:
+            dc_charge_arr = [current_dc_charge]
+        if not discharge_arr and current_discharge is not None:
+            discharge_arr = [current_discharge]
+        if not soc_arr and current_soc is not None:
+            soc_arr = [round(current_soc * 100, 2)]
+        if not cost_arr and current_cost is not None:
+            cost_arr = [current_cost]
+        if not revenue_arr and current_revenue is not None:
+            revenue_arr = [current_revenue]
+        if not grid_consumption_arr and current_grid_consumption is not None:
+            grid_consumption_arr = [current_grid_consumption]
+        if not grid_feedin_arr and current_grid_feedin is not None:
+            grid_feedin_arr = [current_grid_feedin]
+        if not load_arr and current_load is not None:
+            load_arr = [current_load]
+        if not losses_arr and current_losses is not None:
+            losses_arr = [current_losses]
+
         return {
-            "ac_charge": ac_charge,
-            "dc_charge": dc_charge,
-            "discharge_allowed": discharge_allowed,
-            "start_solution": solution.get("valid_from"),
-            "battery_soc_forecast": battery_soc_forecast,
-            "cost_per_hour": cost_per_hour,
-            "revenue_per_hour": revenue_per_hour,
-            "grid_consumption_per_hour": grid_consumption_per_hour,
-            "grid_feedin_per_hour": grid_feedin_per_hour,
-            "load_per_hour": load_per_hour,
-            "losses_per_hour": losses_per_hour,
+            "ac_charge": ac_charge_arr,
+            "dc_charge": dc_charge_arr,
+            "discharge_allowed": discharge_arr,
+            "start_solution": valid_from,
+            "battery_soc_forecast": soc_arr,
+            "cost_per_hour": cost_arr,
+            "revenue_per_hour": revenue_arr,
+            "grid_consumption_per_hour": grid_consumption_arr,
+            "grid_feedin_per_hour": grid_feedin_arr,
+            "load_per_hour": load_arr,
+            "losses_per_hour": losses_arr,
             "total_balance": total_balance,
             "total_cost": total_cost,
             "total_revenue": total_revenue,
@@ -548,14 +519,28 @@ class EOSCoordinator(DataUpdateCoordinator):
             "consumption_forecast": consumption_forecast,
             "price_forecast": price_forecast,
             "active_override": self.active_override,
-            "energy_plan": self._energy_plan,
-            "resource_status": self._resource_status,
+            "energy_plan": {},
+            "resource_status": {},
             "ev_charge_plan": {},
             "appliance_schedules": {},
             "raw_response": solution,
+            "eos_entities_available": eos_entities_available,
             "last_update": dt_util.now().isoformat(),
             "last_success": True,
         }
+
+    async def _fetch_prediction_list(self, key: str) -> list[float]:
+        """Fetch a prediction series and return as ordered list of values."""
+        try:
+            result = await self._eos_client.get_prediction_series(key)
+            data = result.get("data", {})
+            if not data:
+                return []
+            sorted_items = sorted(data.items())
+            return [float(v) for _, v in sorted_items]
+        except Exception as err:
+            _LOGGER.debug("Error fetching prediction series %s: %s", key, err)
+            return []
 
     def _empty_data(self) -> dict[str, Any]:
         """Return empty data structure for first refresh."""
@@ -584,6 +569,7 @@ class EOSCoordinator(DataUpdateCoordinator):
             "ev_charge_plan": {},
             "appliance_schedules": {},
             "raw_response": {},
+            "eos_entities_available": False,
             "last_update": dt_util.now().isoformat(),
             "last_success": False,
         }

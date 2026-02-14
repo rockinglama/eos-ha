@@ -81,6 +81,16 @@ class EOSApiClient:
             _LOGGER.error("Error putting config %s: %s", path, err)
             return {}
 
+    # ---- Adapter configuration ----
+
+    async def put_adapter_config(self, config: dict) -> dict:
+        """PUT /v1/config/adapter — configure the HA adapter."""
+        return await self.put_config("adapter", config)
+
+    async def set_adapter_provider(self, provider: str) -> dict:
+        """PUT /v1/config/adapter/provider — enable/disable adapter."""
+        return await self.put_config("adapter/provider", provider)
+
     # ---- Prediction update ----
 
     async def update_predictions(self, force_update: bool = True) -> bool:

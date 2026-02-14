@@ -57,6 +57,16 @@
           "battery_energy_entity": "Battery Energy Entity (kWh)"
         }
       },
+      "energy_meters": {
+        "title": "Energy Meters (optional)",
+        "description": "Configure energy meter entities for EOS HA Adapter. These allow EOS to read actual energy data directly from Home Assistant for improved forecast accuracy.",
+        "data": {
+          "load_emr_entity": "Load Energy Meter",
+          "grid_import_emr_entity": "Grid Import Energy Meter",
+          "grid_export_emr_entity": "Grid Export Energy Meter",
+          "pv_production_emr_entity": "PV Production Energy Meter"
+        }
+      },
       "ev": {
         "title": "Electric Vehicle (optional)",
         "description": "Configure your electric vehicle for optimized charging. Leave disabled if you don't have an EV.",
@@ -103,6 +113,7 @@
         "description": "Choose what to configure.",
         "menu_options": {
           "entities": "Input Entities",
+          "energy_meters": "Energy Meters (EOS Adapter)",
           "battery": "Battery Parameters",
           "battery_sensors": "Battery Sensors (Storage Price)",
           "pv_arrays": "PV Arrays",
@@ -131,6 +142,16 @@
           "soc_entity": "Battery State of Charge Entity",
           "consumption_entity": "Consumption/Load Entity",
           "temperature_entity": "Temperature Entity (optional)"
+        }
+      },
+      "energy_meters": {
+        "title": "Energy Meters (EOS Adapter)",
+        "description": "Configure energy meter entities that EOS reads directly from Home Assistant for improved optimization.",
+        "data": {
+          "load_emr_entity": "Load Energy Meter",
+          "grid_import_emr_entity": "Grid Import Energy Meter",
+          "grid_export_emr_entity": "Grid Export Energy Meter",
+          "pv_production_emr_entity": "PV Production Energy Meter"
         }
       },
       "battery": {
