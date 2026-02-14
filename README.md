@@ -1,8 +1,12 @@
-# EOS-HA
+<div align="center">
+  <img src="icon.jpg" alt="EOS-HA Logo" width="200"/>
 
-[![Add to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=rockinglama&repository=eos-ha&category=integration)
+  # EOS-HA
 
-A Home Assistant custom integration for [Akkudoktor EOS](https://github.com/Akkudoktor-EOS/EOS) energy optimization. EOS-HA connects your Home Assistant energy data to an EOS optimization server and exposes the results as HA entities you can use in automations and dashboards.
+  [![Add to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=rockinglama&repository=eos-ha&category=integration)
+
+  A Home Assistant custom integration for [Akkudoktor EOS](https://github.com/Akkudoktor-EOS/EOS) energy optimization. EOS-HA connects your Home Assistant energy data to an EOS optimization server and exposes the results as HA entities you can use in automations and dashboards.
+</div>
 
 ## What It Does
 

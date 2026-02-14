@@ -155,19 +155,55 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 {
                     vol.Required(
                         CONF_BATTERY_CAPACITY, default=DEFAULT_BATTERY_CAPACITY
-                    ): vol.All(vol.Coerce(float), vol.Range(min=0.5, max=200.0)),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0.5,
+                            max=200.0,
+                            step=0.5,
+                            unit_of_measurement="kWh",
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
                     vol.Required(
                         CONF_MAX_CHARGE_POWER, default=DEFAULT_MAX_CHARGE_POWER
-                    ): vol.All(vol.Coerce(int), vol.Range(min=100, max=50000)),
-                    vol.Required(CONF_MIN_SOC, default=DEFAULT_MIN_SOC): vol.All(
-                        vol.Coerce(int), vol.Range(min=0, max=100)
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=100,
+                            max=50000,
+                            step=100,
+                            unit_of_measurement="W",
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
                     ),
-                    vol.Required(CONF_MAX_SOC, default=DEFAULT_MAX_SOC): vol.All(
-                        vol.Coerce(int), vol.Range(min=0, max=100)
+                    vol.Required(CONF_MIN_SOC, default=DEFAULT_MIN_SOC): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0,
+                            max=100,
+                            step=1,
+                            unit_of_measurement="%",
+                            mode=selector.NumberSelectorMode.SLIDER,
+                        )
+                    ),
+                    vol.Required(CONF_MAX_SOC, default=DEFAULT_MAX_SOC): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0,
+                            max=100,
+                            step=1,
+                            unit_of_measurement="%",
+                            mode=selector.NumberSelectorMode.SLIDER,
+                        )
                     ),
                     vol.Required(
                         CONF_INVERTER_POWER, default=DEFAULT_INVERTER_POWER
-                    ): vol.All(vol.Coerce(int), vol.Range(min=100, max=100000)),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=100,
+                            max=100000,
+                            step=100,
+                            unit_of_measurement="W",
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
                 }
             ),
         )
