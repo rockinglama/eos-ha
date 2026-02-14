@@ -16,6 +16,7 @@ jobs:
 
   hacs:
     name: HACS Validation
+    if: false  # Disabled until brands repo PR is merged
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
