@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "EOS HA",
-        "description": "Enter the URL of your EOS optimization server.",
+        "description": "Enter the URL of your EOS optimization server. {detected}",
         "data": {
           "eos_url": "EOS Server URL"
         }
@@ -159,27 +159,61 @@
   },
   "entity": {
     "sensor": {
-      "ac_charge_power": { "name": "AC Charge Power" },
-      "dc_charge_power": { "name": "DC Charge Power" },
-      "current_mode": { "name": "Current Mode" },
-      "pv_forecast": { "name": "PV Forecast" },
-      "price_forecast": { "name": "Price Forecast" },
-      "consumption_forecast": { "name": "Consumption Forecast" },
-      "battery_soc_forecast": { "name": "Battery SOC Forecast" },
-      "total_cost": { "name": "Total Cost" },
-      "override_status": { "name": "Override Status" },
-      "energy_plan": { "name": "Energy Plan" },
-      "resource_status": { "name": "Battery Resource Status" }
+      "ac_charge_power": {
+        "name": "AC Charge Power"
+      },
+      "dc_charge_power": {
+        "name": "DC Charge Power"
+      },
+      "current_mode": {
+        "name": "Current Mode"
+      },
+      "pv_forecast": {
+        "name": "PV Forecast"
+      },
+      "price_forecast": {
+        "name": "Price Forecast"
+      },
+      "consumption_forecast": {
+        "name": "Consumption Forecast"
+      },
+      "battery_soc_forecast": {
+        "name": "Battery SOC Forecast"
+      },
+      "total_cost": {
+        "name": "Total Cost"
+      },
+      "override_status": {
+        "name": "Override Status"
+      },
+      "energy_plan": {
+        "name": "Energy Plan"
+      },
+      "resource_status": {
+        "name": "Battery Resource Status"
+      }
     },
     "binary_sensor": {
-      "discharge_allowed": { "name": "Discharge Allowed" }
+      "discharge_allowed": {
+        "name": "Discharge Allowed"
+      }
     },
     "number": {
-      "battery_capacity": { "name": "Battery Capacity" },
-      "max_charge_power": { "name": "Max Charge Power" },
-      "inverter_power": { "name": "Inverter Power" },
-      "min_soc": { "name": "Minimum SOC" },
-      "max_soc": { "name": "Maximum SOC" }
+      "battery_capacity": {
+        "name": "Battery Capacity"
+      },
+      "max_charge_power": {
+        "name": "Max Charge Power"
+      },
+      "inverter_power": {
+        "name": "Inverter Power"
+      },
+      "min_soc": {
+        "name": "Minimum SOC"
+      },
+      "max_soc": {
+        "name": "Maximum SOC"
+      }
     }
   }
 }

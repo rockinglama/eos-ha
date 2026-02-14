@@ -301,11 +301,62 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(config_entry):
         return EOSHAOptionsFlow()
 
+    async def _detect_eos_addon(self) -> str | None:
+        """Try to detect a running EOS addon via Supervisor API."""
+        try:
+            session = async_get_clientsession(self.hass)
+            # Check if we're running under Supervisor
+            supervisor_token = self.hass.components.hassio.get_supervisor_token() if hasattr(self.hass.components, "hassio") else None
+            if not supervisor_token:
+                # Try environment variable
+                import os
+                supervisor_token = os.environ.get("SUPERVISOR_TOKEN")
+            if not supervisor_token:
+                return None
+
+            headers = {"Authorization": f"Bearer {supervisor_token}"}
+            async with session.get(
+                "http://supervisor/addons", headers=headers, timeout=aiohttp.ClientTimeout(total=5)
+            ) as resp:
+                if resp.status != 200:
+                    return None
+                data = await resp.json()
+
+            for addon in data.get("data", {}).get("addons", []):
+                slug = addon.get("slug", "")
+                state = addon.get("state", "")
+                # Match EOS addon by slug containing "eos"
+                if "eos" in slug.lower() and state == "started":
+                    # Addon hostname: slug with _ replaced by -
+                    hostname = slug.replace("_", "-")
+                    url = f"http://{hostname}:8503"
+                    # Verify it's actually EOS
+                    try:
+                        async with session.get(
+                            f"{url}/v1/health", timeout=aiohttp.ClientTimeout(total=5)
+                        ) as health_resp:
+                            if health_resp.status == 200:
+                                health = await health_resp.json()
+                                if health.get("status") == "alive":
+                                    _LOGGER.info("Auto-detected EOS addon at %s", url)
+                                    return url
+                    except Exception:
+                        pass
+        except Exception as err:
+            _LOGGER.debug("Addon detection failed: %s", err)
+        return None
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.FlowResult:
         """Handle the initial step - EOS Server URL."""
         errors: dict[str, str] = {}
+
+        if user_input is None:
+            # Try auto-detection before showing the form
+            detected_url = await self._detect_eos_addon()
+            if detected_url:
+                self._detected_url = detected_url
 
         if user_input is not None:
             await self.async_set_unique_id(DOMAIN)
@@ -342,10 +393,16 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.exception("Unexpected error: %s", err)
                 errors["base"] = "invalid_response"
 
+        default_url = getattr(self, "_detected_url", "")
         return self.async_show_form(
             step_id="user",
-            data_schema=vol.Schema({vol.Required(CONF_EOS_URL): str}),
+            data_schema=vol.Schema({
+                vol.Required(CONF_EOS_URL, default=default_url): str,
+            }),
             errors=errors,
+            description_placeholders={
+                "detected": f"EOS Addon erkannt: {default_url}" if default_url else "",
+            },
         )
 
     async def async_step_price_source(

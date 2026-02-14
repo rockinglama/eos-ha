@@ -26,7 +26,6 @@ services:
       - "8123:8123"
     volumes:
       - ha_config:/config
-      - ./custom_components/eos_ha:/config/custom_components/eos_ha:ro
     environment:
       - TZ=Europe/Berlin
     depends_on:
