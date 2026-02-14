@@ -378,7 +378,7 @@
             }
         }
 
-        async function fetch_EOS_Connect_Data(filename) {
+        async function fetch_eos_ha_Data(filename) {
             const response = await fetch('json/' + filename + '?nocache=' + new Date().getTime());
             const data = await response.json();
             return data;
@@ -777,7 +777,7 @@
 
         async function showCurrentData() {
             //console.log("------- showCurrentControls -------");
-            const data_controls = await fetch_EOS_Connect_Data("current_controls.json");
+            const data_controls = await fetch_eos_ha_Data("current_controls.json");
             showCarChargingData(data_controls);
 
             inverter_mode_text = data_controls["current_states"]["inverter_mode"];
@@ -1150,17 +1150,17 @@
         async function init() {
             // base chart
             if (TEST_MODE) {
-                var data_request = await fetch_EOS_Connect_Data("optimize_request.test.json");
-                var data_response = await fetch_EOS_Connect_Data("optimize_response.test.json");
+                var data_request = await fetch_eos_ha_Data("optimize_request.test.json");
+                var data_response = await fetch_eos_ha_Data("optimize_response.test.json");
             } else {
-                var data_request = await fetch_EOS_Connect_Data("optimize_request.json");
-                var data_response = await fetch_EOS_Connect_Data("optimize_response.json");
+                var data_request = await fetch_eos_ha_Data("optimize_request.json");
+                var data_response = await fetch_eos_ha_Data("optimize_response.json");
             }
-            // const data_request = await fetch_EOS_Connect_Data("optimize_request.json");
+            // const data_request = await fetch_eos_ha_Data("optimize_request.json");
             // max_charge_power_w according to optimize_request api version
             max_charge_power_w = data_request["pv_akku"] && data_request["pv_akku"].hasOwnProperty("max_ladeleistung_w") ? data_request["pv_akku"]["max_ladeleistung_w"] : data_request["pv_akku"] ? data_request["pv_akku"]["max_charge_power_w"] : 0;
 
-            // const data_response = await fetch_EOS_Connect_Data("optimize_response.json");
+            // const data_response = await fetch_eos_ha_Data("optimize_response.json");
 
             await showCurrentData();
 

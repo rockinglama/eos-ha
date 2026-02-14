@@ -51,7 +51,7 @@ class DataManager {
 
     /**
      * Fetch EOS HA data files
-     * This replaces the original fetch_EOS_Connect_Data function
+     * This replaces the original fetch_eos_ha_Data function
      * Routes test files to the dynamic test endpoint
      */
     async fetchEOSConnectData(filename) {
@@ -226,7 +226,7 @@ class DataManager {
 const dataManager = new DataManager();
 
 // Legacy compatibility function - keep for now to avoid breaking changes
-async function fetch_EOS_Connect_Data(filename) {
+async function fetch_eos_ha_Data(filename) {
     return dataManager.fetchEOSConnectData(filename);
 }
 
