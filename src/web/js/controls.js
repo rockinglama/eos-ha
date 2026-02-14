@@ -96,9 +96,9 @@ class ControlsManager {
 
                 <!-- Grid Charge Power Section (Only for Mode 0) -->
                 ${currentModeNum === 0 && overrideActive ? '' : `
-                <div id="grid-power-section" style="background-color: rgba(0,0,0,0.3); border-radius: 8px; padding: 25px; border-left: 4px solid ${EOS_CONNECT_ICONS[0].color}; margin-bottom: 15px; ">
-                    <div style="font-size: 1.1em; color: ${EOS_CONNECT_ICONS[0].color}; margin-bottom: 15px; font-weight: bold;">
-                        <i class="fas fa-bolt" style="margin-right: 10px;"></i>Grid Charge Power (kW)<br> <span style="font-size: 0.75em; color: #888; font-weight: normal;">Mode '${EOS_CONNECT_ICONS[0].title}' Only</span>
+                <div id="grid-power-section" style="background-color: rgba(0,0,0,0.3); border-radius: 8px; padding: 25px; border-left: 4px solid ${EOS_HA_ICONS[0].color}; margin-bottom: 15px; ">
+                    <div style="font-size: 1.1em; color: ${EOS_HA_ICONS[0].color}; margin-bottom: 15px; font-weight: bold;">
+                        <i class="fas fa-bolt" style="margin-right: 10px;"></i>Grid Charge Power (kW)<br> <span style="font-size: 0.75em; color: #888; font-weight: normal;">Mode '${EOS_HA_ICONS[0].title}' Only</span>
                     </div>
                     
                     <div style="display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap;">
@@ -114,7 +114,7 @@ class ControlsManager {
                                 transition: all 0.3s ease;
                                 min-width: 50px;
                             "
-                            onmouseover="this.style.backgroundColor='rgba(220, 53, 69, 0.2)'; this.style.borderColor='${EOS_CONNECT_ICONS[0].color}'"
+                            onmouseover="this.style.backgroundColor='rgba(220, 53, 69, 0.2)'; this.style.borderColor='${EOS_HA_ICONS[0].color}'"
                             onmouseout="this.style.backgroundColor='rgba(58, 58, 58, 0.8)'; this.style.borderColor='#666'">
                             <i class="fas fa-minus"></i>
                         </button>
@@ -126,7 +126,7 @@ class ControlsManager {
                                 text-align: center;
                                 width: 120px;
                                 border-radius: 8px;
-                                border: 2px solid ${EOS_CONNECT_ICONS[0].color};
+                                border: 2px solid ${EOS_HA_ICONS[0].color};
                                 background-color: rgba(58, 58, 58, 0.8);
                                 color: white;
                             ">
@@ -165,7 +165,7 @@ class ControlsManager {
                     </div>
                     
                     <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
-                        ${EOS_CONNECT_ICONS.slice(0, 3).map((icon, index) => {
+                        ${EOS_HA_ICONS.slice(0, 3).map((icon, index) => {
             // Mode numbers in data are 1-based (1,2,3) but our array is 0-based (0,1,2)
             // So we need to compare (currentModeNum - 1) with index, OR currentModeNum with (index + 1)
             // const isCurrentMode = overrideActive && (currentModeNum === (index + 1));
@@ -220,7 +220,7 @@ class ControlsManager {
                             <i class="fas fa-undo" style="margin-right: 10px;"></i>Return to Automatic Mode
                         </div>
                         <div style="margin-bottom: 15px; font-size: 0.9em; color: #888;">
-                            Override is currently active (Mode ${EOS_CONNECT_ICONS[currentModeNum].title}). Click to cancel the override and return to automatic optimization mode.
+                            Override is currently active (Mode ${EOS_HA_ICONS[currentModeNum].title}). Click to cancel the override and return to automatic optimization mode.
                         </div>
                         <button id="mode_auto" onclick="controlsManager.handleModeChangeFullScreen('-2')" 
                             style="
@@ -270,7 +270,7 @@ class ControlsManager {
         // Add mode-specific control logic and touch event listeners
         setTimeout(() => {
             // Add click handlers for mode buttons to show/hide relevant controls
-            EOS_CONNECT_ICONS.slice(0, 3).forEach((icon, index) => {
+            EOS_HA_ICONS.slice(0, 3).forEach((icon, index) => {
                 const button = document.getElementById(`mode_${index}`);
                 if (button && !button.disabled) {
                     const originalOnClick = button.getAttribute('onclick');
@@ -303,7 +303,7 @@ class ControlsManager {
      */
     selectModeForOverride(mode) {
         // Highlight selected mode button
-        EOS_CONNECT_ICONS.slice(0, 3).forEach((icon, index) => {
+        EOS_HA_ICONS.slice(0, 3).forEach((icon, index) => {
             const button = document.getElementById(`mode_${index}`);
             if (button) {
                 if (index === mode) {
@@ -494,7 +494,7 @@ class ControlsManager {
 
         iconElement.innerHTML = ""; // Clear previous content
 
-        const iconData = EOS_CONNECT_ICONS[inverterModeNum] || {};
+        const iconData = EOS_HA_ICONS[inverterModeNum] || {};
         const { icon, color, title } = iconData;
 
         iconElement.innerHTML = `<i class="fa-solid ${icon}"></i>`;

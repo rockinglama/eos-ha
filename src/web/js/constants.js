@@ -13,7 +13,7 @@ const COLOR_MODE_DISCHARGE_ALLOWED_EVCC_PV = "lightgreen";
 const COLOR_MODE_DISCHARGE_ALLOWED_EVCC_MIN_PV = "darkorange";
 const COLOR_MODE_CHARGE_FROM_GRID_EVCC_FAST = "rgb(255, 144, 144)";
 
-const EOS_CONNECT_ICONS = [
+const EOS_HA_ICONS = [
     { icon: "fa-plug-circle-bolt", color: COLOR_MODE_CHARGE_FROM_GRID, title: "Charge From Grid" },
     { icon: "fa-lock", color: COLOR_MODE_AVOID_DISCHARGE, title: "Avoid Discharge" },
     { icon: "fa-battery-half", color: COLOR_MODE_DISCHARGE_ALLOWED, title: "Discharge Allowed" },

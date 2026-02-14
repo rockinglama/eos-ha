@@ -201,24 +201,24 @@ class ScheduleManager {
             // car charging override active
             if (index === 0 && inverter_mode_num > 2) {
                 // override first hour - if eos connect overriding eos by evcc
-                buttonDiv.style.color = EOS_CONNECT_ICONS[inverter_mode_num].color;
+                buttonDiv.style.color = EOS_HA_ICONS[inverter_mode_num].color;
                 if (inverter_mode_num === 3) { // MODE_AVOID_DISCHARGE_EVCC_FAST
-                    buttonDiv.innerHTML = " <i class='fa-solid " + EOS_CONNECT_ICONS[inverter_mode_num].icon + "'></i> <i class='fa-solid " + EOS_CONNECT_ICONS[1].icon + "'></i> ";
+                    buttonDiv.innerHTML = " <i class='fa-solid " + EOS_HA_ICONS[inverter_mode_num].icon + "'></i> <i class='fa-solid " + EOS_HA_ICONS[1].icon + "'></i> ";
                 } else if (inverter_mode_num === 4) { // MODE_DISCHARGE_ALLOWED_EVCC_PV
-                    buttonDiv.innerHTML = " <i class='fa-solid " + EOS_CONNECT_ICONS[inverter_mode_num].icon + "'></i> <i class='fa-solid " + EOS_CONNECT_ICONS[2].icon + "'></i> ";
+                    buttonDiv.innerHTML = " <i class='fa-solid " + EOS_HA_ICONS[inverter_mode_num].icon + "'></i> <i class='fa-solid " + EOS_HA_ICONS[2].icon + "'></i> ";
                 } else if (inverter_mode_num === 5) { //MODE_DISCHARGE_ALLOWED_EVCC_MIN_PV
-                    buttonDiv.innerHTML = " <i class='fa-solid " + EOS_CONNECT_ICONS[inverter_mode_num].icon + "'></i> <i class='fa-solid " + EOS_CONNECT_ICONS[2].icon + "'></i> ";
+                    buttonDiv.innerHTML = " <i class='fa-solid " + EOS_HA_ICONS[inverter_mode_num].icon + "'></i> <i class='fa-solid " + EOS_HA_ICONS[2].icon + "'></i> ";
                 } else if (inverter_mode_num === 6) { //MODE_CHARGE_FROM_GRID_EVCC_FAST
-                    buttonDiv.innerHTML = " <i class='fa-solid " + EOS_CONNECT_ICONS[inverter_mode_num].icon + "'></i> <i class='fa-solid " + EOS_CONNECT_ICONS[0].icon + "'></i> ";
+                    buttonDiv.innerHTML = " <i class='fa-solid " + EOS_HA_ICONS[inverter_mode_num].icon + "'></i> <i class='fa-solid " + EOS_HA_ICONS[0].icon + "'></i> ";
                 }
             }
             // 30 minutes in seconds = 30 * 60 = 1800
             else if (manual_override_active && (manual_override_active_until - (labelTime.getTime() / 1000)) > -(45 * 60)) {
-                buttonDiv.style.color = EOS_CONNECT_ICONS[inverter_mode_num].color;
-                buttonDiv.innerHTML = "<i style='color:orange;' class='fa-solid fa-triangle-exclamation'></i> <i class='fa-solid " + EOS_CONNECT_ICONS[inverter_mode_num].icon + "'></i>";
+                buttonDiv.style.color = EOS_HA_ICONS[inverter_mode_num].color;
+                buttonDiv.innerHTML = "<i style='color:orange;' class='fa-solid fa-triangle-exclamation'></i> <i class='fa-solid " + EOS_HA_ICONS[inverter_mode_num].icon + "'></i>";
             } else {
-                buttonDiv.style.color = EOS_CONNECT_ICONS[currentModeAtHour].color;
-                buttonDiv.innerHTML += "<i class='fa-solid " + EOS_CONNECT_ICONS[currentModeAtHour].icon + "'></i>";
+                buttonDiv.style.color = EOS_HA_ICONS[currentModeAtHour].color;
+                buttonDiv.innerHTML += "<i class='fa-solid " + EOS_HA_ICONS[currentModeAtHour].icon + "'></i>";
                 if (ac_charge[(index + currentHour)]) {
                     buttonDiv.innerHTML += " <span style='font-size: xx-small;'>" + (ac_charge[(index + currentHour)] / 1000).toFixed(1) + " kWh</span>";
                     buttonDiv.style.padding = "0 10px";
