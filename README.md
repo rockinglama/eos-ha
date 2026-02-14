@@ -43,6 +43,19 @@ You keep full control — EOS-HA provides recommendations as sensor entities. Yo
 1. Copy `custom_components/eos_ha/` to your HA `config/custom_components/` directory
 2. Restart Home Assistant
 
+## Dashboard
+
+![EOS Dashboard](docs/assets/images/dashboard.png)
+
+## Removal
+
+To remove the integration:
+
+1. Go to **Settings → Devices & Services → EOS HA**
+2. Click the **⋮** menu and select **Delete**
+3. Restart Home Assistant
+4. (Optional) Remove the `custom_components/eos_ha/` directory if installed manually, or uninstall via HACS
+
 ## Configuration
 
 Add the integration via **Settings → Devices & Services → + Add Integration → EOS HA**.

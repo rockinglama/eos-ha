@@ -158,7 +158,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up EOS number entities from a config entry."""
-    coordinator: EOSCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator: EOSCoordinator = entry.runtime_data
     entities = [EOSNumber(coordinator, entry, desc) for desc in NUMBERS]
 
     # Add EV numbers if EV is enabled

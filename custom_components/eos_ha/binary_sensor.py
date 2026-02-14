@@ -19,7 +19,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up EOS HA binary sensors from a config entry."""
-    coordinator: EOSCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator: EOSCoordinator = config_entry.runtime_data
     async_add_entities([EOSDischargeAllowedSensor(coordinator)])
 
 
