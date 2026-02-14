@@ -79,16 +79,6 @@ def _derive_mode(data: dict) -> str:
     return "Allow Discharge"
 
 
-def _energy_plan_mode(data: dict) -> str | None:
-    """Get current operation mode from energy plan."""
-    plan = data.get("energy_plan", {})
-    instructions = plan.get("instructions", [])
-    if not instructions:
-        return None
-    # The last instruction before now is the active one
-    return instructions[0].get("operation_mode_id", "unknown")
-
-
 def _price_forecast_attrs(data: dict) -> dict[str, Any]:
     """Build enhanced price forecast attributes."""
     forecast = data.get("price_forecast", [])
@@ -149,15 +139,6 @@ SENSOR_DESCRIPTIONS: tuple[EOSSensorEntityDescription, ...] = (
         attrs_fn=lambda d: _price_forecast_attrs(d),
     ),
     EOSSensorEntityDescription(
-        key="consumption_forecast",
-        translation_key="consumption_forecast",
-        native_unit_of_measurement=UnitOfPower.WATT,
-        device_class=SensorDeviceClass.POWER,
-        icon="mdi:home-lightning-bolt",
-        value_fn=lambda d: _current_hour_value(d, "consumption_forecast"),
-        attrs_fn=lambda d: {"forecast": d.get("consumption_forecast", [])},
-    ),
-    EOSSensorEntityDescription(
         key="battery_soc_forecast",
         translation_key="battery_soc_forecast",
         native_unit_of_measurement="%",
@@ -180,40 +161,6 @@ SENSOR_DESCRIPTIONS: tuple[EOSSensorEntityDescription, ...] = (
         state_class=SensorStateClass.TOTAL,
         icon="mdi:cash",
         value_fn=lambda d: round(d["total_cost"], 2) if d.get("total_cost") is not None else None,
-    ),
-    EOSSensorEntityDescription(
-        key="energy_plan",
-        translation_key="energy_plan",
-        icon="mdi:calendar-clock",
-        value_fn=_energy_plan_mode,
-        attrs_fn=lambda d: {
-            "plan_id": d.get("energy_plan", {}).get("id"),
-            "generated_at": d.get("energy_plan", {}).get("generated_at"),
-            "valid_from": d.get("energy_plan", {}).get("valid_from"),
-            "valid_until": d.get("energy_plan", {}).get("valid_until"),
-            "instructions": d.get("energy_plan", {}).get("instructions", []),
-        },
-    ),
-    EOSSensorEntityDescription(
-        key="ev_charge_plan",
-        translation_key="ev_charge_plan",
-        icon="mdi:car-electric",
-        value_fn=lambda d: "active" if d.get("ev_charge_plan") else "inactive",
-        attrs_fn=lambda d: d.get("ev_charge_plan", {}),
-    ),
-    EOSSensorEntityDescription(
-        key="appliance_schedule",
-        translation_key="appliance_schedule",
-        icon="mdi:water-boiler",
-        value_fn=lambda d: str(len(d.get("appliance_schedules", {}))) + " appliances" if d.get("appliance_schedules") else "none",
-        attrs_fn=lambda d: {"schedules": d.get("appliance_schedules", {})},
-    ),
-    EOSSensorEntityDescription(
-        key="resource_status",
-        translation_key="resource_status",
-        icon="mdi:battery-heart-variant",
-        value_fn=lambda d: "available" if d.get("resource_status") else "unavailable",
-        attrs_fn=lambda d: d.get("resource_status", {}),
     ),
 )
 

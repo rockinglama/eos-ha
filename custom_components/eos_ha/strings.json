@@ -297,9 +297,6 @@
       "price_forecast": {
         "name": "Price Forecast"
       },
-      "consumption_forecast": {
-        "name": "Consumption Forecast"
-      },
       "battery_soc_forecast": {
         "name": "Battery SOC Forecast"
       },
@@ -308,18 +305,6 @@
       },
       "override_status": {
         "name": "Override Status"
-      },
-      "energy_plan": {
-        "name": "Energy Plan"
-      },
-      "resource_status": {
-        "name": "Battery Resource Status"
-      },
-      "ev_charge_plan": {
-        "name": "EV Charge Plan"
-      },
-      "appliance_schedule": {
-        "name": "Appliance Schedule"
       },
       "battery_storage_price": {
         "name": "Battery Storage Price"

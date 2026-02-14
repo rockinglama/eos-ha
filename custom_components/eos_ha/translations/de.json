@@ -297,9 +297,6 @@
       "price_forecast": {
         "name": "Strompreis-Prognose"
       },
-      "consumption_forecast": {
-        "name": "Verbrauchs-Prognose"
-      },
       "battery_soc_forecast": {
         "name": "Batterie-SOC-Prognose"
       },
@@ -308,18 +305,6 @@
       },
       "override_status": {
         "name": "Überschreibungs-Status"
-      },
-      "energy_plan": {
-        "name": "Energieplan"
-      },
-      "resource_status": {
-        "name": "Batterie-Ressourcenstatus"
-      },
-      "ev_charge_plan": {
-        "name": "E-Auto Ladeplan"
-      },
-      "appliance_schedule": {
-        "name": "Geräte-Zeitplan"
       },
       "battery_storage_price": {
         "name": "Batterie-Speicherpreis"
