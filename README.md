@@ -5,7 +5,9 @@
   </tr>
 </table>
 
-**For full documentation, guides, and configuration details, visit:**  
+[![Add to HACS](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=rockinglama&repository=eos-ha&category=integration)
+
+**For full documentation, guides, and configuration details, visit:**
 [https://ohAnd.github.io/EOS_connect/](https://ohAnd.github.io/EOS_connect/)
 
 ---
