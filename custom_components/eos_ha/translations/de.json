@@ -22,18 +22,14 @@
         "description": "Wählen Sie die Home Assistant Entitäten, die Energiedaten liefern.",
         "data": {
           "price_entity": "Strompreis-Entität",
-          "soc_entity": "Batterie-Ladezustand-Entität",
-          "consumption_entity": "Verbrauchs-Entität",
-          "temperature_entity": "Temperatur-Entität (optional)"
+          "soc_entity": "Batterie-Ladezustand-Entität"
         }
       },
       "entities_no_price": {
         "title": "Entitäten-Auswahl",
         "description": "Wählen Sie die Home Assistant Entitäten, die Energiedaten liefern. Strompreise werden von EOS bereitgestellt.",
         "data": {
-          "soc_entity": "Batterie-Ladezustand-Entität",
-          "consumption_entity": "Verbrauchs-Entität",
-          "temperature_entity": "Temperatur-Entität (optional)"
+          "soc_entity": "Batterie-Ladezustand-Entität"
         }
       },
       "battery": {
@@ -139,9 +135,7 @@
         "description": "Aktualisieren Sie Ihre Energie-Entitäten-Zuordnungen.",
         "data": {
           "price_entity": "Strompreis-Entität",
-          "soc_entity": "Batterie-Ladezustand-Entität",
-          "consumption_entity": "Verbrauchs-Entität",
-          "temperature_entity": "Temperatur-Entität (optional)"
+          "soc_entity": "Batterie-Ladezustand-Entität"
         }
       },
       "energy_meters": {

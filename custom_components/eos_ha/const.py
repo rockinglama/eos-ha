@@ -9,7 +9,6 @@ DEFAULT_SCAN_INTERVAL = 300  # 5 minutes in seconds
 CONF_EOS_URL = "eos_url"
 CONF_PRICE_ENTITY = "price_entity"
 CONF_SOC_ENTITY = "soc_entity"
-CONF_CONSUMPTION_ENTITY = "consumption_entity"
 CONF_BATTERY_CAPACITY = "battery_capacity"
 CONF_MAX_CHARGE_POWER = "max_charge_power"
 CONF_MIN_SOC = "min_soc"
@@ -76,9 +75,6 @@ CONF_LOAD_EMR_ENTITY = "load_emr_entity"
 CONF_GRID_IMPORT_EMR_ENTITY = "grid_import_emr_entity"
 CONF_GRID_EXPORT_EMR_ENTITY = "grid_export_emr_entity"
 CONF_PV_PRODUCTION_EMR_ENTITY = "pv_production_emr_entity"
-
-# Temperature entity
-CONF_TEMPERATURE_ENTITY = "temperature_entity"
 
 # EOS solution entity IDs (written by EOS HA Adapter, read by our wrapper sensors)
 EOS_ENTITY_AC_CHARGE = "sensor.eos_genetic_ac_charge_factor"
