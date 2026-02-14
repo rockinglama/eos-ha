@@ -474,44 +474,49 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def _detect_eos_addon(self) -> str | None:
         """Try to detect a running EOS addon via Supervisor API."""
         try:
-            session = async_get_clientsession(self.hass)
-            # Check if we're running under Supervisor
-            supervisor_token = self.hass.components.hassio.get_supervisor_token() if hasattr(self.hass.components, "hassio") else None
+            import os
+            supervisor_token = os.environ.get("SUPERVISOR_TOKEN")
             if not supervisor_token:
-                # Try environment variable
-                import os
-                supervisor_token = os.environ.get("SUPERVISOR_TOKEN")
-            if not supervisor_token:
+                _LOGGER.debug("No SUPERVISOR_TOKEN, skipping addon detection")
                 return None
 
+            session = async_get_clientsession(self.hass)
             headers = {"Authorization": f"Bearer {supervisor_token}"}
             async with session.get(
                 "http://supervisor/addons", headers=headers, timeout=aiohttp.ClientTimeout(total=5)
             ) as resp:
                 if resp.status != 200:
+                    _LOGGER.debug("Supervisor API returned %s", resp.status)
                     return None
                 data = await resp.json()
 
             for addon in data.get("data", {}).get("addons", []):
                 slug = addon.get("slug", "")
+                name = addon.get("name", "")
                 state = addon.get("state", "")
-                # Match EOS addon by slug containing "eos"
+                _LOGGER.debug("Checking addon: slug=%s, name=%s, state=%s", slug, name, state)
+                # Match EOS addon by slug or name containing "eos"
                 if "eos" in slug.lower() and state == "started":
                     # Addon hostname: slug with _ replaced by -
                     hostname = slug.replace("_", "-")
-                    url = f"http://{hostname}:8503"
-                    # Verify it's actually EOS
-                    try:
-                        async with session.get(
-                            f"{url}/v1/health", timeout=aiohttp.ClientTimeout(total=5)
-                        ) as health_resp:
-                            if health_resp.status == 200:
-                                health = await health_resp.json()
-                                if health.get("status") == "alive":
-                                    _LOGGER.info("Auto-detected EOS addon at %s", url)
-                                    return url
-                    except Exception:
-                        pass
+                    # Try common EOS ports
+                    for port in (8503, 8504):
+                        url = f"http://{hostname}:{port}"
+                        try:
+                            async with session.get(
+                                f"{url}/v1/health", timeout=aiohttp.ClientTimeout(total=5)
+                            ) as health_resp:
+                                if health_resp.status == 200:
+                                    health = await health_resp.json()
+                                    if health.get("status") == "alive":
+                                        _LOGGER.info("Auto-detected EOS addon at %s (slug=%s)", url, slug)
+                                        return url
+                        except Exception:
+                            _LOGGER.debug("Health check failed for %s", url)
+                    # If health check failed, still suggest the default URL
+                    fallback = f"http://{hostname}:8503"
+                    _LOGGER.warning("EOS addon found (slug=%s) but health check failed, suggesting %s", slug, fallback)
+                    return fallback
         except Exception as err:
             _LOGGER.debug("Addon detection failed: %s", err)
         return None
@@ -529,7 +534,9 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 self._detected_url = detected_url
 
         if user_input is not None:
-            await self.async_set_unique_id(DOMAIN)
+            # Unique ID based on EOS server URL to allow multiple instances
+            eos_url = user_input[CONF_EOS_URL].rstrip("/")
+            await self.async_set_unique_id(f"{DOMAIN}_{eos_url}")
             self._abort_if_unique_id_configured()
 
             latitude = self.hass.config.latitude
@@ -563,7 +570,8 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 _LOGGER.exception("Unexpected error: %s", err)
                 errors["base"] = "invalid_response"
 
-        default_url = getattr(self, "_detected_url", "http://192.168.1.20:8503")
+        detected_url = getattr(self, "_detected_url", None)
+        default_url = detected_url or ""
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema({
@@ -571,7 +579,7 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             }),
             errors=errors,
             description_placeholders={
-                "detected": f"EOS Addon erkannt: {default_url}" if default_url else "",
+                "detected": f"EOS Addon erkannt: {default_url}" if detected_url else "",
             },
         )
 
