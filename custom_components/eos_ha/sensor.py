@@ -11,7 +11,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfPower
+from homeassistant.const import UnitOfEnergy, UnitOfPower
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -60,6 +60,30 @@ def _current_hour_value(data: dict, key: str) -> float | None:
     """Get current hour value (index 0) from a 48h array."""
     arr = data.get(key, [])
     return round(arr[0], 2) if arr else None
+
+
+def _energy_today(data: dict) -> float | None:
+    """Sum PV forecast energy for remaining hours today (Wh)."""
+    from homeassistant.util import dt as dt_util
+    arr = data.get("pv_forecast", [])
+    if not arr:
+        return None
+    now = dt_util.now()
+    hours_left_today = 24 - now.hour
+    today_slice = arr[:hours_left_today]
+    return round(sum(today_slice), 1)
+
+
+def _energy_tomorrow(data: dict) -> float | None:
+    """Sum PV forecast energy for tomorrow (Wh)."""
+    from homeassistant.util import dt as dt_util
+    arr = data.get("pv_forecast", [])
+    if not arr:
+        return None
+    now = dt_util.now()
+    hours_left_today = 24 - now.hour
+    tomorrow_slice = arr[hours_left_today:hours_left_today + 24]
+    return round(sum(tomorrow_slice), 1) if tomorrow_slice else None
 
 
 def _derive_mode(data: dict) -> str:
@@ -126,9 +150,28 @@ SENSOR_DESCRIPTIONS: tuple[EOSSensorEntityDescription, ...] = (
         translation_key="pv_forecast",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
+        state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:solar-panel-large",
         value_fn=lambda d: _current_hour_value(d, "pv_forecast"),
         attrs_fn=lambda d: {"forecast": d.get("pv_forecast", [])},
+    ),
+    EOSSensorEntityDescription(
+        key="energy_production_today",
+        translation_key="energy_production_today",
+        native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        suggested_display_precision=0,
+        icon="mdi:solar-power-variant",
+        value_fn=_energy_today,
+    ),
+    EOSSensorEntityDescription(
+        key="energy_production_tomorrow",
+        translation_key="energy_production_tomorrow",
+        native_unit_of_measurement=UnitOfEnergy.WATT_HOUR,
+        device_class=SensorDeviceClass.ENERGY,
+        suggested_display_precision=0,
+        icon="mdi:solar-power-variant",
+        value_fn=_energy_tomorrow,
     ),
     EOSSensorEntityDescription(
         key="price_forecast",

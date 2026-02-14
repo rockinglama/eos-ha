@@ -311,6 +311,12 @@
       },
       "sg_ready_mode": {
         "name": "SG Ready Mode"
+      },
+      "energy_production_today": {
+        "name": "Energy Production Today"
+      },
+      "energy_production_tomorrow": {
+        "name": "Energy Production Tomorrow"
       }
     },
     "button": {

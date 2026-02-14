@@ -311,6 +311,12 @@
       },
       "sg_ready_mode": {
         "name": "SG-Ready Modus"
+      },
+      "energy_production_today": {
+        "name": "PV-Ertrag heute"
+      },
+      "energy_production_tomorrow": {
+        "name": "PV-Ertrag morgen"
       }
     },
     "button": {
