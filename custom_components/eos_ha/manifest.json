@@ -1,10 +1,12 @@
 {
   "domain": "eos_ha",
   "name": "EOS HA",
-  "codeowners": [],
+  "codeowners": ["@rockinglama"],
   "config_flow": true,
   "dependencies": [],
+  "after_dependencies": ["recorder"],
   "documentation": "https://github.com/rockinglama/eos-ha",
+  "issue_tracker": "https://github.com/rockinglama/eos-ha/issues",
   "iot_class": "local_polling",
   "requirements": [],
   "version": "0.4.1"

@@ -11,7 +11,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import UnitOfEnergy, UnitOfPower
+from homeassistant.const import UnitOfPower
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -428,7 +428,6 @@ class EOSBatteryStoragePriceSensor(RestoreEntity, SensorEntity):
                     grid_ratio = 0.5
 
                 grid_kwh = energy_delta * grid_ratio
-                pv_kwh = energy_delta * (1.0 - grid_ratio)
 
                 grid_price = self._get_current_grid_price()
                 cost_new = grid_kwh * grid_price * (1.0 / self._efficiency)
