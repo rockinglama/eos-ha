@@ -164,6 +164,11 @@ class EOSSensor(CoordinatorEntity, SensorEntity):
         self.entity_description = description
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{description.key}"
         self._attr_has_entity_name = True
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, coordinator.config_entry.entry_id)},
+            "name": "EOS Energy Optimizer",
+            "manufacturer": "Akkudoktor",
+        }
 
     @property
     def native_value(self) -> Any:
@@ -190,6 +195,11 @@ class EOSOptimizationStatusSensor(CoordinatorEntity, SensorEntity):
         self._attr_name = "EOS Optimization Status"
         self._attr_icon = "mdi:chart-timeline-variant"
         self._attr_has_entity_name = True
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, coordinator.config_entry.entry_id)},
+            "name": "EOS Energy Optimizer",
+            "manufacturer": "Akkudoktor",
+        }
 
     @property
     def native_value(self) -> str:

@@ -35,6 +35,11 @@ class EOSDischargeAllowedSensor(CoordinatorEntity, BinarySensorEntity):
         self._attr_has_entity_name = True
         self._attr_translation_key = "discharge_allowed"
         self._attr_icon = "mdi:battery-arrow-down"
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, coordinator.config_entry.entry_id)},
+            "name": "EOS Energy Optimizer",
+            "manufacturer": "Akkudoktor",
+        }
         # No device_class - this is a custom operational state
 
     @property
