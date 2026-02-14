@@ -178,7 +178,9 @@ class AkkudoktorApiClient:
                 if resp.status != 200:
                     raise AkkudoktorApiError(f"Akkudoktor API returned status {resp.status}")
 
-                data = await resp.json()
+                # Akkudoktor API incorrectly returns content-type: text/html for JSON responses
+                # Use content_type=None to skip content-type validation
+                data = await resp.json(content_type=None)
 
             # Process response into 48-hour hourly array
             # Following pattern from pv_interface.py lines 691-776
