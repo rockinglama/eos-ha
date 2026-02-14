@@ -69,6 +69,9 @@ class EOSCoordinator(DataUpdateCoordinator):
         self._pv_forecast_cache: list[float] | None = None
         self._pv_forecast_timestamp = None
 
+        # Track if first refresh (skip optimization, just validate)
+        self._first_refresh = True
+
         # Last used forecasts (for exposing in sensors)
         self._last_pv_forecast: list[float] = []
         self._last_consumption_forecast: list[float] = []
@@ -78,6 +81,8 @@ class EOSCoordinator(DataUpdateCoordinator):
         """Fetch data from HA entities and run optimization cycle.
 
         This is the core optimization cycle that runs every 5 minutes.
+        On the first refresh (during setup), we skip optimization to avoid
+        timeout issues and return empty data so entities can be created.
 
         Returns:
             Dict containing optimization results and metadata
@@ -85,6 +90,35 @@ class EOSCoordinator(DataUpdateCoordinator):
         Raises:
             UpdateFailed: If optimization cannot proceed
         """
+        # First refresh: return empty structure so setup completes quickly
+        if self._first_refresh:
+            self._first_refresh = False
+            _LOGGER.info("First refresh: skipping optimization, scheduling full update")
+            return {
+                "ac_charge": [],
+                "dc_charge": [],
+                "discharge_allowed": [],
+                "start_solution": None,
+                "battery_soc_forecast": [],
+                "cost_per_hour": [],
+                "revenue_per_hour": [],
+                "grid_consumption_per_hour": [],
+                "grid_feedin_per_hour": [],
+                "load_per_hour": [],
+                "losses_per_hour": [],
+                "gesamtkosten_euro": None,
+                "gesamteinnahmen_euro": None,
+                "gesamtbilanz_euro": None,
+                "total_losses": None,
+                "electricity_price": [],
+                "pv_forecast": [],
+                "consumption_forecast": [],
+                "price_forecast": [],
+                "raw_response": {},
+                "last_update": dt_util.now().isoformat(),
+                "last_success": False,
+            }
+
         # Step 1: Read HA input entities
         price_entity = self.config_entry.data[CONF_PRICE_ENTITY]
         soc_entity = self.config_entry.data[CONF_SOC_ENTITY]
