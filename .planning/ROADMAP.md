@@ -31,10 +31,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. Integration reads data from user-selected HA entities (price, SOC, consumption) and Akkudoktor API
   6. Integration sends optimization request to EOS server and receives valid response
   7. Integration handles EOS server errors gracefully (logs error, retries on next cycle)
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] TBD during phase planning
+- [ ] 01-01-PLAN.md — Integration skeleton + 3-step Config Flow (HACS structure, EOS validation, entity selection, battery params)
+- [ ] 01-02-PLAN.md — API clients, DataUpdateCoordinator, integration wiring, optimization status sensor
 
 ### Phase 2: Output Entities
 **Goal**: Optimization results are visible as HA entities that users can consume in automations and dashboards
@@ -94,7 +95,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Data Flow | 0/TBD | Not started | - |
+| 1. Foundation & Data Flow | 0/2 | Planned | - |
 | 2. Output Entities | 0/TBD | Not started | - |
 | 3. Configuration & Control | 0/TBD | Not started | - |
 | 4. Diagnostics & HACS Publishing | 0/TBD | Not started | - |
