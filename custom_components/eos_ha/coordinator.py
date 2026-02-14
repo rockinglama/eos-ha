@@ -88,6 +88,9 @@ class EOSCoordinator(DataUpdateCoordinator):
         self._last_consumption_forecast: list[float] = []
         self._last_price_forecast: list[float] = []
 
+        # Availability tracking (log-when-unavailable)
+        self._last_available: bool | None = None
+
         # EOS native data
         self._energy_plan: dict[str, Any] = {}
         self._resource_status: dict[str, Any] = {}
@@ -346,7 +349,15 @@ class EOSCoordinator(DataUpdateCoordinator):
             current_hour = dt_util.now().hour
             result = await self._eos_client.optimize(eos_request, current_hour)
         except (EOSConnectionError, EOSOptimizationError) as err:
+            if self._last_available is not False:
+                _LOGGER.error("EOS server is unavailable: %s", err)
+                self._last_available = False
             raise UpdateFailed(str(err)) from err
+
+        if self._last_available is not True:
+            if self._last_available is False:
+                _LOGGER.info("EOS server connection restored")
+            self._last_available = True
 
         return self._parse_optimization_response(result)
 

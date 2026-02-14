@@ -7,6 +7,7 @@ import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 
 from .const import DOMAIN
 from .coordinator import EOSCoordinator
@@ -58,29 +59,57 @@ def _register_services(hass: HomeAssistant) -> None:
 
     async def handle_optimize_now(call: ServiceCall) -> None:
         """Handle optimize_now service call."""
-        for coordinator in _get_coordinators():
-            _LOGGER.info("Manual optimization triggered via service call")
-            await coordinator.async_request_refresh()
+        coordinators = _get_coordinators()
+        if not coordinators:
+            raise HomeAssistantError("No EOS HA instances configured")
+        for coordinator in coordinators:
+            try:
+                _LOGGER.info("Manual optimization triggered via service call")
+                await coordinator.async_request_refresh()
+            except Exception as err:
+                raise HomeAssistantError(
+                    f"Failed to trigger optimization: {err}"
+                ) from err
 
     async def handle_set_override(call: ServiceCall) -> None:
         """Handle set_override service call."""
-        mode = call.data.get("mode", "auto")
+        mode = call.data.get("mode")
+        if mode is None:
+            raise ServiceValidationError("Mode is required")
         duration = call.data.get("duration", 60)
-        for coordinator in _get_coordinators():
-            coordinator.set_override(mode, duration)
-            _LOGGER.info("Override set: mode=%s, duration=%s min", mode, duration)
-            await coordinator.async_request_refresh()
+        coordinators = _get_coordinators()
+        if not coordinators:
+            raise HomeAssistantError("No EOS HA instances configured")
+        for coordinator in coordinators:
+            try:
+                coordinator.set_override(mode, duration)
+                _LOGGER.info("Override set: mode=%s, duration=%s min", mode, duration)
+                await coordinator.async_request_refresh()
+            except Exception as err:
+                raise HomeAssistantError(
+                    f"Failed to set override: {err}"
+                ) from err
 
     async def handle_update_predictions(call: ServiceCall) -> None:
         """Handle update_predictions service call — triggers EOS prediction recalculation."""
-        for coordinator in _get_coordinators():
-            _LOGGER.info("Triggering EOS prediction update via service call")
-            success = await coordinator.eos_client.update_predictions(force_update=True)
-            if success:
-                _LOGGER.info("EOS predictions updated, triggering optimization refresh")
-                await coordinator.async_request_refresh()
-            else:
-                _LOGGER.warning("EOS prediction update failed")
+        coordinators = _get_coordinators()
+        if not coordinators:
+            raise HomeAssistantError("No EOS HA instances configured")
+        for coordinator in coordinators:
+            try:
+                _LOGGER.info("Triggering EOS prediction update via service call")
+                success = await coordinator.eos_client.update_predictions(force_update=True)
+                if success:
+                    _LOGGER.info("EOS predictions updated, triggering optimization refresh")
+                    await coordinator.async_request_refresh()
+                else:
+                    raise HomeAssistantError("EOS prediction update returned failure")
+            except HomeAssistantError:
+                raise
+            except Exception as err:
+                raise HomeAssistantError(
+                    f"Failed to update predictions: {err}"
+                ) from err
 
     if not hass.services.has_service(DOMAIN, "optimize_now"):
         hass.services.async_register(
