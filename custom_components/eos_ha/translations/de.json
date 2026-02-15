@@ -187,17 +187,6 @@
           "action": "Aktion"
         }
       },
-      "appliance_add": {
-        "title": "Last hinzufügen",
-        "description": "Fügen Sie eine flexible Last für optimierte Planung hinzu.",
-        "data": {
-          "name": "Gerätename",
-          "consumption_wh": "Energie pro Durchlauf (Wh)",
-          "duration_h": "Dauer (Stunden)",
-          "window_start": "Früheste Startzeit",
-          "window_end": "Späteste Endzeit"
-        }
-      },
       "feed_in_tariff": {
         "title": "Einspeisevergütung",
         "description": "Konfigurieren Sie die Einspeisevergütung für Netzeinspeisung.",
@@ -235,6 +224,17 @@
         "title": "EOS Server",
         "data": {
           "eos_url": "EOS Server URL"
+        }
+      },
+      "appliance_edit": {
+        "title": "Gerät bearbeiten",
+        "description": "Gerät konfigurieren. Zeitfenster sind optional.",
+        "data": {
+          "name": "Name",
+          "consumption_wh": "Energieverbrauch (Wh)",
+          "duration": "Laufzeit",
+          "window_start": "Frühester Start (optional)",
+          "window_end": "Spätestes Ende (optional)"
         }
       }
     }

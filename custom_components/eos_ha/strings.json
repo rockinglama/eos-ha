@@ -187,17 +187,6 @@
           "action": "Action"
         }
       },
-      "appliance_add": {
-        "title": "Add Appliance",
-        "description": "Add a flexible load appliance for optimized scheduling.",
-        "data": {
-          "name": "Appliance Name",
-          "consumption_wh": "Energy per Run (Wh)",
-          "duration_h": "Duration (hours)",
-          "window_start": "Earliest Start Time",
-          "window_end": "Latest End Time"
-        }
-      },
       "feed_in_tariff": {
         "title": "Feed-in Tariff",
         "description": "Configure the feed-in tariff for grid export.",
@@ -235,6 +224,17 @@
         "title": "EOS Server",
         "data": {
           "eos_url": "EOS Server URL"
+        }
+      },
+      "appliance_edit": {
+        "title": "Edit Appliance",
+        "description": "Configure the appliance. Time windows are optional.",
+        "data": {
+          "name": "Name",
+          "consumption_wh": "Energy Consumption (Wh)",
+          "duration": "Run Duration",
+          "window_start": "Earliest Start (optional)",
+          "window_end": "Latest End (optional)"
         }
       }
     }

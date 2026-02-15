@@ -420,14 +420,20 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.FlowResult:
         """Manage home appliances (flexible loads)."""
-        current = {**self.config_entry.data, **self.config_entry.options}
+        current = self._current()
         if not hasattr(self, "_appliances"):
             self._appliances = list(current.get(CONF_APPLIANCES, []))
 
         if user_input is not None:
             action = user_input.get("action", "save")
             if action == "add":
-                return await self.async_step_appliance_add()
+                self._edit_appliance_idx = None
+                return await self.async_step_appliance_edit()
+            if action.startswith("edit_"):
+                idx = int(action.split("_", 1)[1])
+                if 0 <= idx < len(self._appliances):
+                    self._edit_appliance_idx = idx
+                    return await self.async_step_appliance_edit()
             if action.startswith("remove_"):
                 idx = int(action.split("_", 1)[1])
                 if 0 <= idx < len(self._appliances):
@@ -441,16 +447,31 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
             selector.SelectOptionDict(value="add", label="➕ Add Appliance"),
         ]
         for i, app in enumerate(self._appliances):
+            duration = app.get("duration_h", 0)
+            if isinstance(duration, (int, float)) and duration != int(duration):
+                dur_h = int(duration)
+                dur_m = int((duration - dur_h) * 60)
+                dur_str = f"{dur_h}h{dur_m:02d}m"
+            else:
+                dur_str = f"{int(duration)}h"
             window = ""
-            if app.get("window_start") and app.get("window_end"):
-                window = f", {app['window_start']}-{app['window_end']}"
+            if app.get("window_start") or app.get("window_end"):
+                ws = app.get("window_start", "—")
+                we = app.get("window_end", "—")
+                window = f", {ws}-{we}"
+            options.append(
+                selector.SelectOptionDict(
+                    value=f"edit_{i}",
+                    label=f"✏️ {app['name']} ({app['consumption_wh']}Wh, {dur_str}{window})",
+                )
+            )
             options.append(
                 selector.SelectOptionDict(
                     value=f"remove_{i}",
-                    label=f"❌ Remove: {app['name']} ({app['consumption_wh']}Wh, {app['duration_h']}h{window})",
+                    label=f"    ❌ Remove {app['name']}",
                 )
             )
-        options.append(selector.SelectOptionDict(value="save", label="💾 Save & Close"))
+        options.append(selector.SelectOptionDict(value="save", label="💾 Save & Back"))
 
         return self.async_show_form(
             step_id="appliances",
@@ -463,41 +484,83 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
             ),
         )
 
-    async def async_step_appliance_add(
+    async def async_step_appliance_edit(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.FlowResult:
-        """Add a home appliance."""
+        """Add or edit a home appliance."""
+        idx = getattr(self, "_edit_appliance_idx", None)
+        existing = self._appliances[idx] if idx is not None else None
+
         if user_input is not None:
+            # Parse duration from HH:MM dict or number
+            duration_raw = user_input.get("duration", {})
+            if isinstance(duration_raw, dict):
+                dur_hours = duration_raw.get("hours", 0) or 0
+                dur_minutes = duration_raw.get("minutes", 0) or 0
+                duration_h = dur_hours + dur_minutes / 60.0
+            else:
+                duration_h = float(duration_raw) if duration_raw else 1.0
+            # Round to nearest 0.5h for EOS compatibility
+            duration_h = round(duration_h * 2) / 2
+            if duration_h < 0.5:
+                duration_h = 0.5
+
             app = {
                 "name": user_input["name"],
                 "device_id": user_input["name"].lower().replace(" ", "_"),
                 "consumption_wh": int(user_input["consumption_wh"]),
-                "duration_h": int(user_input["duration_h"]),
+                "duration_h": duration_h if duration_h != int(duration_h) else int(duration_h),
             }
-            # Time window (optional)
-            start = user_input.get("window_start", "")
-            end = user_input.get("window_end", "")
-            if start and end:
-                app["window_start"] = start
-                app["window_end"] = end
-            self._appliances.append(app)
+            # Time window (optional — both are independent)
+            ws = user_input.get("window_start")
+            we = user_input.get("window_end")
+            if ws:
+                app["window_start"] = ws
+            if we:
+                app["window_end"] = we
+
+            if idx is not None:
+                self._appliances[idx] = app
+            else:
+                self._appliances.append(app)
             return await self.async_step_appliances()
 
-        return self.async_show_form(
-            step_id="appliance_add",
-            data_schema=vol.Schema(
-                {
-                    vol.Required("name", default="Hot Water"): str,
-                    vol.Required("consumption_wh", default=2000): selector.NumberSelector(
-                        selector.NumberSelectorConfig(min=100, max=50000, step=100, unit_of_measurement="Wh", mode=selector.NumberSelectorMode.BOX)
-                    ),
-                    vol.Required("duration_h", default=2): selector.NumberSelector(
-                        selector.NumberSelectorConfig(min=1, max=24, step=1, unit_of_measurement="h", mode=selector.NumberSelectorMode.BOX)
-                    ),
-                    vol.Optional("window_start", default="06:00"): selector.TimeSelector(),
-                    vol.Optional("window_end", default="22:00"): selector.TimeSelector(),
-                }
+        # Defaults from existing appliance or fresh
+        def_name = existing["name"] if existing else "Hot Water"
+        def_wh = existing["consumption_wh"] if existing else 2000
+        def_dur_h = existing.get("duration_h", 2) if existing else 2
+        # Convert duration_h to hours/minutes for selector
+        if isinstance(def_dur_h, (int, float)):
+            dur_h_int = int(def_dur_h)
+            dur_m_int = int((def_dur_h - dur_h_int) * 60)
+        else:
+            dur_h_int = 2
+            dur_m_int = 0
+        def_ws = existing.get("window_start") if existing else None
+        def_we = existing.get("window_end") if existing else None
+
+        schema_dict: dict = {
+            vol.Required("name", default=def_name): str,
+            vol.Required("consumption_wh", default=def_wh): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=100, max=50000, step=100, unit_of_measurement="Wh", mode=selector.NumberSelectorMode.BOX)
             ),
+            vol.Required("duration", default={"hours": dur_h_int, "minutes": dur_m_int}): selector.DurationSelector(
+                selector.DurationSelectorConfig(enable_day=False)
+            ),
+        }
+        # Time windows are fully optional
+        if def_ws:
+            schema_dict[vol.Optional("window_start", default=def_ws)] = selector.TimeSelector()
+        else:
+            schema_dict[vol.Optional("window_start")] = selector.TimeSelector()
+        if def_we:
+            schema_dict[vol.Optional("window_end", default=def_we)] = selector.TimeSelector()
+        else:
+            schema_dict[vol.Optional("window_end")] = selector.TimeSelector()
+
+        return self.async_show_form(
+            step_id="appliance_edit",
+            data_schema=vol.Schema(schema_dict),
         )
 
     # -- SG-Ready sub-step --------------------------------------------------
