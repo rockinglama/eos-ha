@@ -60,7 +60,8 @@
           "load_emr_entity": "Verbrauchszähler",
           "grid_import_emr_entity": "Netzbezugszähler",
           "grid_export_emr_entity": "Einspeisezähler",
-          "pv_production_emr_entity": "PV-Erzeugungszähler"
+          "pv_production_emr_entity": "PV-Erzeugungszähler",
+          "yearly_consumption": "Jahresstromverbrauch"
         }
       },
       "ev": {
@@ -146,7 +147,8 @@
           "load_emr_entity": "Verbrauchszähler",
           "grid_import_emr_entity": "Netzbezugszähler",
           "grid_export_emr_entity": "Einspeisezähler",
-          "pv_production_emr_entity": "PV-Erzeugungszähler"
+          "pv_production_emr_entity": "PV-Erzeugungszähler",
+          "yearly_consumption": "Jahresstromverbrauch"
         }
       },
       "battery": {

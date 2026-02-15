@@ -60,7 +60,8 @@
           "load_emr_entity": "Load Energy Meter",
           "grid_import_emr_entity": "Grid Import Energy Meter",
           "grid_export_emr_entity": "Grid Export Energy Meter",
-          "pv_production_emr_entity": "PV Production Energy Meter"
+          "pv_production_emr_entity": "PV Production Energy Meter",
+          "yearly_consumption": "Yearly Energy Consumption"
         }
       },
       "ev": {
@@ -146,7 +147,8 @@
           "load_emr_entity": "Load Energy Meter",
           "grid_import_emr_entity": "Grid Import Energy Meter",
           "grid_export_emr_entity": "Grid Export Energy Meter",
-          "pv_production_emr_entity": "PV Production Energy Meter"
+          "pv_production_emr_entity": "PV Production Energy Meter",
+          "yearly_consumption": "Yearly Energy Consumption"
         }
       },
       "battery": {

@@ -41,6 +41,7 @@ from .const import (
     CONF_PV_ARRAYS,
     CONF_PV_PRODUCTION_EMR_ENTITY,
     CONF_SOC_ENTITY,
+    CONF_YEARLY_CONSUMPTION,
     DEFAULT_BATTERY_CAPACITY,
     DEFAULT_BIDDING_ZONE,
     DEFAULT_EV_CAPACITY,
@@ -55,6 +56,7 @@ from .const import (
     DEFAULT_PV_INVERTER_POWER,
     DEFAULT_PV_POWER,
     DEFAULT_PV_TILT,
+    DEFAULT_YEARLY_CONSUMPTION,
     DOMAIN,
     PRICE_SOURCE_AKKUDOKTOR,
     PRICE_SOURCE_ENERGYCHARTS,
@@ -282,6 +284,9 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
                     ),
                     vol.Optional(CONF_PV_PRODUCTION_EMR_ENTITY, default=current.get(CONF_PV_PRODUCTION_EMR_ENTITY) or vol.UNDEFINED): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="sensor")
+                    ),
+                    vol.Required(CONF_YEARLY_CONSUMPTION, default=current.get(CONF_YEARLY_CONSUMPTION, DEFAULT_YEARLY_CONSUMPTION)): selector.NumberSelector(
+                        selector.NumberSelectorConfig(min=1000, max=100000, step=100, unit_of_measurement="kWh", mode=selector.NumberSelectorMode.BOX)
                     ),
                 }
             ),
@@ -927,6 +932,9 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     ),
                     vol.Optional(CONF_PV_PRODUCTION_EMR_ENTITY): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="sensor")
+                    ),
+                    vol.Required(CONF_YEARLY_CONSUMPTION, default=DEFAULT_YEARLY_CONSUMPTION): selector.NumberSelector(
+                        selector.NumberSelectorConfig(min=1000, max=100000, step=100, unit_of_measurement="kWh", mode=selector.NumberSelectorMode.BOX)
                     ),
                 }
             ),

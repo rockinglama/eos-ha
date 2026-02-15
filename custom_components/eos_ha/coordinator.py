@@ -36,11 +36,13 @@ from .const import (
     CONF_PV_ARRAYS,
     CONF_PV_PRODUCTION_EMR_ENTITY,
     CONF_SOC_ENTITY,
+    CONF_YEARLY_CONSUMPTION,
     DEFAULT_BIDDING_ZONE,
     DEFAULT_EV_CAPACITY,
     DEFAULT_EV_CHARGE_POWER,
     DEFAULT_EV_EFFICIENCY,
     DEFAULT_FEED_IN_TARIFF,
+    DEFAULT_YEARLY_CONSUMPTION,
     DEFAULT_SCAN_INTERVAL,
     EOS_ENTITY_AC_CHARGE,
     EOS_ENTITY_BATTERY_SOC,
@@ -166,8 +168,14 @@ class EOSCoordinator(DataUpdateCoordinator):
             )
 
         # 5. Configure load provider
+        yearly_kwh = self._get_config(CONF_YEARLY_CONSUMPTION, DEFAULT_YEARLY_CONSUMPTION)
         await self._eos_client.put_config("load", {
             "provider": "LoadAkkudoktor",
+            "provider_settings": {
+                "LoadAkkudoktor": {
+                    "loadakkudoktor_year_energy_kwh": yearly_kwh,
+                },
+            },
         })
 
         # 6. Configure devices (battery, inverter, EV, appliances)

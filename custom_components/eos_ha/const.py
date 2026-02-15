@@ -32,6 +32,10 @@ DEFAULT_MIN_SOC = 15  # percent
 DEFAULT_MAX_SOC = 90  # percent
 DEFAULT_INVERTER_POWER = 10000  # W
 
+# Load prediction
+CONF_YEARLY_CONSUMPTION = "yearly_consumption"
+DEFAULT_YEARLY_CONSUMPTION = 12000  # kWh
+
 # Feed-in tariff
 CONF_FEED_IN_TARIFF = "feed_in_tariff"
 DEFAULT_FEED_IN_TARIFF = 0.082  # EUR/kWh (current DE rate)
