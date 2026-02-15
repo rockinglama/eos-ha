@@ -285,6 +285,18 @@ class EOSCoordinator(DataUpdateCoordinator):
         if pv_production:
             ha_config["pv_production_emr_entity_ids"] = [pv_production]
 
+        # Reset measurement EMR keys to prevent accumulation from previous configs.
+        # EOS appends adapter entity IDs as measurement keys but never removes old ones.
+        measurement_keys: dict[str, list[str] | None] = {
+            "load_emr_keys": [ha_config["load_emr_entity_ids"][0]] if ha_config.get("load_emr_entity_ids") else None,
+            "grid_import_emr_keys": [ha_config["grid_import_emr_entity_ids"][0]] if ha_config.get("grid_import_emr_entity_ids") else None,
+            "grid_export_emr_keys": [ha_config["grid_export_emr_entity_ids"][0]] if ha_config.get("grid_export_emr_entity_ids") else None,
+            "pv_production_emr_keys": [ha_config["pv_production_emr_entity_ids"][0]] if ha_config.get("pv_production_emr_entity_ids") else None,
+        }
+        for key, value in measurement_keys.items():
+            # Always set (even None) to clear stale keys
+            await self._eos_client.put_config(f"measurement/{key}", value)
+
         # Enable the adapter provider first (must be a list)
         await self._eos_client.set_adapter_provider("HomeAssistant")
 
