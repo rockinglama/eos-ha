@@ -16,7 +16,7 @@
           "charges_kwh": "Surcharges (EUR/kWh)",
           "vat_rate": "VAT Rate Factor (e.g. 1.19 = 19%)",
           "tibber_api_key": "Tibber API Key",
-          "bidding_zone": "Bidding Zone (for EnergyCharts)",
+          "bidding_zone": "Bidding Zone (only for EnergyCharts / energy-charts.info)",
           "price_entity": "Price Entity (for External)"
         }
       },
@@ -136,7 +136,7 @@
           "charges_kwh": "Surcharges (EUR/kWh)",
           "vat_rate": "VAT Rate Factor (e.g. 1.19 = 19%)",
           "tibber_api_key": "Tibber API Key",
-          "bidding_zone": "Bidding Zone (for EnergyCharts)",
+          "bidding_zone": "Bidding Zone (only for EnergyCharts / energy-charts.info)",
           "price_entity": "Price Entity (for External)"
         }
       },
