@@ -118,7 +118,8 @@
           "appliances": "Flexible Lasten",
           "feed_in_tariff": "Einspeisevergütung",
           "sg_ready": "SG-Ready Wärmepumpe",
-          "eos_server": "EOS Server"
+          "eos_server": "EOS Server",
+          "save_close": "Speichern & Schließen"
         }
       },
       "price_source": {

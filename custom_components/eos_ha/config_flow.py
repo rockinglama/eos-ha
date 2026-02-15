@@ -126,18 +126,33 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
 
     def __init__(self) -> None:
         self._pv_arrays: list[dict] = []
+        self._pending: dict[str, Any] = {}
+        self._initialized = False
+
+    def _current(self) -> dict[str, Any]:
+        """Get current effective config (data + options + pending changes)."""
+        return {**self.config_entry.data, **self.config_entry.options, **self._pending}
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.FlowResult:
         """Main options menu."""
-        current = {**self.config_entry.data, **self.config_entry.options}
-        self._pv_arrays = list(current.get(CONF_PV_ARRAYS, []))
+        if not self._initialized:
+            current = {**self.config_entry.data, **self.config_entry.options}
+            self._pv_arrays = list(current.get(CONF_PV_ARRAYS, []))
+            self._initialized = True
 
         return self.async_show_menu(
             step_id="init",
-            menu_options=["eos_server", "entities", "energy_meters", "battery", "battery_sensors", "pv_arrays", "price_source", "ev", "appliances", "feed_in_tariff", "sg_ready"],
+            menu_options=["eos_server", "entities", "energy_meters", "battery", "battery_sensors", "pv_arrays", "price_source", "ev", "appliances", "feed_in_tariff", "sg_ready", "save_close"],
         )
+
+    async def async_step_save_close(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Save all pending changes and close."""
+        new_options = {**self.config_entry.options, **self._pending}
+        return self.async_create_entry(title="", data=new_options)
 
     # -- EOS Server sub-step -----------------------------------------------
 
@@ -183,17 +198,16 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
     ) -> config_entries.FlowResult:
         """Change electricity price source."""
         if user_input is not None:
-            new_options = {**self.config_entry.options}
-            new_options[CONF_PRICE_SOURCE] = user_input[CONF_PRICE_SOURCE]
+            self._pending[CONF_PRICE_SOURCE] = user_input[CONF_PRICE_SOURCE]
 
             if user_input[CONF_PRICE_SOURCE] == PRICE_SOURCE_ENERGYCHARTS:
-                new_options[CONF_BIDDING_ZONE] = user_input.get(CONF_BIDDING_ZONE, DEFAULT_BIDDING_ZONE)
+                self._pending[CONF_BIDDING_ZONE] = user_input.get(CONF_BIDDING_ZONE, DEFAULT_BIDDING_ZONE)
             elif user_input[CONF_PRICE_SOURCE] == PRICE_SOURCE_EXTERNAL:
-                new_options[CONF_PRICE_ENTITY] = user_input.get(CONF_PRICE_ENTITY, "")
+                self._pending[CONF_PRICE_ENTITY] = user_input.get(CONF_PRICE_ENTITY, "")
 
-            return self.async_create_entry(title="", data=new_options)
+            return await self.async_step_init()
 
-        current = {**self.config_entry.data, **self.config_entry.options}
+        current = self._current()
         current_source = current.get(CONF_PRICE_SOURCE, PRICE_SOURCE_AKKUDOKTOR)
 
         schema_dict: dict = {
@@ -221,10 +235,10 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
     ) -> config_entries.FlowResult:
         """Change input entity mappings."""
         if user_input is not None:
-            new_options = {**self.config_entry.options, **user_input}
-            return self.async_create_entry(title="", data=new_options)
+            self._pending.update(user_input)
+            return await self.async_step_init()
 
-        current = {**self.config_entry.data, **self.config_entry.options}
+        current = self._current()
         current_source = current.get(CONF_PRICE_SOURCE, PRICE_SOURCE_EXTERNAL)
 
         schema_dict: dict = {}
@@ -249,10 +263,10 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
     ) -> config_entries.FlowResult:
         """Configure energy meter entities for EOS HA Adapter."""
         if user_input is not None:
-            new_options = {**self.config_entry.options, **user_input}
-            return self.async_create_entry(title="", data=new_options)
+            self._pending.update(user_input)
+            return await self.async_step_init()
 
-        current = {**self.config_entry.data, **self.config_entry.options}
+        current = self._current()
         return self.async_show_form(
             step_id="energy_meters",
             data_schema=vol.Schema(
@@ -280,10 +294,10 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
     ) -> config_entries.FlowResult:
         """Change battery parameters."""
         if user_input is not None:
-            new_options = {**self.config_entry.options, **user_input}
-            return self.async_create_entry(title="", data=new_options)
+            self._pending.update(user_input)
+            return await self.async_step_init()
 
-        current = {**self.config_entry.data, **self.config_entry.options}
+        current = self._current()
         return self.async_show_form(
             step_id="battery",
             data_schema=vol.Schema(
@@ -322,9 +336,9 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
                 if 0 <= idx < len(self._pv_arrays):
                     self._pv_arrays.pop(idx)
                 return await self.async_step_pv_arrays()
-            # save
-            new_options = {**self.config_entry.options, CONF_PV_ARRAYS: self._pv_arrays}
-            return self.async_create_entry(title="", data=new_options)
+            # save & back to menu
+            self._pending[CONF_PV_ARRAYS] = self._pv_arrays
+            return await self.async_step_init()
 
         options = [
             selector.SelectOptionDict(value="add", label="➕ Add PV Array"),
@@ -375,10 +389,10 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
     ) -> config_entries.FlowResult:
         """Configure electric vehicle parameters."""
         if user_input is not None:
-            new_options = {**self.config_entry.options, **user_input}
-            return self.async_create_entry(title="", data=new_options)
+            self._pending.update(user_input)
+            return await self.async_step_init()
 
-        current = {**self.config_entry.data, **self.config_entry.options}
+        current = self._current()
         return self.async_show_form(
             step_id="ev",
             data_schema=vol.Schema(
@@ -419,9 +433,9 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
                 if 0 <= idx < len(self._appliances):
                     self._appliances.pop(idx)
                 return await self.async_step_appliances()
-            # save
-            new_options = {**self.config_entry.options, CONF_APPLIANCES: self._appliances}
-            return self.async_create_entry(title="", data=new_options)
+            # save & back to menu
+            self._pending[CONF_APPLIANCES] = self._appliances
+            return await self.async_step_init()
 
         options = [
             selector.SelectOptionDict(value="add", label="➕ Add Appliance"),
@@ -493,10 +507,10 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
     ) -> config_entries.FlowResult:
         """Configure SG-Ready heat pump control."""
         if user_input is not None:
-            new_options = {**self.config_entry.options, **user_input}
-            return self.async_create_entry(title="", data=new_options)
+            self._pending.update(user_input)
+            return await self.async_step_init()
 
-        current = {**self.config_entry.data, **self.config_entry.options}
+        current = self._current()
         return self.async_show_form(
             step_id="sg_ready",
             data_schema=vol.Schema(
@@ -519,10 +533,10 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
     ) -> config_entries.FlowResult:
         """Configure battery sensor entities for storage price tracking."""
         if user_input is not None:
-            new_options = {**self.config_entry.options, **user_input}
-            return self.async_create_entry(title="", data=new_options)
+            self._pending.update(user_input)
+            return await self.async_step_init()
 
-        current = {**self.config_entry.data, **self.config_entry.options}
+        current = self._current()
         return self.async_show_form(
             step_id="battery_sensors",
             data_schema=vol.Schema(
@@ -547,10 +561,10 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
     ) -> config_entries.FlowResult:
         """Configure feed-in tariff."""
         if user_input is not None:
-            new_options = {**self.config_entry.options, **user_input}
-            return self.async_create_entry(title="", data=new_options)
+            self._pending.update(user_input)
+            return await self.async_step_init()
 
-        current = {**self.config_entry.data, **self.config_entry.options}
+        current = self._current()
         return self.async_show_form(
             step_id="feed_in_tariff",
             data_schema=vol.Schema(

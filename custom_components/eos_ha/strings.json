@@ -118,7 +118,8 @@
           "appliances": "Home Appliances",
           "feed_in_tariff": "Feed-in Tariff",
           "sg_ready": "SG-Ready Heat Pump",
-          "eos_server": "EOS Server"
+          "eos_server": "EOS Server",
+          "save_close": "Save & Close"
         }
       },
       "price_source": {
