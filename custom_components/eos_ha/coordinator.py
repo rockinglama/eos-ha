@@ -36,6 +36,7 @@ from .const import (
     CONF_PV_ARRAYS,
     CONF_PV_PRODUCTION_EMR_ENTITY,
     CONF_SOC_ENTITY,
+    CONF_TIBBER_API_KEY,
     CONF_YEARLY_CONSUMPTION,
     DEFAULT_BIDDING_ZONE,
     DEFAULT_EV_CAPACITY,
@@ -57,6 +58,8 @@ from .const import (
     PRICE_SOURCE_AKKUDOKTOR,
     PRICE_SOURCE_ENERGYCHARTS,
     PRICE_SOURCE_EXTERNAL,
+    PRICE_SOURCE_TIBBER,
+    TIBBER_API_URL,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -141,7 +144,7 @@ class EOSCoordinator(DataUpdateCoordinator):
                 "provider": "ElecPriceEnergyCharts",
                 "energycharts": {"bidding_zone": bidding_zone},
             })
-        elif price_source == PRICE_SOURCE_EXTERNAL:
+        elif price_source in (PRICE_SOURCE_TIBBER, PRICE_SOURCE_EXTERNAL):
             await self._eos_client.put_config("elecprice", {
                 "provider": "ElecPriceImport",
             })
@@ -363,6 +366,92 @@ class EOSCoordinator(DataUpdateCoordinator):
                     except (ValueError, TypeError):
                         pass
 
+    async def _push_tibber_prices(self) -> None:
+        """Fetch electricity prices from Tibber GraphQL API and push to EOS."""
+        price_source = self._get_config(CONF_PRICE_SOURCE, PRICE_SOURCE_AKKUDOKTOR)
+        if price_source != PRICE_SOURCE_TIBBER:
+            return
+
+        api_key = self._get_config(CONF_TIBBER_API_KEY)
+        if not api_key:
+            _LOGGER.warning("Tibber price source selected but no API key configured")
+            return
+
+        query = """{
+          viewer {
+            homes {
+              currentSubscription {
+                priceInfo {
+                  today {
+                    total
+                    startsAt
+                  }
+                  tomorrow {
+                    total
+                    startsAt
+                  }
+                }
+              }
+            }
+          }
+        }"""
+
+        try:
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            }
+            import json
+            timeout = aiohttp.ClientTimeout(total=15)
+            async with self.session.post(
+                TIBBER_API_URL,
+                data=json.dumps({"query": query}),
+                headers=headers,
+                timeout=timeout,
+            ) as resp:
+                if resp.status != 200:
+                    _LOGGER.error("Tibber API returned %s", resp.status)
+                    return
+                data = await resp.json()
+
+            homes = data.get("data", {}).get("viewer", {}).get("homes", [])
+            if not homes:
+                _LOGGER.warning("No Tibber homes found")
+                return
+
+            # Use first home
+            price_info = (
+                homes[0]
+                .get("currentSubscription", {})
+                .get("priceInfo", {})
+            )
+
+            price_data: dict[str, float] = {}
+            for entry in price_info.get("today", []):
+                starts_at = entry.get("startsAt")
+                total = entry.get("total")
+                if starts_at and total is not None:
+                    price_data[starts_at] = float(total)
+
+            for entry in price_info.get("tomorrow", []):
+                starts_at = entry.get("startsAt")
+                total = entry.get("total")
+                if starts_at and total is not None:
+                    price_data[starts_at] = float(total)
+
+            if price_data:
+                await self._eos_client.import_prediction(
+                    "ElecPriceImport",
+                    price_data,
+                    force_enable=True,
+                )
+                _LOGGER.debug("Pushed %d Tibber price points to EOS", len(price_data))
+            else:
+                _LOGGER.warning("No price data received from Tibber API")
+
+        except Exception as err:
+            _LOGGER.error("Error fetching Tibber prices: %s", err)
+
     async def _push_external_prices(self) -> None:
         """Push Tibber/external prices to EOS via prediction import if configured."""
         price_source = self._get_config(CONF_PRICE_SOURCE, PRICE_SOURCE_AKKUDOKTOR)
@@ -460,6 +549,12 @@ class EOSCoordinator(DataUpdateCoordinator):
             await self._push_soc_measurements()
         except Exception as err:
             _LOGGER.debug("Failed to push SOC measurements: %s", err)
+
+        # Push Tibber prices (best effort)
+        try:
+            await self._push_tibber_prices()
+        except Exception as err:
+            _LOGGER.debug("Failed to push Tibber prices: %s", err)
 
         # Push external prices if applicable (best effort)
         try:

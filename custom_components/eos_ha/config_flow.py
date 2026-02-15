@@ -42,6 +42,7 @@ from .const import (
     CONF_PV_ARRAYS,
     CONF_PV_PRODUCTION_EMR_ENTITY,
     CONF_SOC_ENTITY,
+    CONF_TIBBER_API_KEY,
     CONF_YEARLY_CONSUMPTION,
     DEFAULT_BATTERY_CAPACITY,
     DEFAULT_BIDDING_ZONE,
@@ -63,6 +64,8 @@ from .const import (
     PRICE_SOURCE_AKKUDOKTOR,
     PRICE_SOURCE_ENERGYCHARTS,
     PRICE_SOURCE_EXTERNAL,
+    PRICE_SOURCE_TIBBER,
+    TIBBER_API_URL,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -70,7 +73,8 @@ _LOGGER = logging.getLogger(__name__)
 PRICE_SOURCE_OPTIONS = [
     selector.SelectOptionDict(value=PRICE_SOURCE_AKKUDOKTOR, label="EOS Akkudoktor (default)"),
     selector.SelectOptionDict(value=PRICE_SOURCE_ENERGYCHARTS, label="EOS EnergyCharts"),
-    selector.SelectOptionDict(value=PRICE_SOURCE_EXTERNAL, label="External HA Sensor (Tibber etc.)"),
+    selector.SelectOptionDict(value=PRICE_SOURCE_TIBBER, label="Tibber API"),
+    selector.SelectOptionDict(value=PRICE_SOURCE_EXTERNAL, label="External HA Sensor"),
 ]
 
 
@@ -201,15 +205,31 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.FlowResult:
         """Change electricity price source."""
+        errors: dict[str, str] = {}
+
         if user_input is not None:
             self._pending[CONF_PRICE_SOURCE] = user_input[CONF_PRICE_SOURCE]
 
             if user_input[CONF_PRICE_SOURCE] == PRICE_SOURCE_ENERGYCHARTS:
                 self._pending[CONF_BIDDING_ZONE] = user_input.get(CONF_BIDDING_ZONE, DEFAULT_BIDDING_ZONE)
+            elif user_input[CONF_PRICE_SOURCE] == PRICE_SOURCE_TIBBER:
+                api_key = user_input.get(CONF_TIBBER_API_KEY, "").strip()
+                if not api_key:
+                    errors[CONF_TIBBER_API_KEY] = "tibber_api_key_required"
+                else:
+                    # Validate Tibber API key
+                    valid = await self._validate_tibber_key(api_key)
+                    if not valid:
+                        errors[CONF_TIBBER_API_KEY] = "tibber_api_key_invalid"
+                    else:
+                        self._pending[CONF_TIBBER_API_KEY] = api_key
+                if not errors:
+                    return await self.async_step_init()
             elif user_input[CONF_PRICE_SOURCE] == PRICE_SOURCE_EXTERNAL:
                 self._pending[CONF_PRICE_ENTITY] = user_input.get(CONF_PRICE_ENTITY, "")
 
-            return await self.async_step_init()
+            if not errors:
+                return await self.async_step_init()
 
         current = self._current()
         current_source = current.get(CONF_PRICE_SOURCE, PRICE_SOURCE_AKKUDOKTOR)
@@ -221,6 +241,7 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
                     mode=selector.SelectSelectorMode.DROPDOWN,
                 )
             ),
+            vol.Optional(CONF_TIBBER_API_KEY, default=current.get(CONF_TIBBER_API_KEY) or vol.UNDEFINED): str,
             vol.Optional(CONF_BIDDING_ZONE, default=current.get(CONF_BIDDING_ZONE, DEFAULT_BIDDING_ZONE)): str,
             vol.Optional(CONF_PRICE_ENTITY, default=current.get(CONF_PRICE_ENTITY) or vol.UNDEFINED): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain="sensor")
@@ -230,7 +251,26 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="price_source",
             data_schema=vol.Schema(schema_dict),
+            errors=errors,
         )
+
+    async def _validate_tibber_key(self, api_key: str) -> bool:
+        """Validate Tibber API key by querying the API."""
+        try:
+            session = async_get_clientsession(self.hass)
+            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+            query = '{"query": "{ viewer { homes { id } } }"}'
+            async with session.post(
+                TIBBER_API_URL, data=query, headers=headers,
+                timeout=aiohttp.ClientTimeout(total=10),
+            ) as resp:
+                if resp.status != 200:
+                    return False
+                data = await resp.json()
+                homes = data.get("data", {}).get("viewer", {}).get("homes", [])
+                return len(homes) > 0
+        except Exception:
+            return False
 
     # -- Entities sub-step --------------------------------------------------
 
@@ -788,15 +828,30 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.FlowResult:
         """Handle price source selection."""
+        errors: dict[str, str] = {}
+
         if user_input is not None:
             self.data[CONF_PRICE_SOURCE] = user_input[CONF_PRICE_SOURCE]
             if user_input[CONF_PRICE_SOURCE] == PRICE_SOURCE_ENERGYCHARTS:
                 self.data[CONF_BIDDING_ZONE] = user_input.get(CONF_BIDDING_ZONE, DEFAULT_BIDDING_ZONE)
-            if user_input[CONF_PRICE_SOURCE] == PRICE_SOURCE_EXTERNAL:
-                return await self.async_step_entities()
+            if user_input[CONF_PRICE_SOURCE] == PRICE_SOURCE_TIBBER:
+                api_key = user_input.get(CONF_TIBBER_API_KEY, "").strip()
+                if not api_key:
+                    errors[CONF_TIBBER_API_KEY] = "tibber_api_key_required"
+                else:
+                    valid = await self._validate_tibber_key(api_key)
+                    if not valid:
+                        errors[CONF_TIBBER_API_KEY] = "tibber_api_key_invalid"
+                    else:
+                        self.data[CONF_TIBBER_API_KEY] = api_key
+                if not errors:
+                    return await self.async_step_entities_no_price()
+            elif user_input[CONF_PRICE_SOURCE] == PRICE_SOURCE_EXTERNAL:
+                if not errors:
+                    return await self.async_step_entities()
             else:
-                # Skip price entity, go to SOC/consumption entities
-                return await self.async_step_entities_no_price()
+                if not errors:
+                    return await self.async_step_entities_no_price()
 
         schema_dict: dict = {
             vol.Required(CONF_PRICE_SOURCE, default=PRICE_SOURCE_AKKUDOKTOR): selector.SelectSelector(
@@ -805,13 +860,33 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     mode=selector.SelectSelectorMode.DROPDOWN,
                 )
             ),
+            vol.Optional(CONF_TIBBER_API_KEY): str,
             vol.Optional(CONF_BIDDING_ZONE, default=DEFAULT_BIDDING_ZONE): str,
         }
 
         return self.async_show_form(
             step_id="price_source",
             data_schema=vol.Schema(schema_dict),
+            errors=errors,
         )
+
+    async def _validate_tibber_key(self, api_key: str) -> bool:
+        """Validate Tibber API key by querying the API."""
+        try:
+            session = async_get_clientsession(self.hass)
+            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+            query = '{"query": "{ viewer { homes { id } } }"}'
+            async with session.post(
+                TIBBER_API_URL, data=query, headers=headers,
+                timeout=aiohttp.ClientTimeout(total=10),
+            ) as resp:
+                if resp.status != 200:
+                    return False
+                data = await resp.json()
+                homes = data.get("data", {}).get("viewer", {}).get("homes", [])
+                return len(homes) > 0
+        except Exception:
+            return False
 
     async def async_step_entities(
         self, user_input: dict[str, Any] | None = None

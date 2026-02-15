@@ -13,6 +13,7 @@
         "description": "Choose how electricity prices are obtained.",
         "data": {
           "price_source": "Price Source",
+          "tibber_api_key": "Tibber API Key",
           "bidding_zone": "Bidding Zone (for EnergyCharts)",
           "price_entity": "Price Entity (for External)"
         }
@@ -96,7 +97,9 @@
     "error": {
       "cannot_connect": "Cannot connect to EOS server. Check the URL and ensure the server is running.",
       "invalid_response": "Connected but received unexpected response. Ensure this is an EOS server.",
-      "timeout": "Connection timed out. Check the URL and network."
+      "timeout": "Connection timed out. Check the URL and network.",
+      "tibber_api_key_required": "Tibber API key is required when using Tibber as price source.",
+      "tibber_api_key_invalid": "Invalid Tibber API key. Check your key at developer.tibber.com."
     },
     "abort": {
       "already_configured": "EOS HA is already configured.",
@@ -125,9 +128,10 @@
       },
       "price_source": {
         "title": "Electricity Price Source",
-        "description": "Choose how electricity prices are obtained. For EnergyCharts, set the bidding zone. For External, select your price sensor.",
+        "description": "Choose how electricity prices are obtained. For Tibber, enter your API key from developer.tibber.com.",
         "data": {
           "price_source": "Price Source",
+          "tibber_api_key": "Tibber API Key",
           "bidding_zone": "Bidding Zone (for EnergyCharts)",
           "price_entity": "Price Entity (for External)"
         }

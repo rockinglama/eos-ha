@@ -21,4 +21,5 @@ def test_price_source_options():
     values = [o["value"] for o in PRICE_SOURCE_OPTIONS]
     assert "akkudoktor" in values
     assert "energycharts" in values
+    assert "tibber" in values
     assert "external" in values

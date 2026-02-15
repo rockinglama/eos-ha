@@ -21,7 +21,12 @@ CONF_BIDDING_ZONE = "bidding_zone"
 
 PRICE_SOURCE_AKKUDOKTOR = "akkudoktor"
 PRICE_SOURCE_ENERGYCHARTS = "energycharts"
+PRICE_SOURCE_TIBBER = "tibber"
 PRICE_SOURCE_EXTERNAL = "external"
+
+# Tibber API
+CONF_TIBBER_API_KEY = "tibber_api_key"
+TIBBER_API_URL = "https://api.tibber.com/v1-beta/gql"
 
 DEFAULT_BIDDING_ZONE = "DE-LU"
 

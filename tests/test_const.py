@@ -1,12 +1,15 @@
 """Tests for EOS HA constants."""
 from custom_components.eos_ha.const import (
+    CONF_TIBBER_API_KEY,
     DEFAULT_SG_READY_SURPLUS_THRESHOLD,
     DEFAULT_BATTERY_CAPACITY,
     DEFAULT_MAX_SOC,
     DEFAULT_MIN_SOC,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    PRICE_SOURCE_TIBBER,
     SG_READY_MODES,
+    TIBBER_API_URL,
 )
 
 
@@ -24,3 +27,9 @@ def test_defaults():
     assert DEFAULT_MAX_SOC == 90
     assert DEFAULT_MIN_SOC == 15
     assert DEFAULT_SCAN_INTERVAL == 300
+
+
+def test_tibber_constants():
+    assert PRICE_SOURCE_TIBBER == "tibber"
+    assert CONF_TIBBER_API_KEY == "tibber_api_key"
+    assert TIBBER_API_URL == "https://api.tibber.com/v1-beta/gql"

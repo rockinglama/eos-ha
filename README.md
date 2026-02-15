@@ -26,7 +26,7 @@ You keep full control — EOS-HA provides recommendations as sensor entities. Yo
 - Home Assistant 2024.1+
 - A running [Akkudoktor EOS](https://github.com/Akkudoktor-EOS/EOS) server (addon or standalone)
 - A battery SOC sensor (standard HA percentage entity, 0–100%)
-- An electricity price sensor (only if using "External" price source, e.g. Tibber)
+- An electricity price sensor (only if using "External" price source) or a Tibber API key (from [developer.tibber.com](https://developer.tibber.com))
 
 > **Tip:** For the best experience, run EOS as a Home Assistant addon — the HA Adapter provides direct entity access for seamless integration.
 
@@ -67,7 +67,7 @@ Add the integration via **Settings → Devices & Services → + Add Integration 
 | **Entities** | Battery SOC sensor |
 | **Battery** | Capacity (kWh), max charge power (W), inverter power (W), SOC limits (%) |
 | **PV Arrays** | Solar arrays with azimuth, tilt, peak power, inverter power, efficiency |
-| **Price Source** | Akkudoktor, EnergyCharts, or External (Tibber, ENTSO-E, etc.) |
+| **Price Source** | Akkudoktor, EnergyCharts, Tibber API, or External (ENTSO-E, etc.) |
 | **EV** *(optional)* | Electric vehicle — capacity, charge power, SOC entity, efficiency |
 | **Appliances** *(optional)* | Flexible loads with time windows (e.g. Brauchwasserwärmepumpe) |
 | **Energy Meters** *(optional)* | Load, grid import/export, PV production energy meters; yearly consumption (kWh) for load prediction |
@@ -109,7 +109,8 @@ EOS-HA wraps these with proper `unique_id`, device grouping under "EOS", and tra
 |--------|-------------|
 | **Akkudoktor** (default) | Built-in price forecast via EOS |
 | **EnergyCharts** | EOS fetches from energy-charts.info (configurable bidding zone, default DE-LU) |
-| **External** | Any HA sensor (Tibber, ENTSO-E, Awattar) — pushed to EOS via `ElecPriceImport` provider |
+| **Tibber API** | Direct integration with Tibber API — enter your API key from [developer.tibber.com](https://developer.tibber.com). Fetches today + tomorrow prices automatically. |
+| **External** | Any HA sensor (ENTSO-E, Awattar, etc.) — pushed to EOS via `ElecPriceImport` provider |
 
 ## Entities
 
