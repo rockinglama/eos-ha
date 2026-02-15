@@ -116,12 +116,7 @@ class EOSCoordinator(DataUpdateCoordinator):
         if self._eos_configured:
             return
 
-        _LOGGER.warning(
-            "Pushing HA config to EOS — price_source=%s, data_keys=%s, options_keys=%s",
-            self._get_config(CONF_PRICE_SOURCE, "NOT_SET"),
-            list(self.config_entry.data.keys()),
-            list(self.config_entry.options.keys()),
-        )
+        _LOGGER.info("Pushing HA configuration to EOS server")
 
         # 1. Set location
         lat = self.config_entry.data.get("latitude")
