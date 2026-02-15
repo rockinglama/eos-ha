@@ -68,13 +68,15 @@ class EOSApiClient:
         url = f"{self.base_url}/v1/config/{path}"
         try:
             timeout = aiohttp.ClientTimeout(total=10)
+            import json as _json
+            _LOGGER.debug("PUT %s payload: %s", url, _json.dumps(value)[:2000])
             async with self.session.put(
                 url, json=value, timeout=timeout,
                 headers={"Content-Type": "application/json"},
             ) as resp:
                 if resp.status != 200:
                     body = await resp.text()
-                    _LOGGER.error("PUT %s returned %s: %s", url, resp.status, body[:200])
+                    _LOGGER.error("PUT %s returned %s: %s", url, resp.status, body[:2000])
                     return {}
                 return await resp.json()
         except (aiohttp.ClientError, asyncio.TimeoutError) as err:
