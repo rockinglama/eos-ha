@@ -189,18 +189,6 @@ class EOSCoordinator(DataUpdateCoordinator):
 
     async def _push_device_config(self) -> None:
         """Configure EOS devices: battery, inverter, EV, appliances."""
-        soc_entity = self._get_config(CONF_SOC_ENTITY)
-        initial_soc = 50  # Default percentage for device config
-        if soc_entity:
-            soc_state = self.hass.states.get(soc_entity)
-            if soc_state and soc_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN):
-                try:
-                    # SOC entity should provide factor (0.0-1.0), convert to percentage for device config
-                    soc_factor = float(soc_state.state)
-                    initial_soc = round(soc_factor * 100)  # Convert factor to percentage
-                except (ValueError, TypeError):
-                    pass
-
         devices: dict[str, Any] = {
             "batteries": [{
                 "device_id": "battery1",
@@ -208,7 +196,6 @@ class EOSCoordinator(DataUpdateCoordinator):
                 "charging_efficiency": 0.88,
                 "discharging_efficiency": 0.88,
                 "max_charge_power_w": self._get_config(CONF_MAX_CHARGE_POWER),
-                "initial_soc_percentage": initial_soc,
                 "min_soc_percentage": self._get_config(CONF_MIN_SOC),
                 "max_soc_percentage": self._get_config(CONF_MAX_SOC),
             }],
@@ -221,23 +208,10 @@ class EOSCoordinator(DataUpdateCoordinator):
 
         # EV
         if self._get_config(CONF_EV_ENABLED, False):
-            ev_soc = 50  # Default percentage for device config
-            ev_soc_entity = self._get_config(CONF_EV_SOC_ENTITY)
-            if ev_soc_entity:
-                ev_state = self.hass.states.get(ev_soc_entity)
-                if ev_state and ev_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN):
-                    try:
-                        # EV SOC entity should provide factor (0.0-1.0), convert to percentage for device config
-                        ev_soc_factor = float(ev_state.state)
-                        ev_soc = round(ev_soc_factor * 100)  # Convert factor to percentage
-                    except (ValueError, TypeError):
-                        pass
-
             devices["electric_vehicles"] = [{
                 "device_id": "ev1",
                 "capacity_wh": int(self._get_config(CONF_EV_CAPACITY, DEFAULT_EV_CAPACITY) * 1000),
                 "charging_efficiency": self._get_config(CONF_EV_EFFICIENCY, DEFAULT_EV_EFFICIENCY),
-                "initial_soc_percentage": ev_soc,
                 "min_soc_percentage": 10,
                 "max_soc_percentage": 100,
                 "max_charge_power_w": int(self._get_config(CONF_EV_CHARGE_POWER, DEFAULT_EV_CHARGE_POWER)),
@@ -291,13 +265,10 @@ class EOSCoordinator(DataUpdateCoordinator):
             "solution_entity_ids": None,
         }
 
-        # Device measurements (SOC → EOS reads directly from HA)
-        # SOC entity must provide factor (0.0-1.0), not percentage
-        soc_entity = self._get_config(CONF_SOC_ENTITY)
-        if soc_entity:
-            ha_config["device_measurement_entity_ids"] = {
-                "battery1-soc-factor": soc_entity,
-            }
+        # Note: SOC is pushed via measurement API (percentage → factor conversion)
+        # in _push_soc_measurements(), not via device_measurement_entity_ids,
+        # because standard HA battery sensors report percentage (0-100) but
+        # EOS measurement keys expect factor (0.0-1.0).
 
         # Energy meter entities (optional)
         load_emr = self._get_config(CONF_LOAD_EMR_ENTITY)
@@ -324,6 +295,44 @@ class EOSCoordinator(DataUpdateCoordinator):
             if value is not None:
                 await self._eos_client.put_config(f"adapter/homeassistant/{key}", value)
         _LOGGER.info("EOS HA adapter configured with entity mappings")
+
+    async def _push_soc_measurements(self) -> None:
+        """Push current SOC values to EOS via measurement API.
+
+        Standard HA battery sensors report percentage (0-100).
+        EOS measurement keys expect factor (0.0-1.0).
+        We convert and push via PUT /v1/measurement/value.
+        """
+        now_str = dt_util.now().isoformat()
+
+        # Battery SOC
+        soc_entity = self._get_config(CONF_SOC_ENTITY)
+        if soc_entity:
+            soc_state = self.hass.states.get(soc_entity)
+            if soc_state and soc_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+                try:
+                    soc_pct = float(soc_state.state)
+                    soc_factor = soc_pct / 100.0  # Convert percentage to factor
+                    await self._eos_client.put_measurement_value(
+                        now_str, "battery1-soc-factor", soc_factor
+                    )
+                except (ValueError, TypeError):
+                    pass
+
+        # EV SOC
+        if self._get_config(CONF_EV_ENABLED, False):
+            ev_soc_entity = self._get_config(CONF_EV_SOC_ENTITY)
+            if ev_soc_entity:
+                ev_state = self.hass.states.get(ev_soc_entity)
+                if ev_state and ev_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN):
+                    try:
+                        ev_pct = float(ev_state.state)
+                        ev_factor = ev_pct / 100.0
+                        await self._eos_client.put_measurement_value(
+                            now_str, "ev1-soc-factor", ev_factor
+                        )
+                    except (ValueError, TypeError):
+                        pass
 
     async def _push_external_prices(self) -> None:
         """Push Tibber/external prices to EOS via prediction import if configured."""
@@ -394,6 +403,12 @@ class EOSCoordinator(DataUpdateCoordinator):
                 await self._push_eos_config()
             except Exception as err:
                 _LOGGER.warning("Failed to push EOS config: %s", err)
+
+        # Push SOC measurements (percentage → factor conversion, best effort)
+        try:
+            await self._push_soc_measurements()
+        except Exception as err:
+            _LOGGER.debug("Failed to push SOC measurements: %s", err)
 
         # Push external prices if applicable (best effort)
         try:
