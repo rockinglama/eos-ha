@@ -95,14 +95,14 @@ def _pv_array_schema(
             ),
             vol.Required("power", default=power): selector.NumberSelector(
                 selector.NumberSelectorConfig(
-                    min=100, max=100000, step=100,
+                    min=1, max=100000, step=1,
                     unit_of_measurement="Wp",
                     mode=selector.NumberSelectorMode.BOX,
                 )
             ),
             vol.Required("inverter_power", default=inverter_power): selector.NumberSelector(
                 selector.NumberSelectorConfig(
-                    min=100, max=100000, step=100,
+                    min=1, max=100000, step=1,
                     unit_of_measurement="W",
                     mode=selector.NumberSelectorMode.BOX,
                 )
