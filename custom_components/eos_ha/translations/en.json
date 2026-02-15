@@ -225,15 +225,17 @@
       },
       "sg_ready": {
         "title": "SG-Ready Heat Pump",
-        "description": "Configure SG-Ready smart grid control for your heat pump. Use one or two relay switch entities (single contact BWWPs only need Contact 2).",
+        "description": "Automatic SG-Ready control based on PV surplus, electricity price, and battery SOC.\n\n**Modes:** Normal (off) → Recommend (surplus above threshold) → Force (surplus above threshold + battery full) → Lock (expensive power, no PV, low battery).\n\n**Single contact (e.g. BWWP):** Only configure Contact 2. Contact 1 is optional (for EVU lock).\n**Two contacts:** Configure both for full 4-mode SG-Ready control.",
         "data": {
           "sg_ready_enabled": "Enable SG-Ready Control",
-          "sg_ready_switch_1": "SG-Ready Contact 1 (Switch Entity)",
-          "sg_ready_switch_2": "SG-Ready Contact 2 (Switch Entity)",
+          "sg_ready_switch_1": "Contact 1 — EVU Lock (optional)",
+          "sg_ready_switch_2": "Contact 2 — Recommend/Force",
           "sg_ready_surplus_threshold": "PV Surplus Threshold (W)"
         },
         "data_description": {
-          "sg_ready_surplus_threshold": "Minimum PV surplus (watts) before switching to Recommend/Force mode. Default: 500W."
+          "sg_ready_switch_1": "Switch entity for SG-Ready contact 1. Controls EVU lock (Mode 1). Leave empty for single-contact heat pumps.",
+          "sg_ready_switch_2": "Switch entity for SG-Ready contact 2. Activates on Recommend (Mode 3) and Force (Mode 4) when PV surplus exceeds the threshold.",
+          "sg_ready_surplus_threshold": "Minimum PV surplus (generation minus consumption) in watts before the heat pump is activated. Higher = only run on significant surplus. Default: 500W."
         }
       },
       "eos_server": {

@@ -215,15 +215,17 @@
       },
       "sg_ready": {
         "title": "SG-Ready Wärmepumpe",
-        "description": "SG-Ready Smart-Grid-Steuerung für Ihre Wärmepumpe. Ein oder zwei Relais-Schalter (BWWPs mit einem Kontakt brauchen nur Kontakt 2).",
+        "description": "Automatische SG-Ready Steuerung basierend auf PV-Überschuss, Strompreis und Batterie-SOC.\n\n**Modi:** Normal (aus) → Empfehlung (Überschuss über Schwelle) → Zwang (Überschuss über Schwelle + Batterie voll) → Sperre (teurer Strom, keine PV, Batterie leer).\n\n**Ein Kontakt (z.B. BWWP):** Nur Kontakt 2 konfigurieren. Kontakt 1 ist optional (EVU-Sperre).\n**Zwei Kontakte:** Beide konfigurieren für volle 4-Modus SG-Ready Steuerung.",
         "data": {
           "sg_ready_enabled": "SG-Ready Steuerung aktivieren",
-          "sg_ready_switch_1": "SG-Ready Kontakt 1 (Schalter-Entität)",
-          "sg_ready_switch_2": "SG-Ready Kontakt 2 (Schalter-Entität)",
+          "sg_ready_switch_1": "Kontakt 1 — EVU-Sperre (optional)",
+          "sg_ready_switch_2": "Kontakt 2 — Empfehlung/Zwang",
           "sg_ready_surplus_threshold": "PV-Überschuss-Schwelle (W)"
         },
         "data_description": {
-          "sg_ready_surplus_threshold": "Mindest-PV-Überschuss (Watt) bevor auf Empfehlung/Zwang umgeschaltet wird. Standard: 500W."
+          "sg_ready_switch_1": "Schalter-Entität für SG-Ready Kontakt 1. Steuert die EVU-Sperre (Modus 1). Leer lassen bei Wärmepumpen mit nur einem Kontakt.",
+          "sg_ready_switch_2": "Schalter-Entität für SG-Ready Kontakt 2. Wird bei Empfehlung (Modus 3) und Zwang (Modus 4) aktiviert, wenn der PV-Überschuss die Schwelle überschreitet.",
+          "sg_ready_surplus_threshold": "Mindest-PV-Überschuss (Erzeugung minus Verbrauch) in Watt, bevor die Wärmepumpe aktiviert wird. Höher = nur bei deutlichem Überschuss einschalten. Standard: 500W."
         }
       },
       "eos_server": {
