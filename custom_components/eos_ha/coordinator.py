@@ -36,13 +36,17 @@ from .const import (
     CONF_PV_ARRAYS,
     CONF_PV_PRODUCTION_EMR_ENTITY,
     CONF_SOC_ENTITY,
+    CONF_CHARGES_KWH,
     CONF_TIBBER_API_KEY,
+    CONF_VAT_RATE,
     CONF_YEARLY_CONSUMPTION,
     DEFAULT_BIDDING_ZONE,
+    DEFAULT_CHARGES_KWH,
     DEFAULT_EV_CAPACITY,
     DEFAULT_EV_CHARGE_POWER,
     DEFAULT_EV_EFFICIENCY,
     DEFAULT_FEED_IN_TARIFF,
+    DEFAULT_VAT_RATE,
     DEFAULT_YEARLY_CONSUMPTION,
     DEFAULT_SCAN_INTERVAL,
     EOS_ENTITY_AC_CHARGE,
@@ -134,20 +138,24 @@ class EOSCoordinator(DataUpdateCoordinator):
 
         # 2. Configure electricity price provider
         price_source = self._get_config(CONF_PRICE_SOURCE, PRICE_SOURCE_AKKUDOKTOR)
+        charges_kwh = self._get_config(CONF_CHARGES_KWH, DEFAULT_CHARGES_KWH)
+        vat_rate = self._get_config(CONF_VAT_RATE, DEFAULT_VAT_RATE)
+
+        elecprice_config: dict[str, Any] = {
+            "charges_kwh": charges_kwh,
+            "vat_rate": vat_rate,
+        }
+
         if price_source == PRICE_SOURCE_AKKUDOKTOR:
-            await self._eos_client.put_config("elecprice", {
-                "provider": "ElecPriceAkkudoktor",
-            })
+            elecprice_config["provider"] = "ElecPriceAkkudoktor"
         elif price_source == PRICE_SOURCE_ENERGYCHARTS:
             bidding_zone = self._get_config(CONF_BIDDING_ZONE, DEFAULT_BIDDING_ZONE)
-            await self._eos_client.put_config("elecprice", {
-                "provider": "ElecPriceEnergyCharts",
-                "energycharts": {"bidding_zone": bidding_zone},
-            })
+            elecprice_config["provider"] = "ElecPriceEnergyCharts"
+            elecprice_config["energycharts"] = {"bidding_zone": bidding_zone}
         elif price_source in (PRICE_SOURCE_TIBBER, PRICE_SOURCE_EXTERNAL):
-            await self._eos_client.put_config("elecprice", {
-                "provider": "ElecPriceImport",
-            })
+            elecprice_config["provider"] = "ElecPriceImport"
+
+        await self._eos_client.put_config("elecprice", elecprice_config)
 
         # 3. Configure PV forecast
         pv_arrays = self._get_config(CONF_PV_ARRAYS) or []

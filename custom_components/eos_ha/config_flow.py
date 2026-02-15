@@ -42,10 +42,13 @@ from .const import (
     CONF_PV_ARRAYS,
     CONF_PV_PRODUCTION_EMR_ENTITY,
     CONF_SOC_ENTITY,
+    CONF_CHARGES_KWH,
     CONF_TIBBER_API_KEY,
+    CONF_VAT_RATE,
     CONF_YEARLY_CONSUMPTION,
     DEFAULT_BATTERY_CAPACITY,
     DEFAULT_BIDDING_ZONE,
+    DEFAULT_CHARGES_KWH,
     DEFAULT_EV_CAPACITY,
     DEFAULT_EV_CHARGE_POWER,
     DEFAULT_EV_EFFICIENCY,
@@ -59,6 +62,7 @@ from .const import (
     DEFAULT_PV_POWER,
     DEFAULT_PV_TILT,
     DEFAULT_SG_READY_SURPLUS_THRESHOLD,
+    DEFAULT_VAT_RATE,
     DEFAULT_YEARLY_CONSUMPTION,
     DOMAIN,
     PRICE_SOURCE_AKKUDOKTOR,
@@ -209,6 +213,8 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
 
         if user_input is not None:
             self._pending[CONF_PRICE_SOURCE] = user_input[CONF_PRICE_SOURCE]
+            self._pending[CONF_CHARGES_KWH] = user_input.get(CONF_CHARGES_KWH, DEFAULT_CHARGES_KWH)
+            self._pending[CONF_VAT_RATE] = user_input.get(CONF_VAT_RATE, DEFAULT_VAT_RATE)
 
             if user_input[CONF_PRICE_SOURCE] == PRICE_SOURCE_ENERGYCHARTS:
                 self._pending[CONF_BIDDING_ZONE] = user_input.get(CONF_BIDDING_ZONE, DEFAULT_BIDDING_ZONE)
@@ -217,7 +223,6 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
                 if not api_key:
                     errors[CONF_TIBBER_API_KEY] = "tibber_api_key_required"
                 else:
-                    # Validate Tibber API key
                     valid = await self._validate_tibber_key(api_key)
                     if not valid:
                         errors[CONF_TIBBER_API_KEY] = "tibber_api_key_invalid"
@@ -240,6 +245,12 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
                     options=PRICE_SOURCE_OPTIONS,
                     mode=selector.SelectSelectorMode.DROPDOWN,
                 )
+            ),
+            vol.Required(CONF_CHARGES_KWH, default=current.get(CONF_CHARGES_KWH, DEFAULT_CHARGES_KWH)): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=0.0, max=0.5, step=0.001, unit_of_measurement="EUR/kWh", mode=selector.NumberSelectorMode.BOX)
+            ),
+            vol.Required(CONF_VAT_RATE, default=current.get(CONF_VAT_RATE, DEFAULT_VAT_RATE)): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=1.0, max=1.5, step=0.01, mode=selector.NumberSelectorMode.BOX)
             ),
             vol.Optional(CONF_TIBBER_API_KEY, default=current.get(CONF_TIBBER_API_KEY) or vol.UNDEFINED): str,
             vol.Optional(CONF_BIDDING_ZONE, default=current.get(CONF_BIDDING_ZONE, DEFAULT_BIDDING_ZONE)): str,
@@ -832,6 +843,8 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             self.data[CONF_PRICE_SOURCE] = user_input[CONF_PRICE_SOURCE]
+            self.data[CONF_CHARGES_KWH] = user_input.get(CONF_CHARGES_KWH, DEFAULT_CHARGES_KWH)
+            self.data[CONF_VAT_RATE] = user_input.get(CONF_VAT_RATE, DEFAULT_VAT_RATE)
             if user_input[CONF_PRICE_SOURCE] == PRICE_SOURCE_ENERGYCHARTS:
                 self.data[CONF_BIDDING_ZONE] = user_input.get(CONF_BIDDING_ZONE, DEFAULT_BIDDING_ZONE)
             if user_input[CONF_PRICE_SOURCE] == PRICE_SOURCE_TIBBER:
@@ -859,6 +872,12 @@ class EOSHAConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     options=PRICE_SOURCE_OPTIONS,
                     mode=selector.SelectSelectorMode.DROPDOWN,
                 )
+            ),
+            vol.Required(CONF_CHARGES_KWH, default=DEFAULT_CHARGES_KWH): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=0.0, max=0.5, step=0.001, unit_of_measurement="EUR/kWh", mode=selector.NumberSelectorMode.BOX)
+            ),
+            vol.Required(CONF_VAT_RATE, default=DEFAULT_VAT_RATE): selector.NumberSelector(
+                selector.NumberSelectorConfig(min=1.0, max=1.5, step=0.01, mode=selector.NumberSelectorMode.BOX)
             ),
             vol.Optional(CONF_TIBBER_API_KEY): str,
             vol.Optional(CONF_BIDDING_ZONE, default=DEFAULT_BIDDING_ZONE): str,

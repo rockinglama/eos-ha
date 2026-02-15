@@ -13,6 +13,8 @@
         "description": "Choose how electricity prices are obtained.",
         "data": {
           "price_source": "Price Source",
+          "charges_kwh": "Surcharges (EUR/kWh)",
+          "vat_rate": "VAT Rate Factor (e.g. 1.19 = 19%)",
           "tibber_api_key": "Tibber API Key",
           "bidding_zone": "Bidding Zone (for EnergyCharts)",
           "price_entity": "Price Entity (for External)"
@@ -128,9 +130,11 @@
       },
       "price_source": {
         "title": "Electricity Price Source",
-        "description": "Choose how electricity prices are obtained. For Tibber, enter your API key from developer.tibber.com.",
+        "description": "Choose how electricity prices are obtained. Surcharges and VAT are added on top of the market price. For Tibber, enter your API key from developer.tibber.com.",
         "data": {
           "price_source": "Price Source",
+          "charges_kwh": "Surcharges (EUR/kWh)",
+          "vat_rate": "VAT Rate Factor (e.g. 1.19 = 19%)",
           "tibber_api_key": "Tibber API Key",
           "bidding_zone": "Bidding Zone (for EnergyCharts)",
           "price_entity": "Price Entity (for External)"

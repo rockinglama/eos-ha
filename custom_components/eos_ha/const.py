@@ -28,6 +28,12 @@ PRICE_SOURCE_EXTERNAL = "external"
 CONF_TIBBER_API_KEY = "tibber_api_key"
 TIBBER_API_URL = "https://api.tibber.com/v1-beta/gql"
 
+# Electricity price surcharges
+CONF_CHARGES_KWH = "charges_kwh"
+CONF_VAT_RATE = "vat_rate"
+DEFAULT_CHARGES_KWH = 0.21  # EUR/kWh (typical DE surcharges)
+DEFAULT_VAT_RATE = 1.19  # 19% VAT
+
 DEFAULT_BIDDING_ZONE = "DE-LU"
 
 # Default battery values
