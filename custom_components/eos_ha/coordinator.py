@@ -197,11 +197,13 @@ class EOSCoordinator(DataUpdateCoordinator):
                 "min_soc_percentage": self._get_config(CONF_MIN_SOC),
                 "max_soc_percentage": self._get_config(CONF_MAX_SOC),
             }],
+            "max_batteries": 1,
             "inverters": [{
                 "device_id": "inverter1",
                 "max_power_w": self._get_config(CONF_INVERTER_POWER),
                 "battery_id": "battery1",
             }],
+            "max_inverters": 1,
         }
 
         # EV
@@ -214,6 +216,7 @@ class EOSCoordinator(DataUpdateCoordinator):
                 "max_soc_percentage": 100,
                 "max_charge_power_w": int(self._get_config(CONF_EV_CHARGE_POWER, DEFAULT_EV_CHARGE_POWER)),
             }]
+            devices["max_electric_vehicles"] = 1
 
         # Appliances
         appliances = self._get_config(CONF_APPLIANCES) or []
@@ -301,8 +304,12 @@ class EOSCoordinator(DataUpdateCoordinator):
         await self._eos_client.set_adapter_provider("HomeAssistant")
 
         # Set individual adapter sub-keys (bulk PUT on /adapter fails)
+        # Always push device_measurement_entity_ids (even as empty dict) to clear stale keys
         for key, value in ha_config.items():
-            if value is not None:
+            if key == "device_measurement_entity_ids":
+                # Force empty dict to clear any stale mappings (e.g. from EOS Connect)
+                await self._eos_client.put_config(f"adapter/homeassistant/{key}", value if value is not None else {})
+            elif value is not None:
                 await self._eos_client.put_config(f"adapter/homeassistant/{key}", value)
         _LOGGER.info("EOS HA adapter configured with entity mappings")
 
