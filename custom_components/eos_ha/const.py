@@ -73,6 +73,8 @@ DEFAULT_PV_INVERTER_POWER = 5000  # W
 CONF_SG_READY_ENABLED = "sg_ready_enabled"
 CONF_SG_READY_SWITCH_1 = "sg_ready_switch_1"
 CONF_SG_READY_SWITCH_2 = "sg_ready_switch_2"
+CONF_SG_READY_SURPLUS_THRESHOLD = "sg_ready_surplus_threshold"
+DEFAULT_SG_READY_SURPLUS_THRESHOLD = 500  # W
 
 # Energy meter entities (for EOS HA Adapter)
 CONF_LOAD_EMR_ENTITY = "load_emr_entity"

@@ -12,8 +12,10 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     CONF_SG_READY_ENABLED,
+    CONF_SG_READY_SURPLUS_THRESHOLD,
     CONF_SG_READY_SWITCH_1,
     CONF_SG_READY_SWITCH_2,
+    DEFAULT_SG_READY_SURPLUS_THRESHOLD,
     DOMAIN,
     SG_READY_MODES,
 )
@@ -113,6 +115,7 @@ class EOSSGReadySwitch(CoordinatorEntity, SwitchEntity):
         from .const import CONF_MAX_SOC, CONF_MIN_SOC, DEFAULT_MAX_SOC, DEFAULT_MIN_SOC
         max_soc = float(config.get(CONF_MAX_SOC, DEFAULT_MAX_SOC))
         min_soc = float(config.get(CONF_MIN_SOC, DEFAULT_MIN_SOC))
+        surplus_threshold = float(config.get(CONF_SG_READY_SURPLUS_THRESHOLD, DEFAULT_SG_READY_SURPLUS_THRESHOLD))
 
         pv_forecast = data.get("pv_forecast", [])
         price_forecast = data.get("price_forecast", [])
@@ -127,9 +130,9 @@ class EOSSGReadySwitch(CoordinatorEntity, SwitchEntity):
         avg_price = sum(price_forecast[:24]) / len(price_forecast[:24]) if price_forecast else current_price
         pv_surplus = current_pv - current_consumption if current_pv and current_consumption else 0
 
-        if pv_surplus > 500 and current_soc > (max_soc - 5):
+        if pv_surplus > surplus_threshold and current_soc > (max_soc - 5):
             return 4
-        if pv_surplus > 200:
+        if pv_surplus > surplus_threshold:
             return 3
         if avg_price > 0 and current_price < avg_price * 0.5:
             return 3
@@ -160,9 +163,11 @@ class EOSSGReadySwitch(CoordinatorEntity, SwitchEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         mode = self._last_applied_mode
+        config = {**self.coordinator.config_entry.data, **self.coordinator.config_entry.options}
         return {
             "current_mode": mode,
             "mode_name": SG_READY_MODES.get(mode, "Unknown") if mode else "Inactive",
             "switch_1_entity": self._switch_1,
             "switch_2_entity": self._switch_2,
+            "surplus_threshold_w": config.get(CONF_SG_READY_SURPLUS_THRESHOLD, DEFAULT_SG_READY_SURPLUS_THRESHOLD),
         }

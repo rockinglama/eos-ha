@@ -14,6 +14,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import (
     CONF_SG_READY_ENABLED,
+    CONF_SG_READY_SURPLUS_THRESHOLD,
     CONF_SG_READY_SWITCH_1,
     CONF_SG_READY_SWITCH_2,
     CONF_APPLIANCES,
@@ -56,6 +57,7 @@ from .const import (
     DEFAULT_PV_INVERTER_POWER,
     DEFAULT_PV_POWER,
     DEFAULT_PV_TILT,
+    DEFAULT_SG_READY_SURPLUS_THRESHOLD,
     DEFAULT_YEARLY_CONSUMPTION,
     DOMAIN,
     PRICE_SOURCE_AKKUDOKTOR,
@@ -589,6 +591,14 @@ class EOSHAOptionsFlow(config_entries.OptionsFlow):
                     ),
                     vol.Optional(CONF_SG_READY_SWITCH_2, default=current.get(CONF_SG_READY_SWITCH_2) or vol.UNDEFINED): selector.EntitySelector(
                         selector.EntitySelectorConfig(domain="switch")
+                    ),
+                    vol.Required(
+                        CONF_SG_READY_SURPLUS_THRESHOLD,
+                        default=current.get(CONF_SG_READY_SURPLUS_THRESHOLD, DEFAULT_SG_READY_SURPLUS_THRESHOLD),
+                    ): selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0, max=10000, step=50, unit_of_measurement="W", mode="box"
+                        )
                     ),
                 }
             ),

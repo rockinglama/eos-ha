@@ -25,6 +25,7 @@ from .const import (
     CONF_BATTERY_PV_POWER,
     CONF_EOS_URL,
     CONF_SG_READY_ENABLED,
+    CONF_SG_READY_SURPLUS_THRESHOLD,
     DEFAULT_BATTERY_EFFICIENCY,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -36,6 +37,7 @@ from .const import (
     DEFAULT_BATTERY_CAPACITY,
     DEFAULT_MAX_SOC,
     DEFAULT_MIN_SOC,
+    DEFAULT_SG_READY_SURPLUS_THRESHOLD,
     PRICE_SOURCE_EXTERNAL,
     SG_READY_MODES,
 )
@@ -556,13 +558,15 @@ class EOSSGReadyModeSensor(CoordinatorEntity, SensorEntity):
 
         pv_surplus = current_pv - current_consumption if current_pv and current_consumption else 0
 
-        # Mode 4: Force — significant PV surplus AND battery full
-        if pv_surplus > 500 and current_soc > (max_soc - 5):
-            return 4, f"PV surplus ({pv_surplus:.0f}W) and battery full ({current_soc:.0f}%)"
+        surplus_threshold = float(config.get(CONF_SG_READY_SURPLUS_THRESHOLD, DEFAULT_SG_READY_SURPLUS_THRESHOLD))
 
-        # Mode 3: Recommend — PV surplus OR cheap electricity
-        if pv_surplus > 200:
-            return 3, f"PV surplus available ({pv_surplus:.0f}W)"
+        # Mode 4: Force — surplus above threshold AND battery full
+        if pv_surplus > surplus_threshold and current_soc > (max_soc - 5):
+            return 4, f"PV surplus ({pv_surplus:.0f}W > {surplus_threshold:.0f}W) and battery full ({current_soc:.0f}%)"
+
+        # Mode 3: Recommend — PV surplus above threshold OR cheap electricity
+        if pv_surplus > surplus_threshold:
+            return 3, f"PV surplus ({pv_surplus:.0f}W > {surplus_threshold:.0f}W)"
         if avg_price > 0 and current_price < avg_price * 0.5:
             return 3, f"Cheap electricity ({current_price:.4f} < 50% avg {avg_price:.4f})"
 

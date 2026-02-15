@@ -215,11 +215,15 @@
       },
       "sg_ready": {
         "title": "SG-Ready Wärmepumpe",
-        "description": "Konfigurieren Sie die SG-Ready Smart-Grid-Steuerung für Ihre Wärmepumpe. Benötigt zwei Relais-Schalter-Entitäten.",
+        "description": "SG-Ready Smart-Grid-Steuerung für Ihre Wärmepumpe. Ein oder zwei Relais-Schalter (BWWPs mit einem Kontakt brauchen nur Kontakt 2).",
         "data": {
           "sg_ready_enabled": "SG-Ready Steuerung aktivieren",
           "sg_ready_switch_1": "SG-Ready Kontakt 1 (Schalter-Entität)",
-          "sg_ready_switch_2": "SG-Ready Kontakt 2 (Schalter-Entität)"
+          "sg_ready_switch_2": "SG-Ready Kontakt 2 (Schalter-Entität)",
+          "sg_ready_surplus_threshold": "PV-Überschuss-Schwelle (W)"
+        },
+        "data_description": {
+          "sg_ready_surplus_threshold": "Mindest-PV-Überschuss (Watt) bevor auf Empfehlung/Zwang umgeschaltet wird. Standard: 500W."
         }
       },
       "eos_server": {

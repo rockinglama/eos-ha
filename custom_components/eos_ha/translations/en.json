@@ -225,11 +225,15 @@
       },
       "sg_ready": {
         "title": "SG-Ready Heat Pump",
-        "description": "Configure SG-Ready smart grid control for your heat pump. Requires two relay switch entities.",
+        "description": "Configure SG-Ready smart grid control for your heat pump. Use one or two relay switch entities (single contact BWWPs only need Contact 2).",
         "data": {
           "sg_ready_enabled": "Enable SG-Ready Control",
           "sg_ready_switch_1": "SG-Ready Contact 1 (Switch Entity)",
-          "sg_ready_switch_2": "SG-Ready Contact 2 (Switch Entity)"
+          "sg_ready_switch_2": "SG-Ready Contact 2 (Switch Entity)",
+          "sg_ready_surplus_threshold": "PV Surplus Threshold (W)"
+        },
+        "data_description": {
+          "sg_ready_surplus_threshold": "Minimum PV surplus (watts) before switching to Recommend/Force mode. Default: 500W."
         }
       },
       "eos_server": {
