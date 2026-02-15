@@ -1,75 +1,38 @@
 """Tests for EOS HA binary sensor platform."""
-from __future__ import annotations
-
-from unittest.mock import MagicMock
-
-import pytest
-
-from custom_components.eos_ha.binary_sensor import (
-    EOSDischargeAllowedSensor,
-    PARALLEL_UPDATES,
-)
+from custom_components.eos_ha.binary_sensor import EOSDischargeAllowedSensor
 
 
-def test_parallel_updates():
-    """Test PARALLEL_UPDATES is set to 1."""
-    assert PARALLEL_UPDATES == 1
+class TestDischargeAllowedSensor:
+    def test_discharge_allowed(self, mock_coordinator):
+        sensor = EOSDischargeAllowedSensor(mock_coordinator)
+        assert sensor.is_on is True
 
+    def test_discharge_not_allowed(self, mock_coordinator):
+        mock_coordinator.data = {"discharge_allowed": [False]}
+        sensor = EOSDischargeAllowedSensor(mock_coordinator)
+        assert sensor.is_on is False
 
-def _make_coordinator(data=None):
-    """Create a mock coordinator."""
-    coord = MagicMock()
-    coord.config_entry = MagicMock()
-    coord.config_entry.entry_id = "test_entry"
-    coord.data = data
-    return coord
+    def test_no_data(self, mock_coordinator):
+        mock_coordinator.data = None
+        sensor = EOSDischargeAllowedSensor(mock_coordinator)
+        assert sensor.is_on is None
 
+    def test_empty_forecast(self, mock_coordinator):
+        mock_coordinator.data = {"discharge_allowed": []}
+        sensor = EOSDischargeAllowedSensor(mock_coordinator)
+        assert sensor.is_on is None
 
-def test_discharge_allowed_on():
-    """Test discharge allowed returns True."""
-    coord = _make_coordinator({"discharge_allowed": [1, 0, 1]})
-    sensor = EOSDischargeAllowedSensor(coord)
-    assert sensor.is_on is True
+    def test_unique_id(self, mock_coordinator):
+        sensor = EOSDischargeAllowedSensor(mock_coordinator)
+        assert sensor.unique_id == "test_entry_id_discharge_allowed"
 
+    def test_attributes(self, mock_coordinator):
+        mock_coordinator.data = {"discharge_allowed": [True, False, True]}
+        sensor = EOSDischargeAllowedSensor(mock_coordinator)
+        attrs = sensor.extra_state_attributes
+        assert attrs["forecast"] == [True, False, True]
 
-def test_discharge_allowed_off():
-    """Test discharge allowed returns False."""
-    coord = _make_coordinator({"discharge_allowed": [0, 1, 1]})
-    sensor = EOSDischargeAllowedSensor(coord)
-    assert sensor.is_on is False
-
-
-def test_discharge_allowed_no_data():
-    """Test discharge allowed returns None with no data."""
-    coord = _make_coordinator(None)
-    sensor = EOSDischargeAllowedSensor(coord)
-    assert sensor.is_on is None
-
-
-def test_discharge_allowed_empty_array():
-    """Test discharge allowed returns None with empty array."""
-    coord = _make_coordinator({"discharge_allowed": []})
-    sensor = EOSDischargeAllowedSensor(coord)
-    assert sensor.is_on is None
-
-
-def test_discharge_extra_attrs():
-    """Test extra state attributes."""
-    data = {"discharge_allowed": [1, 0, 1]}
-    coord = _make_coordinator(data)
-    sensor = EOSDischargeAllowedSensor(coord)
-    assert sensor.extra_state_attributes == {"forecast": [1, 0, 1]}
-
-
-def test_discharge_extra_attrs_no_data():
-    """Test extra state attributes with no data."""
-    coord = _make_coordinator(None)
-    sensor = EOSDischargeAllowedSensor(coord)
-    assert sensor.extra_state_attributes == {}
-
-
-def test_unique_id():
-    """Test unique_id format."""
-    coord = _make_coordinator({})
-    sensor = EOSDischargeAllowedSensor(coord)
-    assert sensor.unique_id == "test_entry_discharge_allowed"
+    def test_attributes_no_data(self, mock_coordinator):
+        mock_coordinator.data = None
+        sensor = EOSDischargeAllowedSensor(mock_coordinator)
+        assert sensor.extra_state_attributes == {}

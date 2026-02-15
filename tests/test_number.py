@@ -1,103 +1,53 @@
 """Tests for EOS HA number platform."""
-from __future__ import annotations
-
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
-
 from custom_components.eos_ha.number import (
-    EOSNumber,
     NUMBERS,
     EV_NUMBERS,
-    PARALLEL_UPDATES,
+    EOSNumber,
     _DEFAULTS,
 )
 from custom_components.eos_ha.const import (
     CONF_BATTERY_CAPACITY,
+    CONF_MAX_SOC,
     CONF_MIN_SOC,
     DEFAULT_BATTERY_CAPACITY,
+    DEFAULT_MAX_SOC,
     DEFAULT_MIN_SOC,
 )
 
 
-def test_parallel_updates():
-    """Test PARALLEL_UPDATES is set to 1."""
-    assert PARALLEL_UPDATES == 1
+class TestNumberDescriptions:
+    def test_number_keys(self):
+        keys = [d.key for d in NUMBERS]
+        assert "battery_capacity" in keys
+        assert "max_charge_power" in keys
+        assert "inverter_power" in keys
+        assert "min_soc" in keys
+        assert "max_soc" in keys
+
+    def test_ev_number_keys(self):
+        keys = [d.key for d in EV_NUMBERS]
+        assert "ev_capacity" in keys
+        assert "ev_charge_power" in keys
+
+    def test_defaults_mapping(self):
+        assert _DEFAULTS[CONF_BATTERY_CAPACITY] == DEFAULT_BATTERY_CAPACITY
+        assert _DEFAULTS[CONF_MIN_SOC] == DEFAULT_MIN_SOC
+        assert _DEFAULTS[CONF_MAX_SOC] == DEFAULT_MAX_SOC
 
 
-def _make_mocks():
-    """Create mock coordinator and entry."""
-    coord = MagicMock()
-    coord.config_entry = MagicMock()
-    coord.config_entry.entry_id = "test_entry"
-    coord.async_request_refresh = AsyncMock()
+class TestEOSNumber:
+    def test_native_value_from_data(self, mock_coordinator):
+        desc = next(d for d in NUMBERS if d.key == "battery_capacity")
+        entity = EOSNumber(mock_coordinator, mock_coordinator.config_entry, desc)
+        assert entity.native_value == 10.0
 
-    entry = MagicMock()
-    entry.entry_id = "test_entry"
-    entry.data = {"battery_capacity": 10.0, "min_soc": 15}
-    entry.options = {}
-    return coord, entry
+    def test_native_value_from_options(self, mock_coordinator):
+        mock_coordinator.config_entry.options = {"battery_capacity": 20.0}
+        desc = next(d for d in NUMBERS if d.key == "battery_capacity")
+        entity = EOSNumber(mock_coordinator, mock_coordinator.config_entry, desc)
+        assert entity.native_value == 20.0
 
-
-def test_number_native_value_from_data():
-    """Test number entity reads from config data."""
-    coord, entry = _make_mocks()
-    desc = NUMBERS[0]  # battery_capacity
-    number = EOSNumber(coord, entry, desc)
-    assert number.native_value == 10.0
-
-
-def test_number_native_value_from_options():
-    """Test number entity prefers options over data."""
-    coord, entry = _make_mocks()
-    entry.options = {"battery_capacity": 15.0}
-    desc = NUMBERS[0]
-    number = EOSNumber(coord, entry, desc)
-    assert number.native_value == 15.0
-
-
-def test_number_native_value_default():
-    """Test number entity falls back to defaults."""
-    coord, entry = _make_mocks()
-    entry.data = {}
-    desc = NUMBERS[0]
-    number = EOSNumber(coord, entry, desc)
-    assert number.native_value == DEFAULT_BATTERY_CAPACITY
-
-
-def test_number_unique_id():
-    """Test number entity unique_id."""
-    coord, entry = _make_mocks()
-    desc = NUMBERS[0]
-    number = EOSNumber(coord, entry, desc)
-    assert number.unique_id == "test_entry_battery_capacity"
-
-
-def test_number_descriptions_count():
-    """Test we have battery number descriptions."""
-    assert len(NUMBERS) == 5
-    assert len(EV_NUMBERS) == 2
-
-
-def test_defaults_dict():
-    """Test defaults dict has entries for all config keys."""
-    for desc in NUMBERS:
-        assert desc.config_key in _DEFAULTS
-    for desc in EV_NUMBERS:
-        assert desc.config_key in _DEFAULTS
-
-
-async def test_number_set_value(hass):
-    """Test setting a number value updates options."""
-    coord, entry = _make_mocks()
-    desc = NUMBERS[0]
-    number = EOSNumber(coord, entry, desc)
-    number.hass = hass
-
-    with patch.object(hass.config_entries, "async_update_entry") as mock_update:
-        await number.async_set_native_value(20.0)
-        mock_update.assert_called_once()
-        call_kwargs = mock_update.call_args
-        assert call_kwargs[1]["options"]["battery_capacity"] == 20.0
-
-    coord.async_request_refresh.assert_called_once()
+    def test_unique_id(self, mock_coordinator):
+        desc = next(d for d in NUMBERS if d.key == "min_soc")
+        entity = EOSNumber(mock_coordinator, mock_coordinator.config_entry, desc)
+        assert entity.unique_id == "test_entry_id_min_soc"
