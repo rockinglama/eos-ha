@@ -25,9 +25,8 @@ You keep full control — EOS-HA provides recommendations as sensor entities. Yo
 
 - Home Assistant 2024.1+
 - A running [Akkudoktor EOS](https://github.com/Akkudoktor-EOS/EOS) server (addon or standalone)
-- A battery SOC sensor
-- A consumption/load sensor
-- An electricity price sensor (only if using "External" price source)
+- A battery SOC sensor (standard HA percentage entity, 0–100%)
+- An electricity price sensor (only if using "External" price source, e.g. Tibber)
 
 > **Tip:** For the best experience, run EOS as a Home Assistant addon — the HA Adapter provides direct entity access for seamless integration.
 
@@ -65,15 +64,15 @@ Add the integration via **Settings → Devices & Services → + Add Integration 
 | Step | What You Configure |
 |------|--------------------|
 | **EOS Server** | URL of your EOS server (auto-detected if running as addon) |
-| **Entities** | Battery SOC sensor, consumption sensor, electricity price sensor (if external), temperature sensor |
+| **Entities** | Battery SOC sensor |
 | **Battery** | Capacity (kWh), max charge power (W), inverter power (W), SOC limits (%) |
 | **PV Arrays** | Solar arrays with azimuth, tilt, peak power, inverter power, efficiency |
 | **Price Source** | Akkudoktor, EnergyCharts, or External (Tibber, ENTSO-E, etc.) |
 | **EV** *(optional)* | Electric vehicle — capacity, charge power, SOC entity, efficiency |
 | **Appliances** *(optional)* | Flexible loads with time windows (e.g. Brauchwasserwärmepumpe) |
-| **Energy Meters** *(optional)* | Load, grid import/export, PV production energy meters for forecast correction |
+| **Energy Meters** *(optional)* | Load, grid import/export, PV production energy meters; yearly consumption (kWh) for load prediction |
 | **Battery Sensors** *(optional)* | Entities for battery storage price tracking |
-| **SG-Ready** *(optional)* | Heat pump relay switches for SG-Ready control |
+| **SG-Ready** *(optional)* | Heat pump relay switches for SG-Ready control, PV surplus threshold |
 | **Feed-in Tariff** | Feed-in compensation rate (Einspeisevergütung, default 0.082 €/kWh) |
 
 ### Options Flow
@@ -134,6 +133,8 @@ EOS-HA wraps these with proper `unique_id`, device grouping under "EOS", and tra
 | `appliance_schedule` | Scheduled appliances count and details |
 | `battery_storage_price` | Weighted avg cost of stored energy (EUR/kWh) |
 | `sg_ready_mode` | Recommended SG-Ready mode (1–4) |
+| `energy_production_today` | PV energy production today (kWh) — Energy Dashboard compatible |
+| `energy_production_tomorrow` | PV energy production tomorrow (kWh) |
 
 ### Binary Sensors
 
@@ -163,6 +164,8 @@ Adjustable at runtime:
 
 | Entity | Description |
 |--------|-------------|
+| `optimize_now` | Trigger immediate optimization |
+| `update_predictions` | Trigger prediction update without full optimization |
 | `reset_battery_price` | Reset battery storage price tracking to zero |
 
 ## Services
@@ -203,7 +206,7 @@ Reset battery storage price tracking to zero.
 
 ## SG-Ready Heat Pump
 
-Control SG-Ready heat pumps via two relay switches:
+Control SG-Ready heat pumps via one or two relay switches. Single-contact heat pumps (e.g. BWWPs with only a Zwangsstart relay) only need Contact 2.
 
 | Mode | Contact 1 | Contact 2 | Meaning |
 |------|-----------|-----------|---------|
@@ -212,8 +215,16 @@ Control SG-Ready heat pumps via two relay switches:
 | 3 — Recommend | OFF | ON | Recommend run (PV surplus / cheap power) |
 | 4 — Force | ON | ON | Force run (significant PV surplus, battery full) |
 
+### Configuration
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| Contact 1 | *(optional)* | Switch entity for SG-Ready contact 1 (EVU lock) |
+| Contact 2 | *(optional)* | Switch entity for SG-Ready contact 2 (Zwangsstart) |
+| PV Surplus Threshold | 500 W | Minimum PV surplus before switching to Recommend/Force mode |
+
 The **SG-Ready Mode sensor** recommends a mode based on:
-- PV surplus vs. consumption
+- PV surplus vs. configurable threshold
 - Current vs. average electricity price
 - Battery SOC level
 
