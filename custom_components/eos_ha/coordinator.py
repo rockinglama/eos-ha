@@ -377,7 +377,7 @@ class EOSCoordinator(DataUpdateCoordinator):
         if not price_state or price_state.state in (STATE_UNAVAILABLE, STATE_UNKNOWN):
             return
 
-        # Try Tibber-style forecast attribute
+        # Try Tibber-style forecast attribute {start, total}
         forecast = price_state.attributes.get("forecast")
         if forecast and isinstance(forecast, list):
             try:
@@ -394,10 +394,32 @@ class EOSCoordinator(DataUpdateCoordinator):
                         price_data,
                         force_enable=True,
                     )
-                    _LOGGER.debug("Pushed %d external price points to EOS", len(price_data))
+                    _LOGGER.debug("Pushed %d Tibber price points to EOS", len(price_data))
                     return
             except Exception as err:
                 _LOGGER.debug("Error pushing Tibber prices: %s", err)
+
+        # Try EPEX Spot style data attribute {start_time, end_time, price_per_kwh}
+        epex_data = price_state.attributes.get("data")
+        if epex_data and isinstance(epex_data, list):
+            try:
+                price_data = {}
+                for entry in epex_data:
+                    start = entry.get("start_time")
+                    price = entry.get("price_per_kwh") or entry.get("price_ct_per_kwh")
+                    if start and price is not None:
+                        price_data[str(start)] = float(price)
+
+                if price_data:
+                    await self._eos_client.import_prediction(
+                        "ElecPriceImport",
+                        price_data,
+                        force_enable=True,
+                    )
+                    _LOGGER.debug("Pushed %d EPEX Spot price points to EOS", len(price_data))
+                    return
+            except Exception as err:
+                _LOGGER.debug("Error pushing EPEX Spot prices: %s", err)
 
         # Fallback: single current price
         try:
