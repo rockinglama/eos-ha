@@ -141,6 +141,10 @@ class EOSCoordinator(DataUpdateCoordinator):
                 "provider": "ElecPriceEnergyCharts",
                 "energycharts": {"bidding_zone": bidding_zone},
             })
+        elif price_source == PRICE_SOURCE_EXTERNAL:
+            await self._eos_client.put_config("elecprice", {
+                "provider": "ElecPriceImport",
+            })
 
         # 3. Configure PV forecast
         pv_arrays = self._get_config(CONF_PV_ARRAYS) or []
